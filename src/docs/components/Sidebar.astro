@@ -1,0 +1,77 @@
+---
+const { title = "Components", items = [] } = Astro.props;
+const currentPath = Astro.url?.pathname ?? "";
+---
+<nav class="sidebar" aria-label={title}>
+  <div class="sidebar__title">{title}</div>
+  <ul class="sidebar__list">
+    {items.length === 0 && (
+      <li class="sidebar__empty">No components yet.</li>
+    )}
+    {items.map((item) => (
+      <li>
+        <a
+          class={`sidebar__link${currentPath === item.href ? " is-active" : ""}`}
+          href={item.href}
+        >
+          <span>{item.name}</span>
+          {item.tag && <span class="sidebar__tag">{item.tag}</span>}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .sidebar__title {
+    font-size: var(--size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-muted);
+  }
+
+  .sidebar__list {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .sidebar__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-size: var(--size-sm);
+    transition: border-color 150ms ease, background 150ms ease;
+  }
+
+  .sidebar__link:hover {
+    border-color: var(--color-border);
+    background: var(--color-accent-muted);
+  }
+
+  .sidebar__link.is-active {
+    border-color: var(--color-accent);
+    box-shadow: 0 8px 18px rgba(13, 110, 168, 0.18);
+  }
+
+  .sidebar__tag {
+    font-size: var(--size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-muted);
+  }
+
+  .sidebar__empty {
+    color: var(--color-muted);
+    font-size: var(--size-sm);
+  }
+</style>

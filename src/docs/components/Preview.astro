@@ -1,0 +1,63 @@
+---
+const { title, code, note } = Astro.props;
+---
+<section class="preview">
+  {(title || note) && (
+    <header class="preview__header">
+      {title && <h2 class="preview__title">{title}</h2>}
+      {note && <p class="preview__note">{note}</p>}
+    </header>
+  )}
+  <div class="preview__frame">
+    <slot />
+  </div>
+  {code && (
+    <pre class="preview__code"><code>{code}</code></pre>
+  )}
+</section>
+
+<style>
+  .preview {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-surface) 80%, var(--color-accent-muted) 20%);
+  }
+
+  .preview__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .preview__title {
+    font-size: var(--size-lg);
+    margin: 0;
+  }
+
+  .preview__note {
+    color: var(--color-muted);
+  }
+
+  .preview__frame {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--color-border);
+    background: var(--color-surface);
+    display: grid;
+    place-items: center;
+    min-height: 120px;
+  }
+
+  .preview__code {
+    margin: 0;
+    padding: var(--space-3);
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+    overflow-x: auto;
+  }
+</style>

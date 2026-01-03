@@ -1,0 +1,56 @@
+:root {
+  color-scheme: light;
+
+  --color-bg: #f8f6f1;
+  --color-fg: #1b1a16;
+  --color-surface: #ffffff;
+  --color-border: #d7d2c6;
+  --color-muted: #6f6a60;
+  --color-accent: #0d6ea8;
+  --color-accent-contrast: #ffffff;
+  --color-accent-muted: #d6e9f4;
+  --color-focus: #0d6ea8;
+  --color-shadow: rgba(0, 0, 0, 0.12);
+
+  --font-body: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Bangers", "Trebuchet MS", "Arial Black", cursive;
+  --font-mono: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --size-xs: 0.75rem;
+  --size-sm: 0.875rem;
+  --size-md: 1rem;
+  --size-lg: 1.125rem;
+  --size-xl: 1.375rem;
+  --line-tight: 1.1;
+  --line-normal: 1.5;
+  --line-relaxed: 1.75;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #141412;
+  --color-fg: #f2efe8;
+  --color-surface: #1e1d19;
+  --color-border: #2f2d27;
+  --color-muted: #b2ab9e;
+  --color-accent: #5cc0ff;
+  --color-accent-contrast: #0b1116;
+  --color-accent-muted: #0f2733;
+  --color-focus: #5cc0ff;
+  --color-shadow: rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,71 @@
+<button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+  <span class="theme-toggle__label">Theme</span>
+  <span class="theme-toggle__state" data-theme-label>Light</span>
+</button>
+
+<script is:inline>
+  const root = document.documentElement;
+  const toggle = document.querySelector("[data-theme-toggle]");
+  const label = document.querySelector("[data-theme-label]");
+  const storageKey = "yws-theme";
+
+  const applyTheme = (theme) => {
+    root.setAttribute("data-theme", theme);
+    if (label) {
+      label.textContent = theme === "dark" ? "Dark" : "Light";
+    }
+    if (toggle) {
+      toggle.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+    }
+    try {
+      localStorage.setItem(storageKey, theme);
+    } catch {
+      // Ignore storage errors in restricted contexts.
+    }
+  };
+
+  const saved = (() => {
+    try {
+      return localStorage.getItem(storageKey);
+    } catch {
+      return null;
+    }
+  })();
+
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const initial = saved || (prefersDark ? "dark" : "light");
+  applyTheme(initial);
+
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(next);
+    });
+  }
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-accent-muted);
+    color: var(--color-fg);
+    font-size: var(--size-sm);
+    cursor: pointer;
+  }
+
+  .theme-toggle__label {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: var(--size-xs);
+    color: var(--color-muted);
+  }
+
+  .theme-toggle__state {
+    font-weight: var(--weight-semibold);
+  }
+</style>

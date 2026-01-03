@@ -1,0 +1,94 @@
+---
+import DocLayout from "../layouts/DocLayout.astro";
+import { components } from "../data/components.js";
+---
+<DocLayout title="Components" description="Your building blocks." items={components}>
+  <section class="intro">
+    <h2>Welcome</h2>
+    <p>
+      This is the living styleguide for Your Web Squad components. Each component
+      page renders the real component so what you see is what you ship.
+    </p>
+  </section>
+
+  <section class="grid">
+    {components.length === 0 && (
+      <div class="empty">
+        <p>No components yet. Add your first component to start.</p>
+      </div>
+    )}
+    {components.map((component) => (
+      <a class="card" href={component.href}>
+        <div>
+          <h3>{component.name}</h3>
+          <p>{component.description ?? ""}</p>
+        </div>
+        <span class="card__cta">View</span>
+      </a>
+    ))}
+  </section>
+</DocLayout>
+
+<style>
+  .intro {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .intro h2 {
+    font-size: var(--size-xl);
+    margin: 0;
+  }
+
+  .intro p {
+    color: var(--color-muted);
+    max-width: 60ch;
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px var(--color-shadow);
+  }
+
+  .card h3 {
+    margin: 0 0 var(--space-1);
+    font-size: var(--size-lg);
+  }
+
+  .card p {
+    margin: 0;
+    color: var(--color-muted);
+  }
+
+  .card__cta {
+    font-size: var(--size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-muted);
+  }
+
+  .empty {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--color-border);
+    color: var(--color-muted);
+  }
+</style>

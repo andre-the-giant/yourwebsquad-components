@@ -1,0 +1,24 @@
+{
+  "name": "yourwebsquad-components",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "astro": "^5.16.6"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-astro": "^0.14.1"
+  },
+  "exports": {
+    ".": "./src/lib/index.js",
+    "./tokens.css": "./src/lib/styles/tokens.css",
+    "./*": "./src/lib/components/*/index.astro"
+  }
+}
