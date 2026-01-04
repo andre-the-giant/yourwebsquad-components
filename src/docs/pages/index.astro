@@ -1,32 +1,49 @@
 ---
 import DocLayout from "../layouts/DocLayout.astro";
 import { components } from "../data/components.js";
+
+const grouped = components.reduce((acc, item) => {
+  const key = item.group || "atoms";
+  acc[key] = acc[key] || [];
+  acc[key].push(item);
+  return acc;
+}, {});
+
+const order = ["atoms", "molecules", "components"];
+const labels = { atoms: "Atoms", molecules: "Molecules", components: "Components" };
 ---
+
 <DocLayout title="Components" description="Your building blocks." items={components}>
   <section class="intro">
     <h2>Welcome</h2>
     <p>
-      This is the living styleguide for Your Web Squad components. Each component
-      page renders the real component so what you see is what you ship.
+      This is the living styleguide for Your Web Squad components. Each component page renders the
+      real component so what you see is what you ship.
     </p>
   </section>
 
-  <section class="grid">
-    {components.length === 0 && (
-      <div class="empty">
-        <p>No components yet. Add your first component to start.</p>
-      </div>
-    )}
-    {components.map((component) => (
-      <a class="card" href={component.href}>
-        <div>
-          <h3>{component.name}</h3>
-          <p>{component.description ?? ""}</p>
-        </div>
-        <span class="card__cta">View</span>
-      </a>
-    ))}
-  </section>
+  {
+    order.map(
+      (groupKey) =>
+        grouped[groupKey] &&
+        grouped[groupKey].length > 0 && (
+          <section class="group">
+            <h3 class="group__title">{labels[groupKey]}</h3>
+            <div class="grid">
+              {grouped[groupKey].map((component) => (
+                <a class="card" href={component.href}>
+                  <div>
+                    <h3>{component.name}</h3>
+                    <p>{component.description ?? ""}</p>
+                  </div>
+                  <span class="card__cta">View</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )
+    )
+  }
 </DocLayout>
 
 <style>
@@ -57,15 +74,17 @@ import { components } from "../data/components.js";
     justify-content: space-between;
     gap: var(--space-3);
     padding: var(--space-4);
-    border-radius: var(--radius-md);
+    border-radius: 0;
     border: 1px solid var(--color-border);
     background: var(--color-surface);
-    transition: transform 150ms ease, box-shadow 150ms ease;
+    transition:
+      transform 150ms ease,
+      box-shadow 150ms ease;
   }
 
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 20px var(--color-shadow);
+    box-shadow: none;
   }
 
   .card h3 {
@@ -87,7 +106,7 @@ import { components } from "../data/components.js";
 
   .empty {
     padding: var(--space-4);
-    border-radius: var(--radius-md);
+    border-radius: 0;
     border: 1px dashed var(--color-border);
     color: var(--color-muted);
   }

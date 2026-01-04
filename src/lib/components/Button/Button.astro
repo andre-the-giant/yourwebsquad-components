@@ -29,32 +29,36 @@ const resolvedLabel = label ?? content.label ?? "Button";
 const resolvedHref = href ?? content.href;
 const resolvedTarget = target ?? content.target;
 const resolvedRel = rel ?? content.rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
-const className = `btn btn--${variant} btn--${size}`;
+const className = `button button--${variant} button--${size}`;
 ---
-{resolvedHref ? (
-  <a
-    class={className}
-    href={resolvedHref}
-    target={resolvedTarget}
-    rel={resolvedRel}
-    aria-disabled={disabled ? "true" : undefined}
-  >
-    {resolvedLabel}
-  </a>
-) : (
-  <button class={className} type={type} disabled={disabled}>
-    {resolvedLabel}
-  </button>
-)}
+
+{
+  resolvedHref ? (
+    <a
+      class={className}
+      href={resolvedHref}
+      target={resolvedTarget}
+      rel={resolvedRel}
+      aria-disabled={disabled ? "true" : undefined}
+    >
+      {resolvedLabel}
+    </a>
+  ) : (
+    <button class={className} type={type} disabled={disabled}>
+      {resolvedLabel}
+    </button>
+  )
+}
 
 <style>
-  .btn {
+  .button {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    /* align-items: center;
+    justify-content: center; */
+    place-content: center;
     gap: var(--space-2);
     padding: 0.65rem 1.5rem;
-    border-radius: 999px;
+    border-radius: 0;
     border: 1px solid transparent;
     font-family: var(--font-body);
     font-weight: var(--weight-semibold);
@@ -62,63 +66,68 @@ const className = `btn btn--${variant} btn--${size}`;
     line-height: var(--line-tight);
     text-decoration: none;
     cursor: pointer;
-    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, color 120ms ease, border-color 120ms ease;
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease,
+      background 120ms ease,
+      color 120ms ease,
+      border-color 120ms ease;
   }
 
-  .btn:focus-visible {
+  .button:focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
 
-  .btn[aria-disabled="true"],
-  .btn:disabled {
+  .button[aria-disabled="true"],
+  .button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
 
-  .btn--solid {
+  .button--solid {
     background: var(--color-accent);
     color: var(--color-accent-contrast);
     border-color: var(--color-accent);
     box-shadow: 0 12px 25px color-mix(in srgb, var(--color-accent) 35%, transparent);
   }
 
-  .btn--solid:hover {
+  .button--solid:hover {
     transform: translateY(-1px);
   }
 
-  .btn--outline {
+  .button--outline {
     background: transparent;
     color: var(--color-accent);
     border-color: var(--color-accent);
   }
 
-  .btn--outline:hover {
+  .button--outline:hover {
     background: var(--color-accent-muted);
   }
 
-  .btn--ghost {
+  .button--ghost {
     background: transparent;
     color: var(--color-fg);
     border-color: transparent;
   }
 
-  .btn--ghost:hover {
+  .button--ghost:hover {
     background: var(--color-accent-muted);
     color: var(--color-accent);
   }
 
-  .btn--sm {
+  .button--sm {
     padding: 0.45rem 1rem;
     font-size: var(--size-sm);
   }
 
-  .btn--md {
+  .button--md {
     padding: 0.65rem 1.5rem;
     font-size: var(--size-md);
   }
 
-  .btn--lg {
+  .button--lg {
     padding: 0.85rem 1.9rem;
     font-size: var(--size-lg);
   }

@@ -1,0 +1,56 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import { components } from "../../../data/components.js";
+import Button from "@lib/components/Button/Button.astro";
+
+const baseContent = { label: "Start a project" };
+const linkContent = { label: "View case study", href: "/case-studies" };
+
+const solidCode = `<Button content={{ label: "Start a project" }} />`;
+const outlineCode = `<Button content={{ label: "View case study", href: "/case-studies" }} variant="outline" />`;
+const ghostCode = `<Button content={{ label: "Contact" }} variant="ghost" />`;
+const sizesCode = `<Button content={{ label: "Small" }} size="sm" />\n<Button content={{ label: "Medium" }} size="md" />\n<Button content={{ label: "Large" }} size="lg" />`;
+---
+
+<DocLayout
+  title="Button"
+  description="Action trigger for forms, navigation, and CTAs."
+  items={components}
+>
+  <Preview title="Solid" code={solidCode}>
+    <div class="row">
+      <Button content={baseContent} />
+      <Button content={{ label: "Secondary" }} variant="outline" />
+    </div>
+  </Preview>
+
+  <Preview title="Outline" code={outlineCode}>
+    <div class="row">
+      <Button content={linkContent} variant="outline" />
+    </div>
+  </Preview>
+
+  <Preview title="Ghost" code={ghostCode}>
+    <div class="row">
+      <Button content={{ label: "Contact" }} variant="ghost" />
+    </div>
+  </Preview>
+
+  <Preview title="Sizes" code={sizesCode}>
+    <div class="row">
+      <Button content={{ label: "Small" }} size="sm" />
+      <Button content={{ label: "Medium" }} size="md" />
+      <Button content={{ label: "Large" }} size="lg" />
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+</style>

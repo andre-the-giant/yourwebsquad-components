@@ -9,12 +9,7 @@ Notes:
 - direct props override content.*
 - set label to expose aria-label; otherwise icon is aria-hidden
 */
-const {
-  content = {},
-  name,
-  label,
-  size = "md"
-} = Astro.props;
+const { content = {}, name, label, size = "md" } = Astro.props;
 
 const resolvedName = name ?? content.name ?? "spark";
 const resolvedLabel = label ?? content.label;
@@ -25,6 +20,7 @@ const sizeMap = {
 };
 const iconSize = sizeMap[size] ?? sizeMap.md;
 ---
+
 <svg
   class="icon"
   width={iconSize}
@@ -40,23 +36,29 @@ const iconSize = sizeMap[size] ?? sizeMap.md;
   aria-label={resolvedLabel}
 >
   {resolvedLabel && <title>{resolvedLabel}</title>}
-  {resolvedName === "spark" && (
-    <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z" />
-  )}
-  {resolvedName === "arrow-right" && (
-    <>
-      <path d="M5 12h14" />
-      <path d="M13 6l6 6-6 6" />
-    </>
-  )}
-  {resolvedName === "grid" && (
-    <>
-      <rect x="4" y="4" width="7" height="7" rx="1.5" />
-      <rect x="13" y="4" width="7" height="7" rx="1.5" />
-      <rect x="4" y="13" width="7" height="7" rx="1.5" />
-      <rect x="13" y="13" width="7" height="7" rx="1.5" />
-    </>
-  )}
+  {
+    resolvedName === "spark" && (
+      <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z" />
+    )
+  }
+  {
+    resolvedName === "arrow-right" && (
+      <>
+        <path d="M5 12h14" />
+        <path d="M13 6l6 6-6 6" />
+      </>
+    )
+  }
+  {
+    resolvedName === "grid" && (
+      <>
+        <rect x="4" y="4" width="7" height="7" rx="1.5" />
+        <rect x="13" y="4" width="7" height="7" rx="1.5" />
+        <rect x="4" y="13" width="7" height="7" rx="1.5" />
+        <rect x="13" y="13" width="7" height="7" rx="1.5" />
+      </>
+    )
+  }
 </svg>
 
 <style>

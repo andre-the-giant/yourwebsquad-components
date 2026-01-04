@@ -137,3 +137,48 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Astro generated types and cache
+.astro/
+
+# Copilot instructions (local)
+.github/copilot-instructions.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editors & IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Editor/temp files
+*~
+*.swp
+*.swx
+
+# Build / output
+dist/
+build/
+out/
+
+# Caches
+.cache/
+.parcel-cache/
+.vite/
+.nyc_output/
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+.astro/types.d.ts
+src/env.d.ts

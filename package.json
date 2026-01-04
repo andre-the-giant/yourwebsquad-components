@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "create": "node ./scripts/create-component.js",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

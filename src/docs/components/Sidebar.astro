@@ -1,27 +1,48 @@
 ---
 const { title = "Components", items = [] } = Astro.props;
 const currentPath = Astro.url?.pathname ?? "";
+
+const grouped = items.reduce((acc, item) => {
+  const key = item.group || "atoms";
+  acc[key] = acc[key] || [];
+  acc[key].push(item);
+  return acc;
+}, {});
+
+const order = ["atoms", "molecules", "components"];
+const labels = { atoms: "Atoms", molecules: "Molecules", components: "Components" };
 ---
+
 <nav class="sidebar" aria-label={title}>
   <div class="sidebar__title">{title}</div>
-  <ul class="sidebar__list">
-    {items.length === 0 && (
-      <li class="sidebar__empty">No components yet.</li>
-    )}
-    {items.map((item) => (
-      <li>
-        <a
-          class={`sidebar__link${currentPath === item.href ? " is-active" : ""}`}
-          href={item.href}
-        >
-          <span>{item.name}</span>
-          {item.tag && <span class="sidebar__tag">{item.tag}</span>}
-        </a>
-      </li>
-    ))}
-  </ul>
-</nav>
 
+  {
+    order.map(
+      (groupKey) =>
+        grouped[groupKey] &&
+        grouped[groupKey].length > 0 && (
+          <div class="sidebar__group">
+            <div class="sidebar__group-title">{labels[groupKey]}</div>
+            <ul class="sidebar__list">
+              {grouped[groupKey].map((item) => (
+                <li>
+                  <a
+                    class={`sidebar__link${currentPath === item.href ? " is-active" : ""}`}
+                    href={item.href}
+                  >
+                    <span>{item.name}</span>
+                    {item.tag && <span class="sidebar__tag">{item.tag}</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+    )
+  }
+
+  {items.length === 0 && <div class="sidebar__empty">No components yet.</div>}
+</nav>
 <style>
   .sidebar {
     display: flex;
@@ -41,16 +62,32 @@ const currentPath = Astro.url?.pathname ?? "";
     gap: var(--space-2);
   }
 
+  .sidebar__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .sidebar__group-title {
+    font-size: var(--size-xs);
+    text-transform: uppercase;
+    color: var(--color-muted);
+    letter-spacing: 0.12em;
+    padding: var(--space-1) var(--space-2);
+  }
+
   .sidebar__link {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0;
     border: 1px solid transparent;
-    font-size: var(--size-sm);
-    transition: border-color 150ms ease, background 150ms ease;
+    font-size: var(--size-xs);
+    transition:
+      border-color 150ms ease,
+      background 150ms ease;
   }
 
   .sidebar__link:hover {
@@ -60,7 +97,7 @@ const currentPath = Astro.url?.pathname ?? "";
 
   .sidebar__link.is-active {
     border-color: var(--color-accent);
-    box-shadow: 0 8px 18px rgba(13, 110, 168, 0.18);
+    box-shadow: none;
   }
 
   .sidebar__tag {
