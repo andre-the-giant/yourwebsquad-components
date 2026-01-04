@@ -1,4 +1,4 @@
-<img src="https://yourwebsquad.com/img/logo-black-square.png" width="400">
+<img src="https://yourwebsquad.com/img/logo-black-square.png" width="200">
 
 # My own little component library
 
