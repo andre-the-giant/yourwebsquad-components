@@ -1,4 +1,6 @@
-# Your Web Squat - component library
+<img src="https://yourwebsquad.com/_astro/yws_logo.CWnkdKQi_ZmYHFV.svg" width="400">
+
+# My own little component library
 
 Hey what's up ? So you found my little component library project ? I hope you like it!
 Let me tell you more about it.
