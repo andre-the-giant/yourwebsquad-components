@@ -1,4 +1,4 @@
-<img src="https://yourwebsquad.com/_astro/yws_logo.CWnkdKQi_ZmYHFV.svg" width="400">
+<img src="https://yourwebsquad.com/img/logo-black-square.png" width="400">
 
 # My own little component library
 
