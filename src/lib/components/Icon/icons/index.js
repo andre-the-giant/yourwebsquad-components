@@ -16,9 +16,9 @@ export default {
   external: {
     viewBox: "0 0 24 24",
     svg: `<g transform="rotate(-45 12 12)"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></g>`,
-    strokeWidth: '1',
-    strokeLinecap: 'round',
-    strokeLinejoin: 'miter'
+    strokeWidth: "1",
+    strokeLinecap: "round",
+    strokeLinejoin: "miter"
   },
   grid: {
     viewBox: "0 0 24 24",

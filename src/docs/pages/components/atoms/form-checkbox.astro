@@ -1,0 +1,60 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import { components } from "@docs/data/components.js";
+import FormCheckbox from "@lib/components/Form-Checkbox/Form-Checkbox.astro";
+
+const basicCode = `
+<FormCheckbox content={{ label: "Enable notifications", id: "notify" }} />`;
+const optionsCode = `
+<FormCheckbox content={{ label: "Right toggle" }} />\n<FormCheckbox content={{ label: "Left toggle" }} position="left" checkedColor="#0d6ea8" uncheckedColor="#e6e6e6" thumbColor="#fff" radius="20px" />
+<FormCheckbox 
+        content={{ label: "Squary left toggle starting red going red" }} 
+        radius="3px"
+        position="left" 
+        uncheckedColor="green"
+        checkedColor="red"
+         />`;
+---
+
+<DocLayout
+  title="Form-Checkbox (Toggle)"
+  description="Styled checkbox presented as a toggle. Position and colors configurable."
+  items={components}
+>
+  <Preview title="Basic" code={basicCode}>
+    <div class="row">
+      <FormCheckbox content={{ label: "Enable notifications", id: "notify" }} />
+    </div>
+  </Preview>
+
+  <Preview title="Variants" code={optionsCode}>
+    <div class="row">
+      <FormCheckbox content={{ label: "Right toggle" }} />
+      <FormCheckbox
+        content={{ label: "Left toggle" }}
+        position="left"
+        checkedColor="#0d6ea8"
+        uncheckedColor="#e6e6e6"
+        thumbColor="#fff"
+        radius="20px"
+      />
+      <FormCheckbox 
+        content={{ label: "Squary left toggle starting red going red" }} 
+        radius="3px"
+        position="left" 
+        uncheckedColor="green"
+        checkedColor="red"
+         />
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 50rem;
+  }
+</style>

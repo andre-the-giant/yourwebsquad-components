@@ -1,0 +1,195 @@
+---
+/*
+Props:
+- content?: { label?: string, id?: string }
+- id?: string
+- name?: string
+- label?: string
+- checked?: boolean
+- disabled?: boolean
+- required?: boolean
+- position?: "left" | "right"  // where the toggle sits relative to label
+- checkedColor?: string            // track color when checked
+- uncheckedColor?: string          // track color when unchecked
+- thumbColor?: string              // thumb color (defaults to currentColor)
+- radius?: string                  // CSS radius for track/thumb rounding
+- ariaLabel?: string
+- ariaDescribedBy?: string
+- ariaInvalid?: boolean
+- helpId?: string
+- errorId?: string
+Notes:
+- Uses "checkbox hack" styling but keeps native input for accessibility.
+- Label text flexes to take remaining row space; toggle can be left or right.
+*/
+const {
+  content = {},
+  id,
+  name,
+  label,
+  checked = false,
+  disabled = false,
+  required = false,
+  position = "right",
+  checkedColor,
+  uncheckedColor,
+  thumbColor,
+  radius,
+  ariaLabel,
+  ariaDescribedBy,
+  ariaInvalid = false,
+  helpId,
+  errorId,
+  ariaControls,
+  ...rest
+} = Astro.props;
+
+const resolvedLabel = label ?? content.label;
+const resolvedId = id ?? content.id ?? `form-checkbox-${Math.random().toString(36).slice(2, 9)}`;
+const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+
+const styleVars = {
+  "--toggle-checked": checkedColor ?? "currentColor",
+  "--toggle-unchecked": uncheckedColor ?? "transparent",
+  "--toggle-thumb": thumbColor ?? "var(--color-surface)",
+  "--toggle-radius": radius ?? "999px"
+};
+---
+
+<div class="form-field">
+  <label
+    class={`toggle-row ${position === "left" ? "pos-left" : "pos-right"}`}
+    for={resolvedId}
+    style={styleVars}
+  >
+    {
+      position === "left" ? (
+        <>
+          <input
+            id={resolvedId}
+            class="toggle-input"
+            type="checkbox"
+            name={name}
+            checked={checked}
+            disabled={disabled}
+            required={required}
+            aria-label={ariaLabel}
+            aria-describedby={describedIds || undefined}
+            aria-invalid={ariaInvalid ? "true" : undefined}
+            aria-controls={ariaControls || undefined}
+            {...rest}
+          />
+          <span class="toggle" aria-hidden="true" />
+          <span class="label-text">{resolvedLabel}</span>
+        </>
+      ) : (
+        <>
+          <span class="label-text">{resolvedLabel}</span>
+          <input
+            id={resolvedId}
+            class="toggle-input"
+            type="checkbox"
+            name={name}
+            checked={checked}
+            disabled={disabled}
+            required={required}
+            aria-label={ariaLabel}
+            aria-describedby={describedIds || undefined}
+            aria-invalid={ariaInvalid ? "true" : undefined}
+            aria-controls={ariaControls || undefined}
+            {...rest}
+          />
+          <span class="toggle" aria-hidden="true" />
+        </>
+      )
+    }
+  </label>
+</div>
+
+<style>
+  .form-field {
+    width: var(--form-width);
+  }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+
+  .toggle-row.pos-left {
+    flex-direction: row;
+  }
+  .toggle-row.pos-right {
+    flex-direction: row;
+  }
+
+  .label-text {
+    flex: 1 1 auto;
+    color: var(--color-fg);
+  }
+
+  /* Hide native checkbox but keep it accessible */
+  .toggle-input {
+    position: absolute !important;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* visual toggle */
+  .toggle {
+    --track-w: 44px;
+    --track-h: 24px;
+    display: inline-block;
+    width: var(--track-w);
+    height: var(--track-h);
+    background: var(--toggle-unchecked);
+    border-radius: var(--toggle-radius);
+    position: relative;
+    transition:
+      background 180ms ease,
+      box-shadow 180ms ease;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
+    flex: 0 0 auto;
+  }
+
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 4px;
+    transform: translateY(-50%);
+    width: calc(var(--track-h) - 8px);
+    height: calc(var(--track-h) - 8px);
+    background: var(--toggle-thumb);
+    border-radius: calc(var(--toggle-radius));
+    transition:
+      transform 200ms cubic-bezier(0.2, 0.9, 0.2, 1),
+      background 180ms ease;
+    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.12);
+  }
+
+  /* Checked state */
+  .toggle-input:checked + .toggle {
+    background: var(--toggle-checked);
+  }
+  .toggle-input:checked + .toggle::after {
+    transform: translateY(-50%) translateX(calc(var(--track-w) - var(--track-h)));
+  }
+
+  /* Focus styles */
+  .toggle-input:focus + .toggle {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--toggle-checked) 20%, transparent);
+  }
+
+  /* Disabled */
+  .toggle-input:disabled + .toggle {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>

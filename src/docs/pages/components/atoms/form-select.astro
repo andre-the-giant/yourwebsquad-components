@@ -1,0 +1,45 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import { components } from "@docs/data/components.js";
+import FormSelect from "@lib/components/Form-Select/Form-Select.astro";
+
+const options = [
+  { label: "United States", value: "us" },
+  { label: "Canada", value: "ca" },
+  { label: "United Kingdom", value: "uk" }
+];
+
+const basicCode = `<FormSelect content={{ label: "Country", id: "country", options: ${JSON.stringify(options)} }} placeholder="Select a country" />`;
+const statesCode = `<FormSelect content={{ label: "Disabled", id: "country-disabled", options: ${JSON.stringify(options)} }} disabled />`;
+---
+
+<DocLayout
+  title="Form-Select"
+  description="Single-select dropdown with label and states."
+  items={components}
+>
+  <Preview title="Basic" code={basicCode}>
+    <div class="row">
+      <FormSelect
+        content={{ label: "Country", id: "country", options }}
+        placeholder="Select a country"
+      />
+    </div>
+  </Preview>
+
+  <Preview title="States" code={statesCode}>
+    <div class="row">
+      <FormSelect content={{ label: "Disabled", id: "country-disabled", options }} disabled />
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+  }
+</style>

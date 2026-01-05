@@ -1,0 +1,110 @@
+---
+/*
+Props:
+- content?: { label?: string, id?: string, placeholder?: string, value?: string }
+- id?: string
+- name?: string
+- label?: string
+- placeholder?: string
+- value?: string
+- rows?: number
+- disabled?: boolean
+- readonly?: boolean
+- required?: boolean
+- ariaLabel?: string
+- ariaDescribedBy?: string
+- ariaInvalid?: boolean
+- helpId?: string
+- errorId?: string
+- ariaControls?: string
+Notes:
+- direct props override content.*
+- component auto-generates an id when none is provided
+*/
+const {
+  content = {},
+  id,
+  name,
+  label,
+  placeholder,
+  value,
+  rows = 4,
+  disabled = false,
+  readonly = false,
+  required = false,
+  ariaLabel,
+  ariaDescribedBy,
+  ariaInvalid = false,
+  helpId,
+  errorId,
+  ariaControls,
+  ...rest
+} = Astro.props;
+
+const resolvedLabel = label ?? content.label;
+const resolvedId = id ?? content.id ?? `form-textarea-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedPlaceholder = placeholder ?? content.placeholder;
+const resolvedValue = value ?? content.value ?? "";
+
+const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+---
+
+<div class="form-field">
+  {
+    resolvedLabel ? (
+      <label class="form-label" for={resolvedId}>
+        {resolvedLabel}
+      </label>
+    ) : null
+  }
+
+  <textarea
+    class="form-textarea"
+    id={resolvedId}
+    name={name}
+    rows={rows}
+    placeholder={resolvedPlaceholder}
+    disabled={disabled}
+    readonly={readonly}
+    required={required}
+    aria-label={ariaLabel}
+    aria-describedby={describedIds || undefined}
+    aria-invalid={ariaInvalid ? "true" : undefined}
+    {...rest}>{resolvedValue}</textarea
+  >
+</div>
+
+<style>
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-field-gap);
+    width: var(--form-width);
+  }
+  .form-label {
+    font-size: var(--form-label-font-size);
+    color: var(--color-fg-muted);
+  }
+  .form-textarea {
+    padding: var(--form-input-padding);
+    border: var(--form-input-border);
+    border-radius: var(--form-input-border-radius);
+    font-size: var(--size-md);
+    font-family: var(--font-body);
+    color: var(--color-fg);
+    background: var(--form-input-bg);
+    min-height: calc(var(--size-md) * 4);
+    resize: vertical;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .form-textarea:focus {
+    outline: 2px solid var(--form-input-focus);
+    outline-offset: 2px;
+  }
+  .form-textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>

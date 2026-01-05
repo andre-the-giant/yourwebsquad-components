@@ -33,7 +33,10 @@ const runtimeCode = `// Pass raw SVG inner markup at runtime\n<Icon content={{ s
 
   <Preview title="Runtime SVG" code={runtimeCode}>
     <div class="row">
-      <IconComponent content={{ svgPath: runtimeSvg, viewBox: "0 0 24 24" }} label="Runtime hamburger" />
+      <IconComponent
+        content={{ svgPath: runtimeSvg, viewBox: "0 0 24 24" }}
+        label="Runtime hamburger"
+      />
       <IconComponent
         content={{
           svgPath: '<path d="M5 12h14" /><path d="M13 6l6 6-6 6" />',
