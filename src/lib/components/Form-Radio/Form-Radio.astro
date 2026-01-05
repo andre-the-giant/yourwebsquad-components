@@ -1,0 +1,192 @@
+---
+/*
+Props:
+- content?: { label?: string, id?: string }
+- id?: string
+- name?: string
+- label?: string
+- value?: string
+- checked?: boolean
+- disabled?: boolean
+- required?: boolean
+- layout?: "row" | "column"   // arrangement of radio items
+- position?: "left" | "right" // position of radio relative to label
+- color?: string                 // radio active color
+- size?: string                  // diameter of radio in px (e.g. "20px")
+- radius?: string                // border-radius for outer ring
+- ariaLabel?: string
+- ariaDescribedBy?: string
+- ariaInvalid?: boolean
+- helpId?: string
+- errorId?: string
+Notes:
+- Native radio kept for accessibility. Styling provides a modern circular toggle with animated dot.
+*/
+const {
+  content = {},
+  id,
+  name,
+  label,
+  value,
+  checked = false,
+  disabled = false,
+  required = false,
+  layout = "row",
+  position = "left",
+  color,
+  size = "20px",
+  radius = "50%",
+  ariaLabel,
+  ariaDescribedBy,
+  ariaInvalid = false,
+  helpId,
+  errorId,
+  ariaControls,
+  ...rest
+} = Astro.props;
+
+const resolvedLabel = label ?? content.label;
+const resolvedId = id ?? content.id ?? `form-radio-${Math.random().toString(36).slice(2, 9)}`;
+const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+
+const styleVars = {
+  "--radio-color": color ?? "currentColor",
+  "--radio-size": size,
+  "--radio-radius": radius
+};
+---
+
+<div class={`form-field form-radio--${layout}`} role="radiogroup" style={styleVars}>
+  <label class={`radio-row ${position === "left" ? "pos-left" : "pos-right"}`} for={resolvedId}>
+    {
+      position === "left" ? (
+        <>
+          <input
+            id={resolvedId}
+            class="radio-input"
+            type="radio"
+            name={name}
+            value={value}
+            checked={checked}
+            disabled={disabled}
+            required={required}
+            aria-label={ariaLabel}
+            aria-describedby={describedIds || undefined}
+            aria-invalid={ariaInvalid ? "true" : undefined}
+            aria-controls={ariaControls || undefined}
+            {...rest}
+          />
+          <span class="radio" aria-hidden="true" />
+          <span class="label-text">{resolvedLabel}</span>
+        </>
+      ) : (
+        <>
+          <span class="label-text">{resolvedLabel}</span>
+          <input
+            id={resolvedId}
+            class="radio-input"
+            type="radio"
+            name={name}
+            value={value}
+            checked={checked}
+            disabled={disabled}
+            required={required}
+            aria-label={ariaLabel}
+            aria-describedby={describedIds || undefined}
+            aria-invalid={ariaInvalid ? "true" : undefined}
+            aria-controls={ariaControls || undefined}
+            {...rest}
+          />
+          <span class="radio" aria-hidden="true" />
+        </>
+      )
+    }
+  </label>
+</div>
+
+<style>
+  .form-field {
+    width: var(--form-width);
+  }
+  .form-radio--row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .form-radio--column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .radio-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+  .radio-row .label-text {
+    flex: 1 1 auto;
+    color: var(--color-fg);
+  }
+
+  /* hide native radio but keep it accessible */
+  .radio-input {
+    position: absolute !important;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .radio {
+    --r: var(--radio-size);
+    width: var(--r);
+    height: var(--r);
+    border-radius: var(--radio-radius);
+    box-sizing: border-box;
+    border: 2px solid color-mix(in srgb, var(--radio-color) 24%, black 0%);
+    background: transparent;
+    position: relative;
+    transition:
+      border-color 160ms ease,
+      background 160ms ease,
+      transform 200ms ease;
+    flex: 0 0 auto;
+  }
+
+  .radio::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: calc(var(--r) * 0.5);
+    height: calc(var(--r) * 0.5);
+    background: var(--radio-color);
+    border-radius: 50%;
+    transition:
+      transform 220ms cubic-bezier(0.2, 0.9, 0.2, 1),
+      background 160ms ease;
+  }
+
+  .radio-input:checked + .radio {
+    border-color: var(--radio-color);
+    background: transparent;
+  }
+  .radio-input:checked + .radio::after {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .radio-input:focus + .radio {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--radio-color) 14%, transparent);
+  }
+
+  .radio-input:disabled + .radio {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>

@@ -1,0 +1,38 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import { components } from "@docs/data/components.js";
+import FormRadio from "@lib/components/Form-Radio/Form-Radio.astro";
+
+const basicCode = `<FormRadio content={{ label: "Option A", id: "opt-a", value: "a" }} name="example" />\n<FormRadio content={{ label: "Option B", id: "opt-b", value: "b" }} name="example" />`;
+const variantsCode = `<FormRadio content={{ label: "Left radio" }} position="left" color="#0d6ea8" />\n<FormRadio content={{ label: "Right radio" }} position="right" color="#c92a2a" />`;
+---
+
+<DocLayout
+  title="Form-Radio"
+  description="Stylish radio buttons with layout and color options."
+  items={components}
+>
+  <Preview title="Basic" code={basicCode}>
+    <div class="row">
+      <FormRadio content={{ label: "Option A", id: "opt-a", value: "a" }} name="example" />
+      <FormRadio content={{ label: "Option B", id: "opt-b", value: "b" }} name="example" />
+    </div>
+  </Preview>
+
+  <Preview title="Variants" code={variantsCode}>
+    <div class="row">
+      <FormRadio content={{ label: "Left radio" }} position="left" color="#0d6ea8" />
+      <FormRadio content={{ label: "Right radio" }} position="right" color="#c92a2a" />
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 36rem;
+  }
+</style>

@@ -36,6 +36,12 @@ export const components = [
     group: "atoms"
   },
   {
+    name: "Form-Radio",
+    href: "/components/atoms/form-radio",
+    description: "Stylish radio buttons with layout and color options.",
+    group: "atoms"
+  },
+  {
     name: "Link",
     href: "/components/link",
     description: "handles internal/external, active state, “opens in new tab” indicators",
