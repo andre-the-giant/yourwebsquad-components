@@ -24,5 +24,6 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          dangerous-clean-slate: true
           local-dir: ./build/
           server-dir: .amc/
