@@ -1,0 +1,70 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import FormInput from "@lib/components/Form-Input/Form-Input.astro";
+import FormError from "@lib/components/Form-Error/Form-Error.astro";
+
+const basicCode = `<FormInput
+  content={{ label: "Email", id: "email" }}
+  name="email"
+  type="email"
+  ariaInvalid={true}
+  errorId="email-error"
+/>
+<FormError id="email-error">Please enter a valid email address.</FormError>`;
+
+const props = [
+  {
+    name: "content",
+    type: "{ id?, text? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  { name: "id", type: "string", description: "Element id to wire into aria-describedby." },
+  { name: "text", type: "string", description: "Error text content." },
+  {
+    name: "role",
+    type: "string",
+    default: '"alert"',
+    description: "ARIA role for error container."
+  },
+  {
+    name: "ariaLive",
+    type: `"polite" | "assertive" | "off"`,
+    default: '"polite"',
+    description: "aria-live politeness."
+  },
+  { name: "class", type: "string", description: "Additional className." }
+];
+---
+
+<DocLayout
+  title="Form-Error"
+  description="Error text for form fields with alert semantics."
+  items={components}
+>
+  <PropsTable props={props} />
+
+  <Preview title="Usage" code={basicCode}>
+    <div class="row">
+      <FormInput
+        content={{ label: "Email", id: "email" }}
+        name="email"
+        type="email"
+        ariaInvalid={true}
+        errorId="email-error"
+      />
+      <FormError id="email-error">Please enter a valid email address.</FormError>
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 100%;
+  }
+</style>

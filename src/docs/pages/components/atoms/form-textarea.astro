@@ -1,14 +1,50 @@
 ---
 import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormTextarea from "@lib/components/Form-Textarea/Form-Textarea.astro";
 
 const basicCode = `<FormTextarea content={{ label: "Message", id: "message", placeholder: "Write your message" }} />`;
 const statesCode = `<FormTextarea content={{ label: "Notes", id: "notes" }} rows={6} />\n<FormTextarea content={{ label: "Disabled", id: "notes-disabled" }} disabled />`;
+
+const props = [
+  {
+    name: "content",
+    type: "{ label?, id?, placeholder?, value? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  { name: "id", type: "string", description: "Textarea id; auto-generated if missing." },
+  { name: "name", type: "string", description: "Form field name." },
+  { name: "label", type: "string", description: "Label text." },
+  { name: "placeholder", type: "string", description: "Placeholder text." },
+  { name: "value", type: "string", description: "Initial content." },
+  { name: "rows", type: "number", default: "4", description: "Row height." },
+  { name: "disabled", type: "boolean", default: "false", description: "Disable textarea." },
+  { name: "readonly", type: "boolean", default: "false", description: "Read-only textarea." },
+  {
+    name: "required",
+    type: "boolean",
+    default: "false",
+    description: "Mark required; adds asterisk."
+  },
+  { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
+  { name: "ariaDescribedBy", type: "string", description: "IDs to include in aria-describedby." },
+  { name: "helpId", type: "string", description: "Help text id to append to aria-describedby." },
+  { name: "errorId", type: "string", description: "Error text id to append to aria-describedby." },
+  {
+    name: "ariaInvalid",
+    type: "boolean",
+    default: "false",
+    description: 'Sets aria-invalid="true".'
+  },
+  { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
+];
 ---
 
 <DocLayout title="Form-Textarea" description="Multiline text input with label." items={components}>
+  <PropsTable props={props} />
+
   <Preview title="Basic" code={basicCode}>
     <div class="row">
       <FormTextarea

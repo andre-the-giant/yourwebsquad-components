@@ -3,28 +3,25 @@ import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
-import FormInput from "@lib/components/Form-Input/Form-Input.astro";
+import FormDate from "@lib/components/Form-Date/Form-Date.astro";
 
-const basicCode = `<FormInput type="email" content={{ label: "Email", id: "email", placeholder: "you@example.com" }} />`;
-const statesCode = `<FormInput content={{ label: "Name", id: "name", placeholder: "Full name" }} />\n<FormInput content={{ label: "Disabled", id: "disabled", placeholder: "Can't edit" }} disabled />`;
+const basicCode = `<FormDate content={{ label: "Birthday", id: "birthday" }} />`;
+const statesCode = `<FormDate content={{ label: "Range limited", id: "date-range" }} min="2024-01-01" max="2024-12-31" />
+<FormDate content={{ label: "Disabled date", id: "disabled-date" }} disabled />`;
 
 const props = [
   {
     name: "content",
-    type: "{ label?, id?, placeholder?, value? }",
+    type: "{ label?, id?, placeholder?, value?, min?, max? }",
     description: "Defaults object; overridden by direct props."
   },
   { name: "id", type: "string", description: "Input id; auto-generated if missing." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
   { name: "placeholder", type: "string", description: "Placeholder text." },
-  { name: "value", type: "string", description: "Initial value." },
-  {
-    name: "type",
-    type: "string",
-    default: '"text"',
-    description: "Input type (email, password, etc.)."
-  },
+  { name: "value", type: "string", description: "Initial value (YYYY-MM-DD)." },
+  { name: "min", type: "string", description: "Minimum date (YYYY-MM-DD)." },
+  { name: "max", type: "string", description: "Maximum date (YYYY-MM-DD)." },
   { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
   { name: "readonly", type: "boolean", default: "false", description: "Read-only input." },
   {
@@ -48,28 +45,26 @@ const props = [
 ---
 
 <DocLayout
-  title="Form-Input"
-  description="Basic text input with label and states."
+  title="Form-Date"
+  description="Native date input with label and states."
   items={components}
 >
   <PropsTable props={props} />
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormInput
-        type="email"
-        content={{ label: "Email", id: "email", placeholder: "you@example.com" }}
-      />
+      <FormDate content={{ label: "Birthday", id: "birthday" }} />
     </div>
   </Preview>
 
   <Preview title="States" code={statesCode}>
     <div class="row">
-      <FormInput content={{ label: "Name", id: "name", placeholder: "Full name" }} />
-      <FormInput
-        content={{ label: "Disabled", id: "disabled", placeholder: "Can't edit" }}
-        disabled
+      <FormDate
+        content={{ label: "Range limited", id: "date-range" }}
+        min="2024-01-01"
+        max="2024-12-31"
       />
+      <FormDate content={{ label: "Disabled date", id: "disabled-date" }} disabled />
     </div>
   </Preview>
 </DocLayout>

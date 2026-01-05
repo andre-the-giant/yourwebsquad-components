@@ -1,0 +1,227 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Form from "@lib/components/Form/Form.astro";
+import FormInput from "@lib/components/Form-Input/Form-Input.astro";
+import FormSelect from "@lib/components/Form-Select/Form-Select.astro";
+import FormDate from "@lib/components/Form-Date/Form-Date.astro";
+import FormHelp from "@lib/components/Form-Help/Form-Help.astro";
+import FormError from "@lib/components/Form-Error/Form-Error.astro";
+import FormHidden from "@lib/components/Form-Hidden/Form-Hidden.astro";
+
+import countryOptions from "@docs/data/countries-list.json";
+
+const errorsCode = `<Form
+  errors={{ email: "Email is required", country: "Pick a country" }}
+  globalErrors={["Please correct the fields below."]}
+>
+  <FormInput
+    content={{ label: "Email", id: "form-email" }}
+    name="email"
+    type="email"
+    ariaInvalid={true}
+    errorId="form-email-error"
+  />
+  <FormError id="form-email-error">Email is required.</FormError>
+
+  <FormSelect
+    content={{ label: "Country", id: "form-country", options: ${JSON.stringify(countryOptions)} }}
+    name="country"
+    ariaInvalid={true}
+    errorId="form-country-error"
+  />
+  <FormError id="form-country-error">Pick a country.</FormError>
+
+  <FormHidden name="token" value="abc123" />
+</Form>`;
+
+const basicCode = `<Form action="/api/contact" method="post">
+  <FormInput
+    content={{ label: "Name", id: "contact-name", placeholder: "Full name" }}
+    name="name"
+    required
+    helpId="contact-name-help"
+  />
+  <FormHelp id="contact-name-help">Include first and last name.</FormHelp>
+
+  <FormInput
+    content={{ label: "Email", id: "contact-email", placeholder: "you@example.com" }}
+    name="email"
+    type="email"
+    required
+  />
+
+  <FormDate content={{ label: "Preferred date", id: "contact-date" }} name="date" />
+
+  <FormSelect
+    content={{ label: "Country", id: "contact-country", options: ${JSON.stringify(countryOptions)} }}
+    name="country"
+    placeholder="Select a country"
+    required
+  />
+</Form>`;
+
+const sampleErrors = {
+  email: "Email is required",
+  country: "Pick a country"
+};
+const sampleGlobalErrors = ["Please correct the fields below."];
+
+const props = [
+  { name: "id", type: "string", description: "Optional form id (auto-generated if omitted)." },
+  { name: "action", type: "string", description: "Form action URL." },
+  { name: "method", type: `"get" | "post"`, default: '"post"', description: "HTTP method." },
+  { name: "target", type: "string", description: "Form target (e.g., _blank)." },
+  { name: "enctype", type: "string", description: "Encoding type." },
+  {
+    name: "novalidate",
+    type: "boolean",
+    default: "false",
+    description: "Bypass native validation."
+  },
+  {
+    name: "preventEnterSubmit",
+    type: "boolean",
+    default: "true",
+    description: "Blocks Enter submits except on buttons/selects/textareas."
+  },
+  { name: "submitLabel", type: "string", default: '"Send"', description: "Submit button label." },
+  {
+    name: "submitVariant",
+    type: `"solid" | "outline" | "ghost"`,
+    default: '"solid"',
+    description: "Submit button style."
+  },
+  {
+    name: "submitSize",
+    type: `"sm" | "md" | "lg"`,
+    default: '"md"',
+    description: "Submit button size."
+  },
+  {
+    name: "submitDisabled",
+    type: "boolean",
+    default: "false",
+    description: "Disable submit button."
+  },
+  { name: "showReset", type: "boolean", default: "true", description: "Render reset button." },
+  { name: "resetLabel", type: "string", default: '"Reset"', description: "Reset button label." },
+  {
+    name: "resetVariant",
+    type: `"solid" | "outline" | "ghost"`,
+    default: '"outline"',
+    description: "Reset button style."
+  },
+  {
+    name: "resetSize",
+    type: `"sm" | "md" | "lg"`,
+    default: '"md"',
+    description: "Reset button size."
+  },
+  {
+    name: "resetDisabled",
+    type: "boolean",
+    default: "false",
+    description: "Disable reset button."
+  },
+  {
+    name: "errors",
+    type: "Record<string, string | string[]>",
+    default: "{}",
+    description: "Field error map for summary display."
+  },
+  {
+    name: "globalErrors",
+    type: "string[]",
+    default: "[]",
+    description: "Non-field errors for summary."
+  },
+  {
+    name: "showErrorSummary",
+    type: "boolean",
+    default: "true",
+    description: "Toggle error summary rendering."
+  },
+  {
+    name: "errorSummaryTitle",
+    type: "string",
+    default: '"Please fix the following errors:"',
+    description: "Heading for summary block."
+  },
+  { name: "class", type: "string", description: "Additional className for form." }
+];
+---
+
+<DocLayout
+  title="Form"
+  description="Form wrapper that manages submit behavior, prevents Enter submits by default, and renders an error summary. Includes Send and Reset buttons by default."
+  items={components}
+>
+  <PropsTable props={props} />
+
+  <Preview title="Basic form" code={basicCode}>
+    <div class="column">
+      <Form action="/api/contact" method="post">
+        <FormInput
+          content={{ label: "Name", id: "contact-name", placeholder: "Full name" }}
+          name="name"
+          required
+          helpId="contact-name-help"
+        />
+        <FormHelp id="contact-name-help">Include first and last name.</FormHelp>
+
+        <FormInput
+          content={{ label: "Email", id: "contact-email", placeholder: "you@example.com" }}
+          name="email"
+          type="email"
+          required
+        />
+
+        <FormDate content={{ label: "Preferred date", id: "contact-date" }} name="date" />
+
+        <FormSelect
+          content={{ label: "Country", id: "contact-country", options: countryOptions }}
+          name="country"
+          placeholder="Select a country"
+          required
+        />
+      </Form>
+    </div>
+  </Preview>
+
+  <Preview title="With error summary" code={errorsCode}>
+    <div class="column">
+      <Form errors={sampleErrors} globalErrors={sampleGlobalErrors}>
+        <FormInput
+          content={{ label: "Email", id: "form-email" }}
+          name="email"
+          type="email"
+          ariaInvalid={true}
+          errorId="form-email-error"
+        />
+        <FormError id="form-email-error">Email is required.</FormError>
+
+        <FormSelect
+          content={{ label: "Country", id: "form-country", options: countryOptions }}
+          name="country"
+          ariaInvalid={true}
+          errorId="form-country-error"
+        />
+        <FormError id="form-country-error">Pick a country.</FormError>
+
+        <FormHidden name="token" value="abc123" />
+      </Form>
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: min(640px, 100%);
+  }
+</style>

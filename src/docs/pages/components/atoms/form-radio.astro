@@ -1,6 +1,7 @@
 ---
 import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormRadio from "@lib/components/Form-Radio/Form-Radio.astro";
 
@@ -13,6 +14,71 @@ const variantsCode = `<FormRadio content={{ label: "Left radio" }} position="lef
   description="Stylish radio buttons with layout and color options."
   items={components}
 >
+  <PropsTable
+    props={[
+      {
+        name: "content",
+        type: "{ label?, id? }",
+        description: "Defaults object; overridden by direct props."
+      },
+      { name: "id", type: "string", description: "Radio id; auto-generated if missing." },
+      { name: "name", type: "string", description: "Form field name (groups radios)." },
+      { name: "label", type: "string", description: "Label text." },
+      { name: "value", type: "string", description: "Submitted value for this radio." },
+      { name: "checked", type: "boolean", default: "false", description: "Checked state." },
+      { name: "disabled", type: "boolean", default: "false", description: "Disable radio." },
+      {
+        name: "required",
+        type: "boolean",
+        default: "false",
+        description: "Mark required; adds asterisk."
+      },
+      {
+        name: "layout",
+        type: `"row" | "column"`,
+        default: '"row"',
+        description: "Wrapper layout (stack radios)."
+      },
+      {
+        name: "position",
+        type: `"left" | "right"`,
+        default: '"left"',
+        description: "Radio placement relative to label."
+      },
+      { name: "color", type: "string", description: "Active color." },
+      { name: "size", type: "string", default: '"20px"', description: "Diameter of radio." },
+      {
+        name: "radius",
+        type: "string",
+        default: '"50%"',
+        description: "Border radius for outer ring."
+      },
+      { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
+      {
+        name: "ariaDescribedBy",
+        type: "string",
+        description: "IDs to include in aria-describedby."
+      },
+      {
+        name: "helpId",
+        type: "string",
+        description: "Help text id to append to aria-describedby."
+      },
+      {
+        name: "errorId",
+        type: "string",
+        description: "Error text id to append to aria-describedby."
+      },
+      {
+        name: "ariaInvalid",
+        type: "boolean",
+        default: "false",
+        description: 'Sets aria-invalid="true".'
+      },
+      { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
+    ]}
+  />
+
   <Preview title="Basic" code={basicCode}>
     <div class="row">
       <FormRadio content={{ label: "Option A", id: "opt-a", value: "a" }} name="example" />

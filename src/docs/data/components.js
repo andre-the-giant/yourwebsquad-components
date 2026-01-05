@@ -42,9 +42,39 @@ export const components = [
     group: "atoms"
   },
   {
+    name: "Form-Date",
+    href: "/components/atoms/form-date",
+    description: "Native date input with label.",
+    group: "atoms"
+  },
+  {
+    name: "Form-Help",
+    href: "/components/atoms/form-help",
+    description: "Helper text for form fields with aria support.",
+    group: "atoms"
+  },
+  {
+    name: "Form-Error",
+    href: "/components/atoms/form-error",
+    description: "Error text for form fields with alert semantics.",
+    group: "atoms"
+  },
+  {
+    name: "Form-Hidden",
+    href: "/components/atoms/form-hidden",
+    description: "Hidden input for posting fixed values.",
+    group: "atoms"
+  },
+  {
     name: "Link",
     href: "/components/link",
     description: "handles internal/external, active state, “opens in new tab” indicators",
+    group: "molecules"
+  },
+  {
+    name: "Form",
+    href: "/components/form",
+    description: "Form wrapper that manages submit behavior and errors.",
     group: "molecules"
   },
   {

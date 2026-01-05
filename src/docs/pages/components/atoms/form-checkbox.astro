@@ -1,6 +1,7 @@
 ---
 import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormCheckbox from "@lib/components/Form-Checkbox/Form-Checkbox.astro";
 
@@ -22,6 +23,60 @@ const optionsCode = `
   description="Styled checkbox presented as a toggle. Position and colors configurable."
   items={components}
 >
+  <PropsTable
+    props={[
+      {
+        name: "content",
+        type: "{ label?, id? }",
+        description: "Defaults object; overridden by direct props."
+      },
+      { name: "id", type: "string", description: "Checkbox id; auto-generated if missing." },
+      { name: "name", type: "string", description: "Form field name." },
+      { name: "label", type: "string", description: "Label text." },
+      { name: "checked", type: "boolean", default: "false", description: "Checked state." },
+      { name: "disabled", type: "boolean", default: "false", description: "Disable checkbox." },
+      {
+        name: "required",
+        type: "boolean",
+        default: "false",
+        description: "Mark required; adds asterisk."
+      },
+      {
+        name: "position",
+        type: `"left" | "right"`,
+        default: '"right"',
+        description: "Toggle placement relative to label."
+      },
+      { name: "checkedColor", type: "string", description: "Track color when checked." },
+      { name: "uncheckedColor", type: "string", description: "Track color when unchecked." },
+      { name: "thumbColor", type: "string", description: "Thumb color." },
+      { name: "radius", type: "string", description: "Track/thumb border-radius." },
+      { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
+      {
+        name: "ariaDescribedBy",
+        type: "string",
+        description: "IDs to include in aria-describedby."
+      },
+      {
+        name: "helpId",
+        type: "string",
+        description: "Help text id to append to aria-describedby."
+      },
+      {
+        name: "errorId",
+        type: "string",
+        description: "Error text id to append to aria-describedby."
+      },
+      {
+        name: "ariaInvalid",
+        type: "boolean",
+        default: "false",
+        description: 'Sets aria-invalid="true".'
+      },
+      { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
+    ]}
+  />
+
   <Preview title="Basic" code={basicCode}>
     <div class="row">
       <FormCheckbox content={{ label: "Enable notifications", id: "notify" }} />

@@ -6,3 +6,8 @@ export { default as FormSelect } from "./components/Form-Select/index.astro";
 export { default as FormCheckbox } from "./components/Form-Checkbox/index.astro";
 export { default as FormRadio } from "./components/Form-Radio/index.astro";
 export { default as FormLabel } from "./components/Form-Label/index.astro";
+export { default as FormHelp } from "./components/Form-Help/index.astro";
+export { default as FormError } from "./components/Form-Error/index.astro";
+export { default as FormDate } from "./components/Form-Date/index.astro";
+export { default as FormHidden } from "./components/Form-Hidden/index.astro";
+export { default as Form } from "./components/Form/index.astro";

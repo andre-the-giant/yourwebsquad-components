@@ -1,0 +1,183 @@
+---
+import Button from "../Button/Button.astro";
+
+/*
+Props:
+- id?: string
+- action?: string
+- method?: "get" | "post"
+- target?: string
+- enctype?: string
+- novalidate?: boolean
+- preventEnterSubmit?: boolean   // defaults true
+- submitLabel?: string            // default "Submit"
+- submitLabel?: string            // default "Send"
+- submitVariant?: "solid" | "outline" | "ghost"
+- submitSize?: "sm" | "md" | "lg"
+- submitDisabled?: boolean
+- showReset?: boolean
+- resetLabel?: string             // default "Reset"
+- resetVariant?: "solid" | "outline" | "ghost"
+- resetSize?: "sm" | "md" | "lg"
+- resetDisabled?: boolean
+- errors?: Record<string, string | string[]>
+- globalErrors?: Array<string>
+- showErrorSummary?: boolean
+- errorSummaryTitle?: string
+- class?: string
+*/
+const {
+  id,
+  action,
+  method = "post",
+  target,
+  enctype,
+  novalidate = false,
+  preventEnterSubmit = true,
+  submitLabel = "Send",
+  submitVariant = "solid",
+  submitSize = "md",
+  submitDisabled = false,
+  showReset = true,
+  resetLabel = "Reset",
+  resetVariant = "outline",
+  resetSize = "md",
+  resetDisabled = false,
+  errors = {},
+  globalErrors = [],
+  showErrorSummary = true,
+  errorSummaryTitle = "Please fix the following errors:",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const formId = id ?? `form-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedMethod = method?.toLowerCase?.() ?? "post";
+
+const entries = Object.entries(errors || {}).filter(
+  ([, value]) => value !== undefined && value !== null
+);
+const normalizeArray = (value) =>
+  Array.isArray(value) ? value : value !== undefined && value !== null ? [value] : [];
+const fieldErrors = entries.flatMap(([field, value]) =>
+  normalizeArray(value).map((msg) => ({ field, msg: String(msg) }))
+);
+const globalErrorList = normalizeArray(globalErrors).map((msg) => String(msg));
+const hasErrors = globalErrorList.length + fieldErrors.length > 0;
+---
+
+<form
+  id={formId}
+  class={`form ${className ?? ""}`}
+  action={action}
+  method={resolvedMethod}
+  target={target}
+  enctype={enctype}
+  novalidate={novalidate ? true : undefined}
+  data-prevent-enter={preventEnterSubmit ? "true" : undefined}
+  {...rest}
+>
+  {
+    showErrorSummary && hasErrors ? (
+      <div class="form-error-summary" role="alert" aria-live="polite">
+        <p class="summary-title">{errorSummaryTitle}</p>
+        <ul>
+          {globalErrorList.map((err) => (
+            <li>{err}</li>
+          ))}
+          {fieldErrors.map(({ field, msg }) => (
+            <li>
+              {field ? <strong>{field}:</strong> : null} {msg}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null
+  }
+
+  <div class="form-body">
+    <slot />
+  </div>
+
+  <div class="form-actions">
+    {
+      showReset ? (
+        <slot name="reset">
+          <Button type="reset" variant={resetVariant} size={resetSize} disabled={resetDisabled}>
+            {resetLabel}
+          </Button>
+        </slot>
+      ) : null
+    }
+
+    <slot name="submit">
+      <Button type="submit" variant={submitVariant} size={submitSize} disabled={submitDisabled}>
+        {submitLabel}
+      </Button>
+    </slot>
+  </div>
+</form>
+
+<script is:inline>
+  document.querySelectorAll("form[data-prevent-enter]").forEach((form) => {
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.enterBound === "true") return;
+    form.dataset.enterBound = "true";
+    form.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      const target = event.target;
+      if (!target) return;
+      const tag = target.tagName?.toLowerCase();
+      const type = target.getAttribute?.("type");
+      const allow =
+        tag === "textarea" ||
+        tag === "select" ||
+        type === "submit" ||
+        type === "button" ||
+        type === "reset";
+      if (allow) return;
+      event.preventDefault();
+    });
+  });
+</script>
+
+<style>
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: var(--form-width);
+  }
+
+  .form-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--space-3);
+  }
+
+  .form-error-summary {
+    border: 1px solid color-mix(in srgb, var(--form-error-color) 60%, transparent);
+    background: color-mix(in srgb, var(--form-error-color) 12%, transparent);
+    color: var(--form-error-color);
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+  }
+
+  .form-error-summary .summary-title {
+    margin: 0 0 var(--space-2) 0;
+    font-weight: var(--weight-semibold);
+  }
+
+  .form-error-summary ul {
+    margin: 0;
+    padding-left: var(--space-4);
+    display: grid;
+    gap: var(--space-1);
+  }
+</style>

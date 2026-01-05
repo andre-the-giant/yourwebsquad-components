@@ -1,0 +1,30 @@
+---
+/*
+Props:
+- content?: { id?: string, text?: string }
+- id?: string
+- text?: string
+- class?: string
+Notes:
+- Direct props override content.*
+- Intended to pair with `helpId` passed to form fields for aria-describedby.
+*/
+const { content = {}, id, text, class: className, ...rest } = Astro.props;
+
+const resolvedId = id ?? content.id ?? `form-help-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedText = text ?? content.text;
+---
+
+<p id={resolvedId} class={`form-help ${className ?? ""}`} {...rest}>
+  <slot>{resolvedText}</slot>
+  {Astro.slots.has("suffix") ? <slot name="suffix" /> : null}
+</p>
+
+<style>
+  .form-help {
+    color: var(--form-help-color);
+    font-size: var(--size-sm);
+    margin: 0;
+    line-height: var(--line-normal);
+  }
+</style>

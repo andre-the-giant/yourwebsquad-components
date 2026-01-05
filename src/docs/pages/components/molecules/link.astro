@@ -1,6 +1,7 @@
 ---
 import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import LinkComponent from "@lib/components/Link/Link.astro";
 
@@ -12,6 +13,41 @@ const code = `
 
     <Link href="https://css-tricks.com/" label="Visit CSS Tricks" size="lg" />
     `;
+
+const props = [
+  {
+    name: "content",
+    type: "{ label?, href?, target?, rel? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  { name: "label", type: "string", default: '"Read more"', description: "Link text." },
+  { name: "href", type: "string", description: "Destination URL." },
+  { name: "target", type: "string", description: "Target attribute (e.g., _blank)." },
+  {
+    name: "rel",
+    type: "string",
+    default: "auto '_blank'→'noreferrer'",
+    description: "Rel attribute."
+  },
+  {
+    name: "variant",
+    type: `"solid" | "outline" | "ghost"`,
+    default: '"ghost"',
+    description: "Visual style (delegated to Button)."
+  },
+  {
+    name: "size",
+    type: `"sm" | "md" | "lg"`,
+    default: '"md"',
+    description: "Size token (delegated to Button)."
+  },
+  {
+    name: "disabled",
+    type: "boolean",
+    default: "false",
+    description: "Disables link styling/aria."
+  }
+];
 ---
 
 <DocLayout
@@ -19,6 +55,8 @@ const code = `
   description={"handles internal/external, active state, “opens in new tab” indicators"}
   items={components}
 >
+  <PropsTable props={props} />
+
   <Preview title="Preview" code={code}>
     <LinkComponent href="https://css-tricks.com/" label="Visit CSS Tricks" size="sm" />
 

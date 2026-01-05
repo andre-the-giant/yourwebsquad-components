@@ -1,10 +1,49 @@
 ---
 import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import Image from "@lib/components/Image/Image.astro";
 
 const code = "<Image />";
+
+const props = [
+  {
+    name: "src",
+    type: "string | ImageMetadata",
+    default: '"https://picsum.photos/320/180"',
+    description: "Source image or URL."
+  },
+  { name: "alt", type: "string", default: '""', description: "Alt text (required for a11y)." },
+  { name: "format", type: "string", default: '"webp"', description: "Output format." },
+  { name: "quality", type: "number", default: "60", description: "Compression quality." },
+  {
+    name: "widths",
+    type: "number[]",
+    default: "[640,960,1280,1600,1920]",
+    description: "Responsive widths."
+  },
+  { name: "sizes", type: "string", default: '"100vw"', description: "Sizes attribute." },
+  {
+    name: "fetchpriority",
+    type: `"high" | "low" | "auto"`,
+    default: '"high"',
+    description: "Fetch priority."
+  },
+  {
+    name: "loading",
+    type: `"lazy" | "eager"`,
+    default: '"lazy"',
+    description: "Loading strategy."
+  },
+  {
+    name: "backgroundPosition",
+    type: "string",
+    default: '"center"',
+    description: "Object position."
+  },
+  { name: "aspectRatio", type: "string", default: '"16/9"', description: "CSS aspect-ratio." }
+];
 ---
 
 <DocLayout
@@ -12,6 +51,8 @@ const code = "<Image />";
   description={"Image wrapper using Astro:asset with defaults"}
   items={components}
 >
+  <PropsTable props={props} />
+
   <Preview title="Preview" code={code}>
     <Image />
   </Preview>

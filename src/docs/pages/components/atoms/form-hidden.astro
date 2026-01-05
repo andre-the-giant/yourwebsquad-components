@@ -1,0 +1,46 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import FormHidden from "@lib/components/Form-Hidden/Form-Hidden.astro";
+
+const basicCode = `<form>
+  <FormHidden name="token" value="abc123" />
+  <p>Hidden value ready to submit.</p>
+</form>`;
+
+const props = [
+  {
+    name: "content",
+    type: "{ id?, name?, value? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  { name: "id", type: "string", description: "Optional id for the hidden input." },
+  { name: "name", type: "string", description: "Field name to submit." },
+  { name: "value", type: "string", default: '""', description: "Value to submit." }
+];
+---
+
+<DocLayout
+  title="Form-Hidden"
+  description="Hidden input for posting fixed values."
+  items={components}
+>
+  <PropsTable props={props} />
+
+  <Preview title="Usage" code={basicCode}>
+    <form class="demo-form">
+      <FormHidden name="token" value="abc123" />
+      <p>Hidden value ready to submit.</p>
+    </form>
+  </Preview>
+</DocLayout>
+
+<style>
+  .demo-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+</style>

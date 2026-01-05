@@ -1,17 +1,46 @@
 ---
 import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormSelect from "@lib/components/Form-Select/Form-Select.astro";
 
-const options = [
-  { label: "United States", value: "us" },
-  { label: "Canada", value: "ca" },
-  { label: "United Kingdom", value: "uk" }
-];
+import options from "@docs/data/countries-list.json";
 
 const basicCode = `<FormSelect content={{ label: "Country", id: "country", options: ${JSON.stringify(options)} }} placeholder="Select a country" />`;
 const statesCode = `<FormSelect content={{ label: "Disabled", id: "country-disabled", options: ${JSON.stringify(options)} }} disabled />`;
+
+const props = [
+  {
+    name: "content",
+    type: "{ label?, id?, options?, placeholder? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  { name: "id", type: "string", description: "Select id; auto-generated if missing." },
+  { name: "name", type: "string", description: "Form field name." },
+  { name: "label", type: "string", description: "Label text." },
+  { name: "options", type: "Array<{ label, value, disabled? }>", description: "List of options." },
+  { name: "placeholder", type: "string", description: "Optional hidden placeholder option." },
+  { name: "value", type: "string", description: "Selected value." },
+  { name: "disabled", type: "boolean", default: "false", description: "Disable select." },
+  {
+    name: "required",
+    type: "boolean",
+    default: "false",
+    description: "Mark required; adds asterisk."
+  },
+  { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
+  { name: "ariaDescribedBy", type: "string", description: "IDs to include in aria-describedby." },
+  { name: "helpId", type: "string", description: "Help text id to append to aria-describedby." },
+  { name: "errorId", type: "string", description: "Error text id to append to aria-describedby." },
+  {
+    name: "ariaInvalid",
+    type: "boolean",
+    default: "false",
+    description: 'Sets aria-invalid="true".'
+  },
+  { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
+];
 ---
 
 <DocLayout
@@ -19,6 +48,8 @@ const statesCode = `<FormSelect content={{ label: "Disabled", id: "country-disab
   description="Single-select dropdown with label and states."
   items={components}
 >
+  <PropsTable props={props} />
+
   <Preview title="Basic" code={basicCode}>
     <div class="row">
       <FormSelect

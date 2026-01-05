@@ -1,6 +1,7 @@
 ---
 import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import Button from "@lib/components/Button/Button.astro";
 
@@ -11,6 +12,43 @@ const solidCode = `<Button content={{ label: "Start a project" }} />`;
 const outlineCode = `<Button content={{ label: "View case study", href: "/case-studies" }} variant="outline" />`;
 const ghostCode = `<Button content={{ label: "Contact" }} variant="ghost" />`;
 const sizesCode = `<Button content={{ label: "Small" }} size="sm" />\n<Button content={{ label: "Medium" }} size="md" />\n<Button content={{ label: "Large" }} size="lg" />`;
+
+const props = [
+  {
+    name: "content",
+    type: "{ label?, href?, target?, rel? }",
+    default: "—",
+    description: "Default values, overridden by direct props."
+  },
+  { name: "label", type: "string", default: '"Button"', description: "Button text." },
+  { name: "href", type: "string", description: "When set renders an anchor." },
+  { name: "target", type: "string", description: "Link target (e.g., _blank)." },
+  {
+    name: "rel",
+    type: "string",
+    default: "auto '_blank'→'noreferrer'",
+    description: "Rel attribute for links."
+  },
+  {
+    name: "variant",
+    type: `"solid" | "outline" | "ghost"`,
+    default: '"solid"',
+    description: "Visual style."
+  },
+  {
+    name: "size",
+    type: `"sm" | "md" | "lg"`,
+    default: '"md"',
+    description: "Padding and font sizing."
+  },
+  {
+    name: "type",
+    type: `"button" | "submit" | "reset"`,
+    default: '"button"',
+    description: "Native button type."
+  },
+  { name: "disabled", type: "boolean", default: "false", description: "Disables button/anchor." }
+];
 ---
 
 <DocLayout
@@ -18,6 +56,8 @@ const sizesCode = `<Button content={{ label: "Small" }} size="sm" />\n<Button co
   description="Action trigger for forms, navigation, and CTAs."
   items={components}
 >
+  <PropsTable props={props} />
+
   <Preview title="Solid" code={solidCode}>
     <div class="row">
       <Button content={baseContent} />
