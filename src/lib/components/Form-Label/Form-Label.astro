@@ -1,0 +1,83 @@
+---
+/*
+Props:
+- content?: { label?: string, id?: string }
+- id?: string           // id for the label element itself (useful for aria)
+- forId?: string        // value for `for` attribute to associate with control
+- label?: string
+- required?: boolean
+- visuallyHidden?: boolean
+- tag?: "label" | "span"
+- descriptionId?: string // id of help/error to include in aria-describedby linking
+- class?: string
+Notes:
+- Renders a `<label>` by default but can render a `<span>` when used inside other labels.
+*/
+const {
+  content = {},
+  id,
+  forId,
+  label,
+  required = false,
+  visuallyHidden = false,
+  tag = "label",
+  descriptionId,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const resolvedLabel = label ?? content.label;
+const resolvedId = id ?? content.id ?? `form-label-${Math.random().toString(36).slice(2, 9)}`;
+const described = descriptionId ?? undefined;
+---
+
+{
+  tag === "span" ? (
+    <span
+      id={resolvedId}
+      class={`form-label ${className ?? ""}`}
+      aria-hidden={visuallyHidden ? "true" : undefined}
+      {...rest}
+    >
+      {visuallyHidden ? <span class="sr-only">{resolvedLabel}</span> : resolvedLabel}
+      {required ? <span class="required">*</span> : null}
+    </span>
+  ) : (
+    <label
+      id={resolvedId}
+      class={`form-label ${className ?? ""}`}
+      for={forId}
+      aria-describedby={described}
+      {...rest}
+    >
+      {visuallyHidden ? <span class="sr-only">{resolvedLabel}</span> : resolvedLabel}
+      {required ? <span class="required">*</span> : null}
+    </label>
+  )
+}
+
+<style>
+  .form-label {
+    font-size: var(--form-label-font-size);
+    color: var(--color-fg-muted);
+    display: block;
+  }
+
+  .form-label .required {
+    margin-left: 0.35rem;
+    color: var(--form-error-color);
+    font-weight: var(--weight-semibold);
+  }
+
+  .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+</style>

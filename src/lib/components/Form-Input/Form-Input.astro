@@ -46,14 +46,18 @@ const resolvedPlaceholder = placeholder ?? content.placeholder;
 const resolvedValue = value ?? content.value;
 
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+import FormLabel from "../Form-Label/Form-Label.astro";
 ---
 
 <div class="form-field">
   {
     resolvedLabel ? (
-      <label class="form-label" for={resolvedId}>
-        {resolvedLabel}
-      </label>
+      <FormLabel
+        forId={resolvedId}
+        label={resolvedLabel}
+        required={required}
+        descriptionId={describedIds}
+      />
     ) : null
   }
 

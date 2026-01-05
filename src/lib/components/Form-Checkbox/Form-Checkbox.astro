@@ -47,6 +47,7 @@ const {
 const resolvedLabel = label ?? content.label;
 const resolvedId = id ?? content.id ?? `form-checkbox-${Math.random().toString(36).slice(2, 9)}`;
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+import FormLabel from "../Form-Label/Form-Label.astro";
 
 const styleVars = {
   "--toggle-checked": checkedColor ?? "currentColor",
@@ -80,11 +81,15 @@ const styleVars = {
             {...rest}
           />
           <span class="toggle" aria-hidden="true" />
-          <span class="label-text">{resolvedLabel}</span>
+          <span class="label-text">
+            <FormLabel tag="span" label={resolvedLabel} required={required} />
+          </span>
         </>
       ) : (
         <>
-          <span class="label-text">{resolvedLabel}</span>
+          <span class="label-text">
+            <FormLabel tag="span" label={resolvedLabel} required={required} />
+          </span>
           <input
             id={resolvedId}
             class="toggle-input"
