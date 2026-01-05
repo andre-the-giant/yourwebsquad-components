@@ -41,11 +41,11 @@ const className = `button button--${variant} button--${size}`;
       rel={resolvedRel}
       aria-disabled={disabled ? "true" : undefined}
     >
-      {resolvedLabel}
+      <slot>{resolvedLabel}</slot>
     </a>
   ) : (
     <button class={className} type={type} disabled={disabled}>
-      {resolvedLabel}
+      <slot>{resolvedLabel}</slot>
     </button>
   )
 }
@@ -53,8 +53,7 @@ const className = `button button--${variant} button--${size}`;
 <style>
   .button {
     display: inline-flex;
-    /* align-items: center;
-    justify-content: center; */
+    align-items: center;
     place-content: center;
     gap: var(--space-2);
     padding: 0.65rem 1.5rem;
@@ -110,11 +109,13 @@ const className = `button button--${variant} button--${size}`;
     background: transparent;
     color: var(--color-fg);
     border-color: transparent;
+    text-decoration: dotted underline;
   }
 
   .button--ghost:hover {
     background: var(--color-accent-muted);
     color: var(--color-accent);
+    text-decoration: none;
   }
 
   .button--sm {

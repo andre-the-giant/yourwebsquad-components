@@ -1,0 +1,29 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import { components } from "@docs/data/components.js";
+import LinkComponent from "@lib/components/Link/Link.astro";
+
+const code = `
+
+    <Link href="https://css-tricks.com/" label="Visit CSS Tricks" size="sm" />
+
+    <Link href="https://css-tricks.com/" label="Visit CSS Tricks" size="md" />
+
+    <Link href="https://css-tricks.com/" label="Visit CSS Tricks" size="lg" />
+    `;
+---
+
+<DocLayout
+  title="Link"
+  description={"handles internal/external, active state, “opens in new tab” indicators"}
+  items={components}
+>
+  <Preview title="Preview" code={code}>
+    <LinkComponent href="https://css-tricks.com/" label="Visit CSS Tricks" size="sm" />
+
+    <LinkComponent href="https://css-tricks.com/" label="Visit CSS Tricks" size="md" />
+
+    <LinkComponent href="https://css-tricks.com/" label="Visit CSS Tricks" size="lg" />
+  </Preview>
+</DocLayout>

@@ -2,11 +2,16 @@
 import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
 import { components } from "../../../data/components.js";
-import Icon from "@lib/components/Icon/Icon.astro";
+import IconComponent from "@lib/components/Icon/Icon.astro";
 
 const iconNames = ["spark", "arrow-right", "grid"];
 const defaultCode = `<Icon content={{ name: "spark" }} />`;
 const sizesCode = `<Icon content={{ name: "spark" }} size="sm" />\n<Icon content={{ name: "spark" }} size="md" />\n<Icon content={{ name: "spark" }} size="lg" />`;
+const registryNames = ["hamburger", "external", "arrow-right", "spark"];
+const registryCode = `// Use a predefined registry name\n<Icon content={{ name: \"hamburger\" }} />\n<Icon content={{ name: \"external\" }} />`;
+
+const runtimeSvg = `<path d=\"M3 6h18\" /><path d=\"M3 12h18\" /><path d=\"M3 18h18\" />`;
+const runtimeCode = `// Pass raw SVG inner markup at runtime\n<Icon content={{ svgPath: '${runtimeSvg}', viewBox: '0 0 24 24' }} size=\"md\" label=\"Runtime hamburger\" />`;
 ---
 
 <DocLayout
@@ -16,15 +21,65 @@ const sizesCode = `<Icon content={{ name: "spark" }} size="sm" />\n<Icon content
 >
   <Preview title="Default" code={defaultCode}>
     <div class="row">
-      {iconNames.map((name) => <Icon content={{ name }} />)}
+      {iconNames.map((name) => <IconComponent content={{ name }} />)}
     </div>
   </Preview>
 
+  <Preview title="Registry icons" code={registryCode}>
+    <div class="row">
+      {registryNames.map((name) => <IconComponent content={{ name }} />)}
+    </div>
+  </Preview>
+
+  <Preview title="Runtime SVG" code={runtimeCode}>
+    <div class="row">
+      <IconComponent content={{ svgPath: runtimeSvg, viewBox: "0 0 24 24" }} label="Runtime hamburger" />
+      <IconComponent
+        content={{
+          svgPath: '<path d="M5 12h14" /><path d="M13 6l6 6-6 6" />',
+          viewBox: "0 0 24 24"
+        }}
+        label="Runtime arrow"
+      />
+    </div>
+  </Preview>
+
+  <section class="notes">
+    <h3>Usage notes</h3>
+    <p>The `Icon` component supports two modes:</p>
+    <ul>
+      <li>
+        <strong>Registry:</strong> pass `content={{ name: "icon-name" }}` to use a predefined icon
+        from the registry.
+      </li>
+      <li>
+        <strong>Runtime SVG:</strong> pass `content={
+          { svgPath: "<path .../>", viewBox: "0 0 24 24" }
+        }` to render ad-hoc SVG markup without rebuilding the library.
+      </li>
+    </ul>
+    <p>
+      For safety and consistency the component sanitizes the inner SVG markup by removing any inline
+      `fill`, `stroke` and `style` attributes. The outer &lt;svg> uses `fill="currentColor"` and
+      `stroke="currentColor"`, so icons inherit color from CSS. To override the color, pass the
+      `color` prop or set the parent `color` CSS.
+    </p>
+    <p>
+      Accessibility: provide a `label` (or `ariaLabel` in `content`) to expose an accessible name.
+      If no label is supplied the icon is considered decorative and will be `aria-hidden`.
+    </p>
+    <pre><code>// registry
+&lt;Icon content={{ name: "external" }} label="Open external link" /&gt;
+
+// runtime
+&lt;Icon content={{ svgPath: '<path d="M3 6h18" />', viewBox: '0 0 24 24' }} label="Menu" /&gt;</code></pre>
+  </section>
+
   <Preview title="Sizes" code={sizesCode}>
     <div class="row">
-      <Icon content={{ name: "spark" }} size="sm" />
-      <Icon content={{ name: "spark" }} size="md" />
-      <Icon content={{ name: "spark" }} size="lg" />
+      <IconComponent content={{ name: "spark" }} size="sm" />
+      <IconComponent content={{ name: "spark" }} size="md" />
+      <IconComponent content={{ name: "spark" }} size="lg" />
     </div>
   </Preview>
 </DocLayout>

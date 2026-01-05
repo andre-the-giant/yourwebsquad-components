@@ -181,3 +181,4 @@ out/
 # Coverage
 coverage/
 src/env.d.ts
+.astro/types.d.ts

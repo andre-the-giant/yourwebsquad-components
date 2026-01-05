@@ -1,4 +1,5 @@
 ---
+// @ts-nocheck
 /*
 Props:
 - content?: { name?: string, label?: string }
@@ -9,56 +10,75 @@ Notes:
 - direct props override content.*
 - set label to expose aria-label; otherwise icon is aria-hidden
 */
-const { content = {}, name, label, size = "md" } = Astro.props;
+import icons from "./icons/index.js";
+
+const { content = {}, name, label, size = "md", class: className, color } = Astro.props;
 
 const resolvedName = name ?? content.name ?? "spark";
-const resolvedLabel = label ?? content.label;
+const resolvedLabel = label ?? content.label ?? content?.ariaLabel;
 const sizeMap = {
   sm: "16px",
   md: "24px",
   lg: "32px"
 };
-const iconSize = sizeMap[size] ?? sizeMap.md;
+const iconSize = sizeMap[String(size)] ?? sizeMap.md;
+
+// sanitize incoming svg string: remove outer <svg> wrapper, strip inline styles and
+// remove any fill/stroke attributes on inner elements so top-level SVG controls color.
+function sanitizeSvgString(raw = "") {
+  let s = String(raw).trim();
+  // remove outer <svg ...> if present
+  s = s.replace(/<svg[^>]*>/i, "").replace(/<\/svg>/i, "");
+  // remove style/fill/stroke attributes on inner elements
+  s = s.replace(/\s(?:style|fill|stroke)=("|').*?\1/gi, "");
+  return s;
+}
+
+// resolve SVG inner markup and viewBox from either content.svgPath, content.svg, or registry
+let innerSvg = "";
+let viewBox = "0 0 24 24";
+let iconStrokeWidth = "1.8";
+let iconStrokeLinecap = "round";
+let iconStrokeLinejoin = "round";
+if (content && content.svgPath) {
+  innerSvg = sanitizeSvgString(content.svgPath);
+  if (content.viewBox) viewBox = content.viewBox;
+  if (content.strokeWidth) iconStrokeWidth = String(content.strokeWidth);
+  if (content.strokeLinecap) iconStrokeLinecap = String(content.strokeLinecap);
+  if (content.strokeLinejoin) iconStrokeLinejoin = String(content.strokeLinejoin);
+} else if (content && content.svg) {
+  innerSvg = sanitizeSvgString(content.svg);
+  if (content.viewBox) viewBox = content.viewBox;
+  if (content.strokeWidth) iconStrokeWidth = String(content.strokeWidth);
+  if (content.strokeLinecap) iconStrokeLinecap = String(content.strokeLinecap);
+  if (content.strokeLinejoin) iconStrokeLinejoin = String(content.strokeLinejoin);
+} else if (icons[String(resolvedName)]) {
+  const def = icons[String(resolvedName)];
+  innerSvg = sanitizeSvgString(def.svg || "");
+  viewBox = def.viewBox || viewBox;
+  if (def.strokeWidth) iconStrokeWidth = String(def.strokeWidth);
+  if (def.strokeLinecap) iconStrokeLinecap = String(def.strokeLinecap);
+  if (def.strokeLinejoin) iconStrokeLinejoin = String(def.strokeLinejoin);
+}
 ---
 
 <svg
-  class="icon"
+  class={`icon ${className ?? ""}`.trim()}
   width={iconSize}
   height={iconSize}
-  viewBox="0 0 24 24"
-  fill="none"
+  viewBox={viewBox}
+  fill="currentColor"
   stroke="currentColor"
-  stroke-width="1.8"
-  stroke-linecap="round"
-  stroke-linejoin="round"
+  stroke-width={iconStrokeWidth}
+  stroke-linecap={iconStrokeLinecap}
+  stroke-linejoin={iconStrokeLinejoin}
   role={resolvedLabel ? "img" : "presentation"}
   aria-hidden={resolvedLabel ? undefined : "true"}
   aria-label={resolvedLabel}
+  style={`width: ${iconSize}; height: ${iconSize}; color: ${color ?? "var(--color-fg)"}`}
 >
   {resolvedLabel && <title>{resolvedLabel}</title>}
-  {
-    resolvedName === "spark" && (
-      <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z" />
-    )
-  }
-  {
-    resolvedName === "arrow-right" && (
-      <>
-        <path d="M5 12h14" />
-        <path d="M13 6l6 6-6 6" />
-      </>
-    )
-  }
-  {
-    resolvedName === "grid" && (
-      <>
-        <rect x="4" y="4" width="7" height="7" rx="1.5" />
-        <rect x="13" y="4" width="7" height="7" rx="1.5" />
-        <rect x="4" y="13" width="7" height="7" rx="1.5" />
-        <rect x="13" y="13" width="7" height="7" rx="1.5" />
-      </>
-    )
-  }
+  <g set:html={innerSvg} />
 </svg>
 
 <style>

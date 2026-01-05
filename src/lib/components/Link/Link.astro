@@ -1,0 +1,47 @@
+---
+import Icon from "../Icon/Icon.astro";
+import Button from "../Button/Button.astro";
+/*
+Props:
+- content?: { shape }
+Notes:
+- direct props override content.*
+*/
+const {
+  content = {},
+  label,
+  href,
+  target,
+  rel,
+  variant = "ghost",
+  size = "md",
+  disabled = false
+} = Astro.props;
+let resolvedLabel = label ?? content.label ?? "Read more";
+const resolvedHref = href ?? content.href;
+const resolvedTarget = target ?? content.target;
+const resolvedRel = rel ?? content.rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
+const className = `button button--${variant} button--${size}`;
+const isExternal = resolvedHref && /^(https?:)?\/\//.test(resolvedHref);
+---
+
+<Button
+  class={className}
+  href={resolvedHref}
+  target={resolvedTarget}
+  rel={resolvedRel}
+  disabled={disabled}
+  variant={variant}
+  size={size}
+>
+  <span>{resolvedLabel}</span>
+  {
+    isExternal && (
+      <Icon
+        content={{ name: "external" }}
+        size={size === "sm" ? "sm" : "md"}
+        label={`${resolvedLabel} (opens in new tab)`}
+      />
+    )
+  }
+</Button>
