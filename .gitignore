@@ -139,7 +139,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Astro generated types and cache
-.astro/
+.astro
 
 # Copilot instructions (local)
 .github/copilot-instructions.md
@@ -180,5 +180,4 @@ out/
 
 # Coverage
 coverage/
-.astro/types.d.ts
 src/env.d.ts

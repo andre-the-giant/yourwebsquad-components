@@ -6,13 +6,15 @@ import { stdin as input, stdout as output } from "process";
 const rl = readline.createInterface({ input, output });
 
 function pascalCase(name) {
-  return name
-    .replace(/(^.|-.)/g, (s) => s.replace(/-/g, "").toUpperCase())
-    .replace(/\s+/g, "");
+  return name.replace(/(^.|-.)/g, (s) => s.replace(/-/g, "").toUpperCase()).replace(/\s+/g, "");
 }
 
 function slug(name) {
-  return name.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 async function ensureDir(dir) {
@@ -35,8 +37,9 @@ async function run() {
   const descArg = process.argv[4];
 
   const name = nameArg ?? (await rl.question("Component name (e.g. Button): "));
-  const groupInput = groupArg ?? (await rl.question("Group (atoms|molecules|components) [atoms]: ")) || "atoms";
-  const description = descArg ?? (await rl.question("Short description: ")) || "";
+  const groupInput =
+    (groupArg ?? (await rl.question("Group (atoms|molecules|components) [atoms]: "))) || "atoms";
+  const description = (descArg ?? (await rl.question("Short description: "))) || "";
 
   const group = ["atoms", "molecules", "components"].includes(groupInput) ? groupInput : "atoms";
   const Folder = pascalCase(name);
@@ -54,7 +57,7 @@ async function run() {
   const compFile = path.join(libDir, `${Folder}.astro`);
   const compIndex = path.join(libDir, `index.astro`);
 
-  const compTemplate = `---\n/*\nProps:\n- content?: { /* shape */ }\nNotes:\n- direct props override content.*\n*/\nconst props = Astro.props;\n---\n\n<div>{/* TODO: implement ${Folder} component */}</div>\n`;
+  const compTemplate = `---\n/*\nProps:\n- content?: { shape }\nNotes:\n- direct props override content.*\n*/\nconst props = Astro.props;\n---\n\n<div>{/* TODO: implement ${Folder} component */}</div>\n`;
 
   const indexTemplate = `---\nimport ${Folder} from "./${Folder}.astro";\nconst props = Astro.props;\n---\n\n<${Folder} {...props} />\n`;
 
@@ -63,7 +66,7 @@ async function run() {
 
   // Docs page in group
   const docFile = path.join(docsDir, `${slugName}.astro`);
-  const docTemplate = `---\nimport DocLayout from "../../../layouts/DocLayout.astro";\nimport Preview from "../../../components/Preview.astro";\nimport { components } from "../../../data/components.js";\nimport ${Folder} from "@lib/components/${Folder}/${Folder}.astro";\n\nconst code = \\\`<${Folder} />\\\`;\n---\n\n<DocLayout title="${Folder}" description={"${description}"} items={components}>\n  <Preview title="Preview" code={code}>\n    <${Folder} />\n  </Preview>\n</DocLayout>\n`;
+  const docTemplate = `---\nimport DocLayout from "../../../layouts/DocLayout.astro";\nimport Preview from "../../../components/Preview.astro";\nimport { components } from "../../../data/components.js";\nimport ${Folder} from "@lib/components/${Folder}/${Folder}.astro";\n\nconst code = '<${Folder} />';\n---\n\n<DocLayout title="${Folder}" description={"${description}"} items={components}>\n  <Preview title="Preview" code={code}>\n    <${Folder} />\n  </Preview>\n</DocLayout>\n`;
 
   await writeIfNotExists(docFile, docTemplate);
 
@@ -76,8 +79,8 @@ async function run() {
   const dataFile = path.join(process.cwd(), "src/docs/data/components.js");
   try {
     const content = await fs.readFile(dataFile, "utf8");
-    const insert = `  {\\n    name: "${Folder}",\\n    href: "/components/${slugName}",\\n    description: "${description}",\\n    group: "${group}"\\n  },\\n`;
-    const updated = content.replace(/\\n\\];\\s*$/m, `\\n${insert}];\\n`);
+    const insert = `  {\n    name: "${Folder}",\n    href: "/components/${slugName}",\n    description: "${description}",\n    group: "${group}"\n  }\n`;
+    const updated = content.replace(/,?\n\];\s*$/m, `,\n${insert}];\n`);
     if (updated === content) {
       console.warn(`Could not update ${dataFile} — pattern not found.`);
     } else {
@@ -93,6 +96,5 @@ async function run() {
 
 run().catch((err) => {
   console.error(err);
-  rl.close();
   process.exit(1);
 });
