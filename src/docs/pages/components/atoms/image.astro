@@ -5,7 +5,12 @@ import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import Image from "@lib/components/Image/Image.astro";
 
-const code = "<Image />";
+const code = `
+ <Image 
+    quality="90"
+    src="https://picsum.photos/1600/900"
+    aspectRatio="30/5"
+  />`;
 
 const props = [
   {
@@ -54,6 +59,10 @@ const props = [
   <PropsTable props={props} />
 
   <Preview title="Preview" code={code}>
-    <Image />
+    <Image 
+    quality="90"
+    src="https://picsum.photos/1600/900"
+    aspectRatio="30/5"
+     />
   </Preview>
 </DocLayout>

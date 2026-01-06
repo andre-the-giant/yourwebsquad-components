@@ -88,5 +88,17 @@ export const components = [
     href: "/components/contact-form",
     description: "Full contact form",
     group: "components"
+  },
+  {
+    name: "Alert",
+    href: "/components/alert",
+    description: "Alert box to get the attention. Dismissable and color coded",
+    group: "molecules"
+  },
+  {
+    name: "List",
+    href: "/components/list",
+    description: "Lists, unordered or ordered, with a special bullet or what not",
+    group: "atoms"
   }
 ];

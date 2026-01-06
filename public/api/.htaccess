@@ -1,0 +1,16 @@
+# Restrict API access to same-origin requests (deny other Origins)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # If an Origin header is present and is not our domain, block the request.
+  RewriteCond %{HTTP:Origin} !^$ [NC]
+  # Allow any subdomain (or apex) of yourwebsquad.com
+  RewriteCond %{HTTP:Origin} !^https?://([A-Za-z0-9-]+\.)*yourwebsquad\.com(:[0-9]+)?$ [NC]
+  RewriteRule ^ - [F]
+</IfModule>
+
+# Do not advertise CORS headers (same-origin is permitted by default)
+<IfModule mod_headers.c>
+  Header always unset Access-Control-Allow-Origin
+  Header always unset Access-Control-Allow-Methods
+  Header always unset Access-Control-Allow-Headers
+</IfModule>

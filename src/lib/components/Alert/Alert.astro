@@ -1,0 +1,50 @@
+---
+/*
+Props:
+- content?: { type?, tone?, title?, description?, icon?, iconLabel?, actions?, role?, class? }
+- type?: "info" | "success" | "warning" | "error"
+- tone?: "solid" | "soft" | "outline"
+- title?: string
+- description?: string
+- icon?: string | boolean
+- iconLabel?: string
+- actions?: Array<{ label: string, href?: string, target?: string, rel?: string, variant?: "solid" | "outline" | "ghost", size?: "sm" | "md" | "lg", disabled?: boolean }>
+- role?: string
+- class?: string
+Notes:
+- direct props override content.*
+*/
+const {
+  content = {},
+  type,
+  tone,
+  title,
+  description,
+  icon,
+  iconLabel,
+  actions,
+  role,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const resolvedType = type ?? content.type ?? "info";
+const resolvedTone = tone ?? content.tone ?? "soft";
+const resolvedTitle = title ?? content.title;
+const resolvedDescription = description ?? content.description;
+const defaultIcons = {
+  info: "info",
+  success: "success",
+  warning: "warning",
+  error: "error"
+};
+const iconValue = icon ?? content.icon;
+const resolvedIcon =
+  iconValue === false ? undefined : iconValue === true ? defaultIcons[resolvedType] : iconValue;
+const resolvedIconLabel = iconLabel ?? content.iconLabel;
+const resolvedActions = (actions ?? content.actions ?? []).filter(Boolean).slice(0, 2);
+const resolvedRole =
+  role ?? content.role ?? (resolvedType === "error" || resolvedType === "warning" ? "alert" : "status");
+---
+
+<div>{/* TODO: implement Alert component */}</div>

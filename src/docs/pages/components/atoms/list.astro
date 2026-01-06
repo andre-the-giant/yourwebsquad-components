@@ -1,0 +1,14 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import { components } from "../../../data/components.js";
+import List from "@lib/components/List/List.astro";
+
+const code = '<List />';
+---
+
+<DocLayout title="List" description={"Lists, unordered or ordered, with a special bullet or what not"} items={components}>
+  <Preview title="Preview" code={code}>
+    <List />
+  </Preview>
+</DocLayout>

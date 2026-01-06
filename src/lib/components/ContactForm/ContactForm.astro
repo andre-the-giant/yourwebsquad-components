@@ -7,6 +7,7 @@ import FormHelp from "../Form-Help/Form-Help.astro";
 import FormError from "../Form-Error/Form-Error.astro";
 import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
 import FormFieldset from "../Form-Fieldset/Form-Fieldset.astro";
+import FormHidden from "../Form-Hidden/Form-Hidden.astro";
 
 /*
 Props:
@@ -111,6 +112,12 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
     value={defaultValues.name}
     ariaInvalid={Boolean(nameError)}
     errorId={nameErrorId}
+  />
+
+  <FormHidden
+    id={nameId}
+    name="middle_name"
+    content={{ label: "Middle Name" }}
   />
   {nameError ? <FormError id={nameErrorId}>{nameError}</FormError> : null}
 

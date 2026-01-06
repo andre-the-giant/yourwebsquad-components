@@ -13,29 +13,6 @@ import FormHidden from "@lib/components/Form-Hidden/Form-Hidden.astro";
 
 import countryOptions from "@docs/data/countries-list.json";
 
-const errorsCode = `<Form
-  errors={{ email: "Email is required", country: "Pick a country" }}
-  globalErrors={["Please correct the fields below."]}
->
-  <FormInput
-    content={{ label: "Email", id: "form-email" }}
-    name="email"
-    type="email"
-    ariaInvalid={true}
-    errorId="form-email-error"
-  />
-  <FormError id="form-email-error">Email is required.</FormError>
-
-  <FormSelect
-    content={{ label: "Country", id: "form-country", options: ${JSON.stringify(countryOptions)} }}
-    name="country"
-    ariaInvalid={true}
-    errorId="form-country-error"
-  />
-  <FormError id="form-country-error">Pick a country.</FormError>
-
-  <FormHidden name="token" value="abc123" />
-</Form>`;
 
 const basicCode = `<Form action="/api/contact" method="post">
 
@@ -157,31 +134,6 @@ const props = [
         />
       </Form>
     </div>
-
-    <Preview title="With error summary" code={errorsCode}>
-      <div class="column">
-        <Form errors={sampleErrors} globalErrors={sampleGlobalErrors}>
-          <FormInput
-            content={{ label: "Email", id: "form-email" }}
-            name="email"
-            type="email"
-            ariaInvalid={true}
-            errorId="form-email-error"
-          />
-          <FormError id="form-email-error">Email is required.</FormError>
-
-          <FormSelect
-            content={{ label: "Country", id: "form-country", options: countryOptions }}
-            name="country"
-            ariaInvalid={true}
-            errorId="form-country-error"
-          />
-          <FormError id="form-country-error">Pick a country.</FormError>
-
-          <FormHidden name="token" value="abc123" />
-        </Form>
-      </div>
-    </Preview>
   </Preview>
 
   <style>

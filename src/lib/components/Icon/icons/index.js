@@ -23,5 +23,21 @@ export default {
   grid: {
     viewBox: "0 0 24 24",
     svg: `<rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" />`
+  },
+  info: {
+    viewBox: "0 0 24 24",
+    svg: `<circle cx="12" cy="12" r="9" /><line x1="12" y1="10" x2="12" y2="16" /><circle cx="12" cy="7" r="1.1" />`
+  },
+  success: {
+    viewBox: "0 0 24 24",
+    svg: `<circle cx="12" cy="12" r="9" /><polyline points="8 12.5 11 15.5 16 9.5" />`
+  },
+  warning: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M12 3.5 3.5 19h17L12 3.5z" /><line x1="12" y1="9" x2="12" y2="13.5" /><circle cx="12" cy="17" r="1" />`
+  },
+  error: {
+    viewBox: "0 0 24 24",
+    svg: `<circle cx="12" cy="12" r="9" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" />`
   }
 };

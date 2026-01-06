@@ -13,6 +13,10 @@ const registryCode = `// Use a predefined registry name\n<Icon content={{ name: 
 
 const runtimeSvg = `<path d=\"M3 6h18\" /><path d=\"M3 12h18\" /><path d=\"M3 18h18\" />`;
 const runtimeCode = `// Pass raw SVG inner markup at runtime\n<Icon content={{ svgPath: '${runtimeSvg}', viewBox: '0 0 24 24' }} size=\"md\" label=\"Runtime hamburger\" />`;
+const alertIcons = ["info", "success", "warning", "error"];
+const alertIconsCode = alertIcons
+  .map((name) => `<Icon content={{ name: "${name}" }} />`)
+  .join("\\n");
 
 const props = [
   {
@@ -53,6 +57,14 @@ const props = [
   <Preview title="Registry icons" code={registryCode}>
     <div class="row">
       {registryNames.map((name) => <IconComponent content={{ name }} />)}
+    </div>
+  </Preview>
+
+  <Preview title="Alert icons" code={alertIconsCode}>
+    <div class="row">
+      {alertIcons.map((name) => (
+        <IconComponent content={{ name }} label={`${name} icon`} />
+      ))}
     </div>
   </Preview>
 
