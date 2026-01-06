@@ -8,7 +8,7 @@ Props:
 - method?: "get" | "post"
 - target?: string
 - enctype?: string
-- novalidate?: boolean
+- novalidate?: boolean       // defaults true to avoid native browser bubbles
 - preventEnterSubmit?: boolean   // defaults true
 - submitLabel?: string            // default "Submit"
 - submitLabel?: string            // default "Send"
@@ -24,6 +24,7 @@ Props:
 - globalErrors?: Array<string>
 - showErrorSummary?: boolean
 - errorSummaryTitle?: string
+- validateOnSubmit?: boolean
 - class?: string
 */
 const {
@@ -32,7 +33,7 @@ const {
   method = "post",
   target,
   enctype,
-  novalidate = false,
+  novalidate = true,
   preventEnterSubmit = true,
   submitLabel = "Send",
   submitVariant = "solid",
@@ -47,6 +48,7 @@ const {
   globalErrors = [],
   showErrorSummary = true,
   errorSummaryTitle = "Please fix the following errors:",
+  validateOnSubmit = true,
   class: className,
   ...rest
 } = Astro.props;
@@ -64,6 +66,8 @@ const fieldErrors = entries.flatMap(([field, value]) =>
 );
 const globalErrorList = normalizeArray(globalErrors).map((msg) => String(msg));
 const hasErrors = globalErrorList.length + fieldErrors.length > 0;
+const summaryId = `${formId}-error-summary`;
+const summaryListId = `${summaryId}-list`;
 ---
 
 <form
@@ -74,14 +78,26 @@ const hasErrors = globalErrorList.length + fieldErrors.length > 0;
   target={target}
   enctype={enctype}
   novalidate={novalidate ? true : undefined}
+  data-validate={validateOnSubmit ? "true" : "false"}
   data-prevent-enter={preventEnterSubmit ? "true" : undefined}
   {...rest}
 >
   {
-    showErrorSummary && hasErrors ? (
-      <div class="form-error-summary" role="alert" aria-live="polite">
-        <p class="summary-title">{errorSummaryTitle}</p>
-        <ul>
+    showErrorSummary ? (
+      <div
+        class={`form-error-summary ${hasErrors ? "" : "is-hidden"}`.trim()}
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        tabindex="-1"
+        id={summaryId}
+        data-error-summary
+        hidden={!hasErrors}
+      >
+        <p class="summary-title" data-summary-title>
+          {errorSummaryTitle}
+        </p>
+        <ul id={summaryListId} data-error-list>
           {globalErrorList.map((err) => (
             <li>{err}</li>
           ))}
@@ -141,6 +157,151 @@ const hasErrors = globalErrorList.length + fieldErrors.length > 0;
   });
 </script>
 
+<script is:inline>
+  document.querySelectorAll("form").forEach((form) => {
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.validationBound === "true") return;
+    form.dataset.validationBound = "true";
+    const summary = form.querySelector("[data-error-summary]");
+    const list = summary?.querySelector("[data-error-list]");
+    const summaryTitle = summary?.querySelector("[data-summary-title]");
+    const shouldValidate = form.dataset.validate !== "false";
+    const action = form.getAttribute("action");
+    const method = (form.getAttribute("method") || "post").toUpperCase();
+    const enctype = form.getAttribute("enctype") || "application/x-www-form-urlencoded";
+
+    // Focus summary if server-rendered errors exist
+    if (summary && summary.hidden === false) {
+      summary.focus({ preventScroll: false });
+    }
+
+    form.addEventListener("submit", async (event) => {
+      if (!shouldValidate) return;
+
+      const invalidFields = Array.from(form.querySelectorAll("input, select, textarea")).filter(
+        (el) => !el.checkValidity()
+      );
+
+      if (invalidFields.length) {
+        event.preventDefault();
+        if (summary && list) {
+          summaryTitle && (summaryTitle.textContent = "Please fix the following errors:");
+          list.innerHTML = "";
+          invalidFields.forEach((el) => {
+            const id = el.id;
+            const label =
+              (id ? form.querySelector(`label[for="${id}"]`)?.textContent?.trim() : "") ||
+              el.getAttribute("aria-label") ||
+              el.getAttribute("name") ||
+              id ||
+              "This field";
+            const li = document.createElement("li");
+            li.textContent = `${label} is required or invalid.`;
+            list.appendChild(li);
+          });
+          summary.hidden = false;
+          summary.classList.remove("is-hidden");
+          summary.classList.remove("is-success");
+          summary.focus({ preventScroll: false });
+          summary.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      if (action) {
+        event.preventDefault();
+        if (!summary || !list) return;
+        list.innerHTML = "";
+        summary.classList.remove("is-success");
+        summary.hidden = true;
+        summary.classList.add("is-hidden");
+
+        const formData = new FormData(form);
+        const opts = { method, headers: {} };
+
+        if (method === "GET") {
+          const params = new URLSearchParams(formData);
+          const sep = action.includes("?") ? "&" : "?";
+          try {
+            const res = await fetch(action + sep + params.toString(), opts);
+            await handleResponse(res);
+          } catch (err) {
+            showError(err);
+          }
+          return;
+        }
+
+        if (enctype === "application/json") {
+          opts.headers["Content-Type"] = "application/json";
+          opts.body = JSON.stringify(Object.fromEntries(formData));
+        } else {
+          opts.body = formData;
+        }
+
+        try {
+          const res = await fetch(action, opts);
+          await handleResponse(res);
+        } catch (err) {
+          showError(err);
+        }
+      }
+
+      async function handleResponse(res) {
+        let payload = null;
+        const text = await res.text();
+        try {
+          payload = text ? JSON.parse(text) : null;
+        } catch (_) {
+          payload = null;
+        }
+
+        const messages = [];
+        const fieldErrors = payload && typeof payload.errors === "object" ? payload.errors : null;
+        const globalMsg =
+          (payload && (payload.message || payload.detail || payload.error)) ||
+          (res.ok ? "Thanks! Your message was sent." : res.statusText);
+
+        if (fieldErrors) {
+          Object.entries(fieldErrors).forEach(([field, value]) => {
+            const arr = Array.isArray(value) ? value : value ? [value] : [];
+            arr.forEach((msg) => messages.push(`${field}: ${msg}`));
+          });
+        }
+        if (globalMsg) messages.unshift(globalMsg);
+
+        list.innerHTML = "";
+        messages.forEach((msg) => {
+          const li = document.createElement("li");
+          li.textContent = msg;
+          list.appendChild(li);
+        });
+
+        if (summary) {
+          summaryTitle &&
+            (summaryTitle.textContent = res.ok ? "Success" : "Please review and retry");
+          summary.hidden = false;
+          summary.classList.remove("is-hidden");
+          summary.classList.toggle("is-success", res.ok);
+          summary.focus({ preventScroll: false });
+          summary.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      function showError(err) {
+        if (!summary || !list) return;
+        list.innerHTML = "";
+        const li = document.createElement("li");
+        li.textContent = err?.message || "Network error. Please try again.";
+        list.appendChild(li);
+        summary.hidden = false;
+        summary.classList.remove("is-hidden");
+        summary.classList.remove("is-success");
+        summary.focus({ preventScroll: false });
+      }
+    });
+  });
+</script>
+
 <style>
   .form {
     display: flex;
@@ -167,6 +328,11 @@ const hasErrors = globalErrorList.length + fieldErrors.length > 0;
     color: var(--form-error-color);
     padding: var(--space-4);
     border-radius: var(--radius-sm);
+  }
+  .form-error-summary.is-success {
+    border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
   }
 
   .form-error-summary .summary-title {

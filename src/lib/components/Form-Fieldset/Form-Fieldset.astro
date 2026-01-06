@@ -1,0 +1,87 @@
+---
+/*
+Props:
+- content?: { legend?: string, id?: string, description?: string }
+- id?: string
+- legend?: string
+- description?: string
+- helpId?: string
+- errorId?: string
+- required?: boolean
+- class?: string
+Notes:
+- Wraps grouped fields (e.g., radio/checkbox sets) with semantic fieldset/legend.
+*/
+const {
+  content = {},
+  id,
+  legend,
+  description,
+  helpId,
+  errorId,
+  required = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const resolvedLegend = legend ?? content.legend;
+const resolvedDescription = description ?? content.description;
+const resolvedId = id ?? content.id ?? `form-fieldset-${Math.random().toString(36).slice(2, 9)}`;
+const describedIds = [helpId, errorId].filter(Boolean).join(" ");
+---
+
+<fieldset
+  id={resolvedId}
+  class={`form-fieldset ${className ?? ""}`.trim()}
+  aria-describedby={describedIds || undefined}
+  {...rest}
+>
+  {
+    resolvedLegend ? (
+      <legend class="form-fieldset__legend">
+        {resolvedLegend}
+        {required ? <span class="required">*</span> : null}
+      </legend>
+    ) : null
+  }
+
+  {resolvedDescription ? <p class="form-fieldset__description">{resolvedDescription}</p> : null}
+
+  <div class="form-fieldset__body">
+    <slot />
+  </div>
+
+  <slot name="help" />
+  <slot name="error" />
+</fieldset>
+
+<style>
+  .form-fieldset {
+    border: 1px solid var(--color-border);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .form-fieldset__legend {
+    font-weight: var(--weight-medium);
+    padding: 0 var(--space-1);
+  }
+
+  .form-fieldset__description {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--size-sm);
+  }
+
+  .form-fieldset__body {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .required {
+    color: var(--form-error-color);
+    margin-left: 0.25rem;
+  }
+</style>

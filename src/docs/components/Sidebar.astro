@@ -1,5 +1,5 @@
 ---
-const { title = "Components", items = [] } = Astro.props;
+const { title = "", items = [] } = Astro.props;
 const currentPath = Astro.url?.pathname ?? "";
 
 const grouped = items.reduce((acc, item) => {
@@ -9,7 +9,7 @@ const grouped = items.reduce((acc, item) => {
   return acc;
 }, {});
 
-const order = ["atoms", "molecules", "components"];
+const order = ["components", "molecules", "atoms"];
 const labels = { atoms: "Atoms", molecules: "Molecules", components: "Components" };
 ---
 

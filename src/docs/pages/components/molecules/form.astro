@@ -38,13 +38,6 @@ const errorsCode = `<Form
 </Form>`;
 
 const basicCode = `<Form action="/api/contact" method="post">
-  <FormInput
-    content={{ label: "Name", id: "contact-name", placeholder: "Full name" }}
-    name="name"
-    required
-    helpId="contact-name-help"
-  />
-  <FormHelp id="contact-name-help">Include first and last name.</FormHelp>
 
   <FormInput
     content={{ label: "Email", id: "contact-email", placeholder: "you@example.com" }}
@@ -53,14 +46,6 @@ const basicCode = `<Form action="/api/contact" method="post">
     required
   />
 
-  <FormDate content={{ label: "Preferred date", id: "contact-date" }} name="date" />
-
-  <FormSelect
-    content={{ label: "Country", id: "contact-country", options: ${JSON.stringify(countryOptions)} }}
-    name="country"
-    placeholder="Select a country"
-    required
-  />
 </Form>`;
 
 const sampleErrors = {
@@ -165,63 +150,46 @@ const props = [
     <div class="column">
       <Form action="/api/contact" method="post">
         <FormInput
-          content={{ label: "Name", id: "contact-name", placeholder: "Full name" }}
-          name="name"
-          required
-          helpId="contact-name-help"
-        />
-        <FormHelp id="contact-name-help">Include first and last name.</FormHelp>
-
-        <FormInput
           content={{ label: "Email", id: "contact-email", placeholder: "you@example.com" }}
           name="email"
           type="email"
           required
         />
-
-        <FormDate content={{ label: "Preferred date", id: "contact-date" }} name="date" />
-
-        <FormSelect
-          content={{ label: "Country", id: "contact-country", options: countryOptions }}
-          name="country"
-          placeholder="Select a country"
-          required
-        />
       </Form>
     </div>
+
+    <Preview title="With error summary" code={errorsCode}>
+      <div class="column">
+        <Form errors={sampleErrors} globalErrors={sampleGlobalErrors}>
+          <FormInput
+            content={{ label: "Email", id: "form-email" }}
+            name="email"
+            type="email"
+            ariaInvalid={true}
+            errorId="form-email-error"
+          />
+          <FormError id="form-email-error">Email is required.</FormError>
+
+          <FormSelect
+            content={{ label: "Country", id: "form-country", options: countryOptions }}
+            name="country"
+            ariaInvalid={true}
+            errorId="form-country-error"
+          />
+          <FormError id="form-country-error">Pick a country.</FormError>
+
+          <FormHidden name="token" value="abc123" />
+        </Form>
+      </div>
+    </Preview>
   </Preview>
 
-  <Preview title="With error summary" code={errorsCode}>
-    <div class="column">
-      <Form errors={sampleErrors} globalErrors={sampleGlobalErrors}>
-        <FormInput
-          content={{ label: "Email", id: "form-email" }}
-          name="email"
-          type="email"
-          ariaInvalid={true}
-          errorId="form-email-error"
-        />
-        <FormError id="form-email-error">Email is required.</FormError>
-
-        <FormSelect
-          content={{ label: "Country", id: "form-country", options: countryOptions }}
-          name="country"
-          ariaInvalid={true}
-          errorId="form-country-error"
-        />
-        <FormError id="form-country-error">Pick a country.</FormError>
-
-        <FormHidden name="token" value="abc123" />
-      </Form>
-    </div>
-  </Preview>
+  <style>
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      width: min(640px, 100%);
+    }
+  </style>
 </DocLayout>
-
-<style>
-  .column {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    width: min(640px, 100%);
-  }
-</style>

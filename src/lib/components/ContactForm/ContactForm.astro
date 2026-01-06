@@ -1,0 +1,311 @@
+---
+import Form from "../Form/Form.astro";
+import FormInput from "../Form-Input/Form-Input.astro";
+import FormTextarea from "../Form-Textarea/Form-Textarea.astro";
+import FormRadio from "../Form-Radio/Form-Radio.astro";
+import FormHelp from "../Form-Help/Form-Help.astro";
+import FormError from "../Form-Error/Form-Error.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+import FormFieldset from "../Form-Fieldset/Form-Fieldset.astro";
+
+/*
+Props:
+- action?: string
+- method?: "get" | "post"
+- defaultValues?: { name?: string; email?: string; phone?: string; preference?: "email" | "phone"; message?: string }
+- defaultValues?: {
+    name?: string;
+    company?: string;
+    city?: string;
+    email?: string;
+    phone?: string;
+    preference?: "email" | "phone" | "";
+    message?: string;
+    services?: string[];
+  }
+- errors?: Record<string, string | string[]>
+- globalErrors?: string[]
+- heading?: string
+- description?: string
+- submitLabel?: string
+- resetLabel?: string
+- class?: string
+Notes:
+- Required fields: name, email, contactMethod (default email).
+- Uses Form molecule for submit/reset buttons and error summary.
+*/
+const {
+  action,
+  method = "post",
+  defaultValues = {},
+  errors = {},
+  globalErrors = [],
+  heading = "Contact us",
+  description = "Tell us a bit about your project and how to reach you.",
+  submitLabel = "Send your message",
+  resetLabel,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const formId = `contact-form-${Math.random().toString(36).slice(2, 9)}`;
+
+const normalizeError = (value) =>
+  Array.isArray(value)
+    ? value[0]
+    : value !== undefined && value !== null
+      ? String(value)
+      : undefined;
+
+const nameError = normalizeError(errors.name);
+const companyError = normalizeError(errors.company);
+const cityError = normalizeError(errors.city);
+const emailError = normalizeError(errors.email);
+const phoneError = normalizeError(errors.phone);
+const methodError = normalizeError(errors.contactMethod);
+const messageError = normalizeError(errors.message);
+const servicesError = normalizeError(errors.services);
+
+const nameErrorId = `${formId}-name-error`;
+const companyErrorId = `${formId}-company-error`;
+const cityErrorId = `${formId}-city-error`;
+const emailErrorId = `${formId}-email-error`;
+const phoneErrorId = `${formId}-phone-error`;
+const methodErrorId = `${formId}-contact-method-error`;
+const messageErrorId = `${formId}-message-error`;
+const servicesErrorId = `${formId}-services-error`;
+
+const nameId = `${formId}-name`;
+const companyId = `${formId}-company`;
+const cityId = `${formId}-city`;
+const emailId = `${formId}-email`;
+const phoneId = `${formId}-phone`;
+const messageId = `${formId}-message`;
+
+const preference = defaultValues.preference ?? "";
+const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.services : [];
+---
+
+<Form
+  id={formId}
+  action={action}
+  method={method}
+  errors={errors}
+  globalErrors={globalErrors}
+  submitLabel={submitLabel}
+  resetLabel={resetLabel}
+  class={`contact-form ${className ?? ""}`.trim()}
+  {...rest}
+>
+  <header class="contact-form__header">
+    <p class="contact-form__eyebrow">Get in touch</p>
+    <h2 class="contact-form__title">{heading}</h2>
+    <p class="contact-form__description">{description}</p>
+  </header>
+
+  <FormInput
+    id={nameId}
+    name="name"
+    content={{ label: "Name" }}
+    required
+    value={defaultValues.name}
+    ariaInvalid={Boolean(nameError)}
+    errorId={nameErrorId}
+  />
+  {nameError ? <FormError id={nameErrorId}>{nameError}</FormError> : null}
+
+  <div class="contact-form__grid">
+    <div>
+      <FormInput
+        id={companyId}
+        name="company"
+        content={{ label: "Company name" }}
+        value={defaultValues.company}
+        ariaInvalid={Boolean(companyError)}
+        errorId={companyErrorId}
+      />
+      {companyError ? <FormError id={companyErrorId}>{companyError}</FormError> : null}
+    </div>
+    <div>
+      <FormInput
+        id={cityId}
+        name="city"
+        content={{ label: "City" }}
+        value={defaultValues.city}
+        ariaInvalid={Boolean(cityError)}
+        errorId={cityErrorId}
+      />
+      {cityError ? <FormError id={cityErrorId}>{cityError}</FormError> : null}
+    </div>
+  </div>
+  <div class="contact-form__grid">
+    <div>
+      <FormInput
+        id={emailId}
+        name="email"
+        type="email"
+        content={{ label: "Email" }}
+        required
+        value={defaultValues.email}
+        ariaInvalid={Boolean(emailError)}
+        errorId={emailErrorId}
+      />
+      {emailError ? <FormError id={emailErrorId}>{emailError}</FormError> : null}
+    </div>
+    <div>
+      <FormInput
+        id={phoneId}
+        name="phone"
+        type="tel"
+        content={{ label: "Phone" }}
+        value={defaultValues.phone}
+        ariaInvalid={Boolean(phoneError)}
+        errorId={phoneErrorId}
+        helpId={`${phoneId}-help`}
+      />
+      <FormHelp id={`${phoneId}-help`}>Optional. Include country code if international.</FormHelp>
+      {phoneError ? <FormError id={phoneErrorId}>{phoneError}</FormError> : null}
+    </div>
+  </div>
+  <FormFieldset
+    legend="Preferred contact method"
+    id={`${formId}-contact-method`}
+    errorId={methodErrorId}
+  >
+    <div class="contact-form__options">
+      <FormRadio
+        name="contactMethod"
+        content={{ label: "Email" }}
+        value="email"
+        checked={preference === "email" || preference === ""}
+        ariaInvalid={Boolean(methodError)}
+        errorId={methodErrorId}
+      />
+      <FormRadio
+        name="contactMethod"
+        content={{ label: "Phone" }}
+        value="phone"
+        checked={preference === "phone"}
+        ariaInvalid={Boolean(methodError)}
+        errorId={methodErrorId}
+      />
+    </div>
+    {
+      methodError ? (
+        <FormError id={methodErrorId} slot="error">
+          {methodError}
+        </FormError>
+      ) : null
+    }
+  </FormFieldset>
+
+  <FormFieldset
+    legend="How can we help your company?"
+    id={`${formId}-services`}
+    errorId={servicesErrorId}
+  >
+    <div class="contact-form__options contact-form__options--tight">
+      {
+        [
+          { value: "web-dev", label: "Custom web design and development" },
+          { value: "web-presence", label: "Web Presence Management" },
+          { value: "ads", label: "Social media and local ads" },
+          { value: "support", label: "Website support and care" }
+        ].map((service) => (
+          <FormCheckbox
+            name="services"
+            content={{ label: service.label }}
+            value={service.value}
+            checked={servicesSelected.includes(service.value)}
+            ariaInvalid={Boolean(servicesError)}
+            errorId={servicesErrorId}
+            position="left"
+          />
+        ))
+      }
+    </div>
+    {
+      servicesError ? (
+        <FormError id={servicesErrorId} slot="error">
+          {servicesError}
+        </FormError>
+      ) : null
+    }
+  </FormFieldset>
+
+  <FormTextarea
+    id={messageId}
+    name="message"
+    content={{ label: "Message" }}
+    rows={4}
+    placeholder="Project goals, timeline, budget..."
+    value={defaultValues.message}
+    ariaInvalid={Boolean(messageError)}
+    errorId={messageErrorId}
+  />
+  {messageError ? <FormError id={messageErrorId}>{messageError}</FormError> : null}
+</Form>
+
+<style>
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 800px;
+  }
+
+  .contact-form__header {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .contact-form__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: var(--size-xs);
+    color: var(--color-muted);
+    margin: 0;
+  }
+
+  .contact-form__title {
+    margin: 0;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+  }
+
+  .contact-form__description {
+    margin: 0;
+    color: var(--color-muted);
+    max-width: 52ch;
+  }
+
+  .contact-form__group {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .contact-form__group-label {
+    margin: 0;
+    font-weight: var(--weight-medium);
+  }
+
+  .contact-form__group-label span {
+    color: var(--form-error-color);
+    margin-left: 0.25rem;
+  }
+
+  .contact-form__options {
+    display: grid;
+    gap: var(--space-2);
+    grid-template-columns: repeat(auto-fit, minmax(50%, 1fr));
+  }
+
+  .contact-form__options--tight {
+    gap: var(--space-1);
+  }
+
+  .contact-form__grid {
+    display: grid;
+    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+</style>

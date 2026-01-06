@@ -1,0 +1,63 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import ContactForm from "@lib/components/ContactForm/ContactForm.astro";
+
+const code = `<ContactForm
+  heading="Work with us"
+  description="Tell us about your project and how to reach you."
+  submitLabel="Send your message"
+/>`;
+
+const props = [
+  { name: "action", type: "string", description: "Form action URL." },
+  { name: "method", type: `"get" | "post"`, default: '"post"', description: "HTTP method." },
+  {
+    name: "defaultValues",
+    type: "{ name?, company?, city?, email?, phone?, preference?, message?, services? }",
+    description: "Pre-fill field values (services is string[])."
+  },
+  {
+    name: "errors",
+    type: "Record<string, string | string[]>",
+    default: "{}",
+    description: "Field error map."
+  },
+  {
+    name: "globalErrors",
+    type: "string[]",
+    default: "[]",
+    description: "Non-field errors for summary."
+  },
+  { name: "heading", type: "string", default: '"Contact us"', description: "Form heading text." },
+  {
+    name: "description",
+    type: "string",
+    default: '"Tell us a bit about your project..."',
+    description: "Intro copy."
+  },
+  {
+    name: "submitLabel",
+    type: "string",
+    default: '"Send your message"',
+    description: "Submit button label."
+  },
+  { name: "resetLabel", type: "string", default: '"Reset"', description: "Reset button label." },
+  { name: "class", type: "string", description: "Additional className." }
+];
+---
+
+<DocLayout title="ContactForm" description={"Full contact form"} items={components}>
+  <PropsTable props={props} />
+
+  <Preview title="Preview" code={code}>
+    <ContactForm
+      method="post"
+      action="https://yourwebsquad.com/api/contact"
+      heading="Work with us"
+      description="Tell us about your project and how to reach you."
+    />
+  </Preview>
+</DocLayout>

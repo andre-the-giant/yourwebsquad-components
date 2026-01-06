@@ -82,5 +82,11 @@ export const components = [
     href: "/components/image",
     description: "Image wrapper using Astro:asset with defaults",
     group: "atoms"
+  },
+  {
+    name: "ContactForm",
+    href: "/components/contact-form",
+    description: "Full contact form",
+    group: "components"
   }
 ];
