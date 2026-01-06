@@ -1,4 +1,7 @@
 ---
+import Icon from "../Icon/Icon.astro";
+import Button from "../Button/Button.astro";
+
 /*
 Props:
 - content?: { type?, tone?, title?, description?, icon?, iconLabel?, actions?, role?, class? }
@@ -38,13 +41,165 @@ const defaultIcons = {
   warning: "warning",
   error: "error"
 };
-const iconValue = icon ?? content.icon;
+const iconValue = icon ?? content.icon ?? true;
 const resolvedIcon =
   iconValue === false ? undefined : iconValue === true ? defaultIcons[resolvedType] : iconValue;
 const resolvedIconLabel = iconLabel ?? content.iconLabel;
 const resolvedActions = (actions ?? content.actions ?? []).filter(Boolean).slice(0, 2);
 const resolvedRole =
-  role ?? content.role ?? (resolvedType === "error" || resolvedType === "warning" ? "alert" : "status");
+  role ??
+  content.role ??
+  (resolvedType === "error" || resolvedType === "warning" ? "alert" : "status");
+
+const hasBodySlot = Astro.slots.has("default") || Astro.slots.has("description");
+const hasTitle = Boolean(resolvedTitle);
+const hasDescription = Boolean(resolvedDescription);
+const hasBody = hasTitle || hasDescription || hasBodySlot;
+const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
 ---
 
-<div>{/* TODO: implement Alert component */}</div>
+<section
+  class={`alert alert--${resolvedType} alert--${resolvedTone} ${className ?? ""}`.trim()}
+  role={resolvedRole}
+  aria-live={resolvedRole === "alert" ? "assertive" : "polite"}
+  {...rest}
+>
+  {
+    resolvedIcon ? (
+      <div class="alert__icon">
+        <Icon content={{ name: resolvedIcon, label: resolvedIconLabel }} />
+      </div>
+    ) : null
+  }
+
+  <div class="alert__body">
+    {hasTitle ? <h3 class="alert__title">{resolvedTitle}</h3> : null}
+    {hasDescription ? <p class="alert__description">{resolvedDescription}</p> : null}
+    {Astro.slots.has("default") ? <slot /> : null}
+    {Astro.slots.has("description") ? <slot name="description" /> : null}
+  </div>
+
+  {
+    hasActions ? (
+      <div class="alert__actions">
+        <slot name="actions" />
+        {resolvedActions.map((action) => (
+          <Button
+            href={action.href}
+            target={action.target}
+            rel={action.rel}
+            variant={action.variant ?? "outline"}
+            size={action.size ?? "sm"}
+            disabled={action.disabled}
+          >
+            {action.label}
+          </Button>
+        ))}
+      </div>
+    ) : null
+  }
+</section>
+
+<style>
+  .alert {
+    --alert-fg: rgb(var(--color-fg-rgb));
+    --alert-bg: var(--color-surface);
+    --alert-border: var(--color-border);
+    --alert-tone: var(--alert-info-rgb);
+    --alert-strong: rgba(var(--alert-tone), 0.16);
+    --alert-soft: rgba(var(--alert-tone), 0.08);
+
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
+    align-items: start;
+    padding: var(--space-4);
+    border: 0;
+    background: var(--alert-bg);
+    color: var(--alert-fg);
+    border-radius: var(--radius-sm);
+    width: min(100%, 720px);
+  }
+
+  .alert__icon {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    color: var(--alert-fg);
+  }
+
+  .alert__body {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .alert__title {
+    margin: 0;
+    font-size: var(--size-lg);
+    line-height: var(--line-tight);
+    font-weight: normal;
+  }
+
+  .alert__description {
+    margin: 0;
+    color: color-mix(in srgb, var(--alert-fg) 75%, transparent);
+  }
+
+  .alert__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .alert__actions :global(.button) {
+    margin: 0;
+  }
+
+  .alert--info {
+    --alert-tone: var(--alert-info-rgb);
+  }
+
+  .alert--success {
+    --alert-tone: var(--alert-success-rgb);
+  }
+
+  .alert--warning {
+    --alert-tone: var(--alert-warning-rgb);
+  }
+
+  .alert--error {
+    --alert-tone: var(--alert-error-rgb);
+  }
+
+  .alert--solid {
+    --alert-bg: rgba(var(--alert-tone), 0.18);
+    --alert-border: rgba(var(--alert-tone), 0.55);
+    --alert-fg: rgb(var(--alert-text-rgb));
+  }
+
+  .alert--soft {
+    --alert-bg: rgba(var(--alert-tone), 0.07);
+    --alert-border: rgba(var(--alert-tone), 0.3);
+    --alert-fg: rgb(var(--alert-tone));
+  }
+
+  .alert--outline {
+    --alert-bg: transparent;
+    --alert-border: rgba(var(--alert-tone), 0.4);
+    --alert-fg: rgb(var(--alert-tone));
+    border: 1px solid var(--alert-border);
+  }
+
+  @media (max-width: 720px) {
+    .alert {
+      grid-template-columns: auto 1fr;
+    }
+    .alert__actions {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+    }
+  }
+</style>

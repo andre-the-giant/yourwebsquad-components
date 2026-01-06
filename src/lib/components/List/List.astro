@@ -1,11 +1,207 @@
 ---
+import Icon from "../Icon/Icon.astro";
+
 /*
 Props:
-- content?: { shape }
+- content?: {
+    as?: "ul" | "ol";
+    items?: Array<string | { label: string; icon?: string }>;
+    icon?: string;              // registry name for bullet icon
+    showIcon?: boolean;
+    numberStyle?: { color?: string; background?: string; weight?: string; size?: string; radius?: string };
+    gap?: string;
+    lineHeight?: string;
+    start?: number;
+    reversed?: boolean;
+    type?: "1" | "a" | "A" | "i" | "I";
+    class?: string;
+  }
+- as?: "ul" | "ol"
+- items?: Array<string | { label: string; icon?: string }>
+- icon?: string
+- showIcon?: boolean
+- numberStyle?: { color?: string; background?: string; weight?: string; size?: string; radius?: string }
+- gap?: string
+- lineHeight?: string
+- start?: number
+- reversed?: boolean
+- type?: "1" | "a" | "A" | "i" | "I"
+- class?: string
 Notes:
 - direct props override content.*
 */
-const props = Astro.props;
+const {
+  content = {},
+  as,
+  items,
+  icon,
+  showIcon,
+  numberStyle,
+  gap,
+  lineHeight,
+  start,
+  reversed,
+  type,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const resolvedAs = (as ?? content.as ?? "ul").toLowerCase() === "ol" ? "ol" : "ul";
+const resolvedItems = Array.isArray(items ?? content.items) ? (items ?? content.items) : [];
+const resolvedIcon = icon ?? content.icon;
+const resolvedShowIcon = showIcon ?? content.showIcon ?? Boolean(resolvedIcon);
+const resolvedNumberStyle = {
+  color: (numberStyle ?? {}).color ?? content.numberStyle?.color,
+  background: (numberStyle ?? {}).background ?? content.numberStyle?.background,
+  weight: (numberStyle ?? {}).weight ?? content.numberStyle?.weight ?? "var(--weight-semibold)",
+  size: (numberStyle ?? {}).size ?? content.numberStyle?.size ?? "var(--size-sm)",
+  radius: (numberStyle ?? {}).radius ?? content.numberStyle?.radius ?? "999px"
+};
+const resolvedGap = gap ?? content.gap ?? "var(--space-2)";
+const resolvedLineHeight = lineHeight ?? content.lineHeight ?? "var(--line-normal)";
+const resolvedStart = start ?? content.start;
+const resolvedReversed = reversed ?? content.reversed ?? false;
+const resolvedType = type ?? content.type;
+const listClassName = `list list--${resolvedAs} ${className ?? ""}`.trim();
+const hasCustomItems = Astro.slots.has("default");
+
+const styleVars = {
+  "--list-gap": resolvedGap,
+  "--list-line": resolvedLineHeight,
+  "--list-num-color": resolvedNumberStyle.color,
+  "--list-num-bg": resolvedNumberStyle.background,
+  "--list-num-weight": resolvedNumberStyle.weight,
+  "--list-num-size": resolvedNumberStyle.size,
+  "--list-num-radius": resolvedNumberStyle.radius
+};
 ---
 
-<div>{/* TODO: implement List component */}</div>
+{
+  resolvedAs === "ol" ? (
+    <ol
+      class={listClassName}
+      start={resolvedStart}
+      reversed={resolvedReversed || undefined}
+      type={resolvedType}
+      style={styleVars}
+      {...rest}
+    >
+      {
+        hasCustomItems ? (
+          <slot />
+        ) : (
+          resolvedItems.map((item) => {
+            const it = typeof item === "string" ? { label: item } : item || {};
+            return (
+              <li class="list__item">
+                <span class="list__marker list__marker--number" aria-hidden="true" />
+                <span class="list__content">{it.label}</span>
+              </li>
+            );
+          })
+        )
+      }
+    </ol>
+  ) : (
+    <ul
+      class={listClassName}
+      style={styleVars}
+      {...rest}
+    >
+      {
+        hasCustomItems ? (
+          <slot />
+        ) : (
+          resolvedItems.map((item) => {
+            const it = typeof item === "string" ? { label: item } : item || {};
+            return (
+              <li class="list__item">
+                <span class="list__marker list__marker--icon">
+                  {resolvedShowIcon || it.icon ? (
+                    <Icon content={{ name: it.icon ?? resolvedIcon }} size="sm" />
+                  ) : (
+                    <span class="list__dot" aria-hidden="true" />
+                  )}
+                </span>
+                <span class="list__content">{it.label}</span>
+              </li>
+            );
+          })
+        )
+      }
+    </ul>
+  )
+}
+
+<style>
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--list-gap);
+    line-height: var(--list-line);
+  }
+
+  .list--ol {
+    counter-reset: list-counter;
+  }
+
+  .list__item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--space-2);
+  }
+
+  .list__marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.5em;
+    width: 1.5em;
+    flex: 0 0 auto;
+    color: inherit;
+  }
+
+  .list__marker--number {
+    counter-increment: list-counter;
+    font-weight: var(--list-num-weight);
+    font-size: var(--list-num-size);
+    color: var(--list-num-color, currentColor);
+    background: var(--list-num-bg, transparent);
+    border-radius: var(--list-num-radius);
+    min-width: 1.5em;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .list__marker--number::before {
+    /* fall back to decimal; custom type handled by the <ol type> attribute */
+    content: counter(list-counter, decimal) ".";
+  }
+
+  .list__dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .list__content {
+    display: inline-block;
+  }
+
+  .list :global(> li) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .list :global(li > ul),
+  .list :global(li > ol) {
+    margin-top: var(--space-1);
+    padding-left: 1.25rem;
+  }
+</style>

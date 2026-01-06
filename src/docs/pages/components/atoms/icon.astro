@@ -62,9 +62,7 @@ const props = [
 
   <Preview title="Alert icons" code={alertIconsCode}>
     <div class="row">
-      {alertIcons.map((name) => (
-        <IconComponent content={{ name }} label={`${name} icon`} />
-      ))}
+      {alertIcons.map((name) => <IconComponent content={{ name }} label={`${name} icon`} />)}
     </div>
   </Preview>
 

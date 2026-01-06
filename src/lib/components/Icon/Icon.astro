@@ -22,6 +22,8 @@ const sizeMap = {
   lg: "32px"
 };
 const iconSize = sizeMap[String(size)] ?? sizeMap.md;
+const styleColor = color ? `color: ${color};` : "";
+const styleSize = `width: ${iconSize}; height: ${iconSize};`;
 
 // sanitize incoming svg string: remove outer <svg> wrapper, strip inline styles and
 // remove any fill/stroke attributes on inner elements so top-level SVG controls color.
@@ -37,7 +39,7 @@ function sanitizeSvgString(raw = "") {
 // resolve SVG inner markup and viewBox from either content.svgPath, content.svg, or registry
 let innerSvg = "";
 let viewBox = "0 0 24 24";
-let iconStrokeWidth = "1.8";
+let iconStrokeWidth = "2";
 let iconStrokeLinecap = "round";
 let iconStrokeLinejoin = "round";
 if (content && content.svgPath) {
@@ -67,7 +69,7 @@ if (content && content.svgPath) {
   width={iconSize}
   height={iconSize}
   viewBox={viewBox}
-  fill="currentColor"
+  fill="none"
   stroke="currentColor"
   stroke-width={iconStrokeWidth}
   stroke-linecap={iconStrokeLinecap}
@@ -75,7 +77,7 @@ if (content && content.svgPath) {
   role={resolvedLabel ? "img" : "presentation"}
   aria-hidden={resolvedLabel ? undefined : "true"}
   aria-label={resolvedLabel}
-  style={`width: ${iconSize}; height: ${iconSize}; color: ${color ?? "var(--color-fg)"}`}
+  style={`${styleSize}${styleColor}`}
 >
   {resolvedLabel && <title>{resolvedLabel}</title>}
   <g set:html={innerSvg} />
@@ -84,6 +86,6 @@ if (content && content.svgPath) {
 <style>
   .icon {
     display: inline-flex;
-    color: var(--color-fg);
+    color: inherit;
   }
 </style>

@@ -114,11 +114,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
     errorId={nameErrorId}
   />
 
-  <FormHidden
-    id={nameId}
-    name="middle_name"
-    content={{ label: "Middle Name" }}
-  />
+  <FormHidden id={nameId} name="middle_name" content={{ label: "Middle Name" }} />
   {nameError ? <FormError id={nameErrorId}>{nameError}</FormError> : null}
 
   <div class="contact-form__grid">

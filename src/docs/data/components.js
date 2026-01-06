@@ -100,5 +100,11 @@ export const components = [
     href: "/components/list",
     description: "Lists, unordered or ordered, with a special bullet or what not",
     group: "atoms"
+  },
+  {
+    name: "Hero",
+    href: "/components/hero",
+    description: "A big fat image with a text and a cta ",
+    group: "components"
   }
 ];

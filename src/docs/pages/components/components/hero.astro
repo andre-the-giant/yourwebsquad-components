@@ -1,0 +1,14 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import { components } from "../../../data/components.js";
+import Hero from "@lib/components/Hero/Hero.astro";
+
+const code = "<Hero />";
+---
+
+<DocLayout title="Hero" description={"A big fat image with a text and a cta "} items={components}>
+  <Preview title="Preview" code={code}>
+    <Hero />
+  </Preview>
+</DocLayout>

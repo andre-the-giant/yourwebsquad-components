@@ -1,16 +1,24 @@
 :root {
   color-scheme: light;
-
-  --color-bg: #f4f5f7;
-  --color-fg: #16181b;
-  --color-surface: #ffffff;
-  --color-border: #dcdfe4;
-  --color-muted: #6b7280;
-  --color-accent: #2f5fa4;
-  --color-accent-contrast: #ffffff;
-  --color-accent-muted: #e6ecf6;
-  --color-focus: #2f5fa4;
+  --color-bg-rgb: 244, 245, 247;
+  --color-fg-rgb: 22, 24, 27;
+  --color-bg: rgb(var(--color-bg-rgb));
+  --color-fg: rgb(var(--color-fg-rgb));
+  --color-surface: rgb(255, 255, 255);
+  --color-border: rgb(220, 223, 228);
+  --color-muted: rgb(107, 114, 128);
+  --color-accent: rgb(47, 95, 164);
+  --color-accent-contrast: rgb(255, 255, 255);
+  --color-accent-muted: rgb(230, 236, 246);
+  --color-focus: rgb(47, 95, 164);
   --color-shadow: rgba(0, 0, 0, 0.08);
+
+  /* Alert tokens (RGB to allow mixing with alpha) */
+  --alert-info-rgb: 47, 95, 164;
+  --alert-success-rgb: 34, 139, 81;
+  --alert-warning-rgb: 217, 119, 6;
+  --alert-error-rgb: 201, 42, 42;
+  --alert-text-rgb: var(--color-fg-rgb);
 
   --font-body: "Roboto", "Helvetica Neue", Arial, sans-serif;
   --font-display: "Bangers", "Trebuchet MS", "Arial Black", cursive;
@@ -56,14 +64,16 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --color-bg: #0f1115;
-  --color-fg: #eef1f6;
-  --color-surface: #161a20;
-  --color-border: #2a3039;
-  --color-muted: #9aa4b5;
-  --color-accent: #7ca7ff;
-  --color-accent-contrast: #0c1024;
-  --color-accent-muted: #132036;
-  --color-focus: #7ca7ff;
+  --color-bg-rgb: 15, 17, 21;
+  --color-fg-rgb: 238, 241, 246;
+  --color-bg: rgb(var(--color-bg-rgb));
+  --color-fg: rgb(var(--color-fg-rgb));
+  --color-surface: rgb(22, 26, 32);
+  --color-border: rgb(42, 48, 57);
+  --color-muted: rgb(154, 164, 181);
+  --color-accent: rgb(124, 167, 255);
+  --color-accent-contrast: rgb(12, 16, 36);
+  --color-accent-muted: rgb(19, 32, 54);
+  --color-focus: rgb(124, 167, 255);
   --color-shadow: rgba(0, 0, 0, 0.45);
 }

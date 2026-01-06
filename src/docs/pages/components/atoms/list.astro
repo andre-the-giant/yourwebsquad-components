@@ -1,14 +1,91 @@
 ---
 import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import List from "@lib/components/List/List.astro";
 
-const code = '<List />';
+const basicItems = ["First item", "Second item", "Third item"];
+const iconItems = [
+  { label: "Design audit", icon: "spark" },
+  { label: "Content refresh", icon: "spark" },
+  { label: "Performance fixes", icon: "spark" }
+];
+const numberedItems = ["Kickoff", "Draft", "Launch"];
+const nestedCode = `<List>
+  <li>
+    Discovery
+    <List items={["Subitem A", "Subitem B"]} />
+  </li>
+  <li>Build</li>
+  <li>QA</li>
+</List>`;
+
+const props = [
+  {
+    name: "content",
+    type: "{ as?, items?, icon?, showIcon?, numberStyle?, gap?, lineHeight?, start?, reversed?, type?, class? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  { name: "as", type: `"ul" | "ol"`, default: '"ul"', description: "List tag." },
+  {
+    name: "items",
+    type: "Array<string | { label: string; icon?: string }>",
+    description: "Items to render (can also slot custom li)."
+  },
+  { name: "icon", type: "string", description: "Registry icon name for bullets." },
+  { name: "showIcon", type: "boolean", description: "Force icon bullets on UL." },
+  {
+    name: "numberStyle",
+    type: "{ color?, background?, weight?, size?, radius? }",
+    description: "OL number styling via CSS vars."
+  },
+  { name: "gap", type: "string", description: "Row gap between items." },
+  { name: "lineHeight", type: "string", description: "Line-height for list text." },
+  { name: "start", type: "number", description: "Starting index for ordered list." },
+  { name: "reversed", type: "boolean", description: "Reverse ordered list." },
+  { name: "type", type: `"1" | "a" | "A" | "i" | "I"`, description: "Ordered list type." },
+  { name: "class", type: "string", description: "Additional className." }
+];
 ---
 
-<DocLayout title="List" description={"Lists, unordered or ordered, with a special bullet or what not"} items={components}>
-  <Preview title="Preview" code={code}>
-    <List />
+<DocLayout
+  title="List"
+  description={"Lists, unordered or ordered, with custom bullets or styled numbers."}
+  items={components}
+>
+  <PropsTable props={props} />
+
+  <Preview title="Basic UL" code={`<List items={${JSON.stringify(basicItems, null, 2)}} />`}>
+    <List items={basicItems} />
+  </Preview>
+
+  <Preview
+    title="Icon bullets"
+    code={`<List items={${JSON.stringify(iconItems, null, 2)}} showIcon />`}
+  >
+    <List items={iconItems} showIcon />
+  </Preview>
+
+  <Preview
+    title="Ordered with styled numbers"
+    code={`<List as="ol" items={${JSON.stringify(numberedItems, null, 2)}} numberStyle={{ background: "rgba(47,95,164,0.1)", color: "rgb(47,95,164)" }} />`}
+  >
+    <List
+      as="ol"
+      items={numberedItems}
+      numberStyle={{ background: "rgba(47,95,164,0.1)", color: "rgb(47,95,164)" }}
+    />
+  </Preview>
+
+  <Preview title="Nested list" code={nestedCode}>
+    <List>
+      <li>
+        Discovery
+        <List items={["Nested A", "Nested B"]} />
+      </li>
+      <li>Build</li>
+      <li>QA</li>
+    </List>
   </Preview>
 </DocLayout>

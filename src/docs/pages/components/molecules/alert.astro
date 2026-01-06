@@ -1,14 +1,123 @@
 ---
 import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import Alert from "@lib/components/Alert/Alert.astro";
 
-const code = '<Alert />';
+const alertTypes = ["info", "success", "warning", "error"];
+const alertSamples = {
+  info: {
+    title: "Heads up",
+    description: "This is an informational message."
+  },
+  success: {
+    title: "Success",
+    description: "Your changes are live."
+  },
+  warning: {
+    title: "Warning",
+    description: "Please double-check the details."
+  },
+  error: {
+    title: "Error",
+    description: "Something went wrong. Try again."
+  }
+};
+
+const props = [
+  {
+    name: "content",
+    type: "{ type?, tone?, title?, description?, icon?, iconLabel?, actions?, role?, class? }",
+    description: "Defaults object; overridden by direct props."
+  },
+  {
+    name: "type",
+    type: `"info" | "success" | "warning" | "error"`,
+    default: '"info"',
+    description: "Alert intent styling."
+  },
+  {
+    name: "tone",
+    type: `"solid" | "soft" | "outline"`,
+    default: '"soft"',
+    description: "Surface treatment."
+  },
+  { name: "title", type: "string", description: "Alert heading text." },
+  { name: "description", type: "string", description: "Alert body text." },
+  {
+    name: "icon",
+    type: "string | boolean",
+    description: "Override icon name, true for default, false to hide."
+  },
+  { name: "iconLabel", type: "string", description: "Accessible label for icon." },
+  {
+    name: "actions",
+    type: "Array<{ label, href?, target?, rel?, variant?, size?, disabled? }>",
+    description: "Up to two action buttons rendered on the right."
+  },
+  { name: "role", type: "string", description: "Override alert role." },
+  { name: "class", type: "string", description: "Additional className." }
+];
 ---
 
-<DocLayout title="Alert" description={"Alert box to get the attention. Dismissable and color coded"} items={components}>
-  <Preview title="Preview" code={code}>
-    <Alert />
+<DocLayout
+  title="Alert"
+  description={"Alert box to get the attention. Dismissable and color coded"}
+  items={components}
+>
+  <PropsTable props={props} />
+
+  <Preview title="Regular (solid)">
+    <div class="alert-stack">
+      {
+        alertTypes.map((type) => (
+          <Alert
+            type={type}
+            tone="solid"
+            title={alertSamples[type].title}
+            description={alertSamples[type].description}
+          />
+        ))
+      }
+    </div>
+  </Preview>
+
+  <Preview title="Soft">
+    <div class="alert-stack">
+      {
+        alertTypes.map((type) => (
+          <Alert
+            type={type}
+            tone="soft"
+            title={alertSamples[type].title}
+            description={alertSamples[type].description}
+          />
+        ))
+      }
+    </div>
+  </Preview>
+
+  <Preview title="Outline">
+    <div class="alert-stack">
+      {
+        alertTypes.map((type) => (
+          <Alert
+            type={type}
+            tone="outline"
+            title={alertSamples[type].title}
+            description={alertSamples[type].description}
+          />
+        ))
+      }
+    </div>
   </Preview>
 </DocLayout>
+
+<style>
+  .alert-stack {
+    display: grid;
+    gap: var(--space-3);
+    width: min(760px, 100%);
+  }
+</style>
