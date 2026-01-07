@@ -106,5 +106,11 @@ export const components = [
     href: "/components/hero",
     description: "A big fat image with a text and a cta ",
     group: "components"
+  },
+  {
+    name: "Rotator",
+    href: "/components/rotator",
+    description: "text rotating animation",
+    group: "molecules"
   }
 ];

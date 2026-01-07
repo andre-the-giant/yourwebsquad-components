@@ -1,0 +1,129 @@
+---
+const {
+  content = {},
+  items,
+  interval,
+  speed,
+  size,
+  direction,
+  ariaLive,
+  ...rest
+} = Astro.props;
+
+const defaultItems = ["Settings", "missing", "add", "items=[]"];
+const itemsSource = Array.isArray(items ?? content.items) ? (items ?? content.items) : defaultItems;
+const resolvedItems = (itemsSource.length ? itemsSource : defaultItems).map((item) => String(item));
+
+const resolvedInterval = interval ?? content.interval ?? "1.2s";
+const resolvedSpeed = speed ?? content.speed ?? "0.1s";
+const resolvedDirection = direction ?? content.direction ?? "up";
+const resolvedAriaLive = ariaLive ?? content.ariaLive ?? "off";
+const resolvedSize = size ?? content.size ?? "1" + "rem";
+const rotatorClassName = `rotator rotator--direction-${resolvedDirection}`;
+
+
+const stepCount = resolvedItems.length;
+
+const displayedItems =
+  resolvedDirection === "down"
+    ? [resolvedItems[resolvedItems.length - 1], ...resolvedItems].reverse()
+    : [resolvedItems[resolvedItems.length - 1], ...resolvedItems];
+
+
+const easing = makeFlickLinear(stepCount);
+
+const styleVars = {
+  "--rotator-interval": resolvedInterval,
+  "--rotator-speed": resolvedSpeed,
+  "--rotator-direction": "-1",
+  "--rotator-steps": String(stepCount),
+  "--rotator-ease": easing,
+  "--rotator-font-size": resolvedSize,
+};
+
+function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}) {
+  const sum = hold + ramp + settle;
+  hold /= sum; ramp /= sum; settle /= sum;
+
+  if (!Number.isFinite(steps) || steps <= 1) return "linear";
+
+  const segment = 100 / steps;
+  const fmt = (n) => n.toFixed(3).replace(/\.?0+$/, "");
+
+  const stops = [];
+  for (let i = 0; i < steps; i++) {
+    const start = i * segment;
+    const end = (i + 1) * segment;
+    const holdEnd = start + segment * hold;
+    const rampEnd = end - segment * settle;
+
+    const v0 = i / steps;
+    const v1 = (i + 1) / steps;
+
+    stops.push(
+      `${fmt(v0)} ${fmt(start)}% ${fmt(holdEnd)}%`,
+      `${fmt(v1)} ${fmt(rampEnd)}% ${fmt(end)}%`
+    );
+  }
+  return `linear(${stops.join(", ")})`;
+}
+
+---
+
+<span
+  class={rotatorClassName}
+  aria-live={resolvedAriaLive}
+  role={resolvedAriaLive === "off" ? undefined : "status"}
+  data-direction={resolvedDirection === "down" ? "down" : "up"}
+  style={styleVars}
+  {...rest}
+>
+  <span class="rotator__track">
+    {displayedItems.map((item) => (
+      <span class="rotator__item">{item}</span>
+    ))}
+  </span>
+</span>
+
+<style>
+  @keyframes rotator {
+    0% { transform: translateY(0); }
+    100% {
+      transform: translateY(
+        calc(var(--rotator-direction) * (1lh + 1rem) * var(--rotator-steps))
+      );
+    }
+  }
+
+  .rotator {
+    height: 1lh;
+    line-height: var(--rotator-font-size);
+    font-size: var(--rotator-font-size);
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  .rotator__track {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    animation-name: rotator;
+    animation-duration: calc((var(--rotator-interval) + var(--rotator-speed)) * var(--rotator-steps));
+    animation-timing-function: var(--rotator-ease, linear);
+    animation-iteration-count: infinite;
+    will-change: transform;
+  }
+
+  .rotator__item {
+    display: block;
+    line-height: 1lh;
+  }
+    .rotator--direction-down .rotator__track {
+    animation-direction: reverse;
+    }
+  @media (prefers-reduced-motion: reduce) {
+    .rotator__track { animation: none; }
+  }
+</style>

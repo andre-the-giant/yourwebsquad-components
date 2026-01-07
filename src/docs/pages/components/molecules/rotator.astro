@@ -1,0 +1,22 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import { components } from "../../../data/components.js";
+import Rotator from "@lib/components/Rotator/Rotator.astro";
+
+const code = '<Rotator />';
+---
+
+<DocLayout title="Rotator" description={"text rotating animation"} items={components}>
+  <Preview title="Preview" code={code}>
+    <p>Tu sais que je t'aime  <Rotator
+      direction="down"
+    items={["UN TOUTIPEU", "NORMALEMENT", "BEAUCOUP", "PASSIONÉMENT", "À LA FOLIE"]}
+    /></p>
+    <p style="font-size:2rem;">JE mange des frites  <Rotator
+      size="2"
+    items={["LE MATIN"," LE MIDI", "LE SOIR", "TOUJOURS"]}
+    /></p>
+    
+  </Preview>
+</DocLayout>
