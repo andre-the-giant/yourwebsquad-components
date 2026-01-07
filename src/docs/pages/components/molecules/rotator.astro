@@ -9,13 +9,21 @@ import Icon from "@lib/components/Icon/Icon.astro";
 <DocLayout title="Rotator" description={"text rotating animation"} items={components}>
   <Preview
     title="Preview"
-    code={`<p>Tu sais que je t'aime  <Rotator
-      direction="down"
+    code={`
+<p> Tu sais que je t'aime 
+  <Rotator
+    direction="down"
     items={["UN TOUTIPEU", "NORMALEMENT", "BEAUCOUP", "PASSIONÉMENT", "À LA FOLIE"]}
-    /></p>
-    <p style="font-size:2rem;">Je mange des frites  <Rotator
-    items={["LE MATIN"," LE MIDI", "LE SOIR", "TOUJOURS"]}
-    /></p>`}
+  />
+</p>
+<p>Default goes up unless we add direction="down"</p>
+<p style="font-size:2rem;">
+  Je mange des frites 
+  <Rotator 
+    items={["LE MATIN", " LE MIDI", "LE SOIR", "TOUJOURS"]} 
+  />
+</p>
+`}
   >
     <p>
       Tu sais que je t'aime <Rotator
