@@ -1,26 +1,41 @@
 ---
-const {
-  content = {},
-  items,
-  interval,
-  speed,
-  size,
-  direction,
-  ariaLive,
-  ...rest
-} = Astro.props;
+const { content = {}, items, interval, speed, size, direction, ariaLive, ...rest } = Astro.props;
 
-const defaultItems = ["Settings", "missing", "add", "items=[]"];
-const itemsSource = Array.isArray(items ?? content.items) ? (items ?? content.items) : defaultItems;
-const resolvedItems = (itemsSource.length ? itemsSource : defaultItems).map((item) => String(item));
+const hasItemsArray = Array.isArray(items ?? content.items);
+const hasSlot = Astro.slots.has("default");
+
+const extractSlotItems = (rendered) => {
+  if (!rendered) return [];
+  const html = Array.isArray(rendered) ? rendered.join("") : String(rendered);
+  const spans = html.match(/<span[\s\S]*?<\/span>/g);
+  if (spans && spans.length) return spans;
+  return html.trim().length ? [html] : [];
+};
+
+const renderedSlot = !hasItemsArray && hasSlot ? await Astro.slots.render("default") : "";
+const slotItems = extractSlotItems(renderedSlot);
+const isSlotMode = !hasItemsArray && slotItems.length > 0;
+
+const defaultItems = ["Settings missing", "add items=[]"];
+const itemsSource = hasItemsArray
+  ? (items ?? content.items)
+  : slotItems.length
+    ? slotItems
+    : defaultItems;
+const normalizeItem = (item) => {
+  if (item === null || item === undefined) return "";
+  if (typeof item === "string") return item;
+  if (typeof item === "number" || typeof item === "boolean") return String(item);
+  return item;
+};
+const resolvedItems = (itemsSource.length ? itemsSource : defaultItems).map(normalizeItem);
 
 const resolvedInterval = interval ?? content.interval ?? "1.2s";
 const resolvedSpeed = speed ?? content.speed ?? "0.1s";
 const resolvedDirection = direction ?? content.direction ?? "up";
 const resolvedAriaLive = ariaLive ?? content.ariaLive ?? "off";
-const resolvedSize = size ?? content.size ?? "1" + "rem";
+const resolvedSize = size ?? content.size ?? "inherit";
 const rotatorClassName = `rotator rotator--direction-${resolvedDirection}`;
-
 
 const stepCount = resolvedItems.length;
 
@@ -28,7 +43,6 @@ const displayedItems =
   resolvedDirection === "down"
     ? [resolvedItems[resolvedItems.length - 1], ...resolvedItems].reverse()
     : [resolvedItems[resolvedItems.length - 1], ...resolvedItems];
-
 
 const easing = makeFlickLinear(stepCount);
 
@@ -38,12 +52,14 @@ const styleVars = {
   "--rotator-direction": "-1",
   "--rotator-steps": String(stepCount),
   "--rotator-ease": easing,
-  "--rotator-font-size": resolvedSize,
+  "--rotator-font-size": resolvedSize
 };
 
 function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}) {
   const sum = hold + ramp + settle;
-  hold /= sum; ramp /= sum; settle /= sum;
+  hold /= sum;
+  ramp /= sum;
+  settle /= sum;
 
   if (!Number.isFinite(steps) || steps <= 1) return "linear";
 
@@ -67,9 +83,7 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
   }
   return `linear(${stops.join(", ")})`;
 }
-
 ---
-
 <span
   class={rotatorClassName}
   aria-live={resolvedAriaLive}
@@ -79,19 +93,21 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
   {...rest}
 >
   <span class="rotator__track">
-    {displayedItems.map((item) => (
-      <span class="rotator__item">{item}</span>
-    ))}
+    {displayedItems.map((item) =>
+      isSlotMode && typeof item === "string"
+        ? <span class="rotator__item" set:html={item} />
+        : <span class="rotator__item">{item}</span>
+    )}
   </span>
 </span>
 
 <style>
   @keyframes rotator {
-    0% { transform: translateY(0); }
+    0% {
+      transform: translateY(0);
+    }
     100% {
-      transform: translateY(
-        calc(var(--rotator-direction) * (1lh + 1rem) * var(--rotator-steps))
-      );
+      transform: translateY(calc(var(--rotator-direction) * (1lh + 1rem) * var(--rotator-steps)));
     }
   }
 
@@ -101,7 +117,9 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
     font-size: var(--rotator-font-size);
     overflow: hidden;
     white-space: nowrap;
-    display: inline-block;
+    display: inline-flex;
+    align-items: baseline;
+    vertical-align: baseline;
   }
 
   .rotator__track {
@@ -110,7 +128,9 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
     gap: 1rem;
 
     animation-name: rotator;
-    animation-duration: calc((var(--rotator-interval) + var(--rotator-speed)) * var(--rotator-steps));
+    animation-duration: calc(
+      (var(--rotator-interval) + var(--rotator-speed)) * var(--rotator-steps)
+    );
     animation-timing-function: var(--rotator-ease, linear);
     animation-iteration-count: infinite;
     will-change: transform;
@@ -120,10 +140,12 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
     display: block;
     line-height: 1lh;
   }
-    .rotator--direction-down .rotator__track {
+  .rotator--direction-down .rotator__track {
     animation-direction: reverse;
-    }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .rotator__track { animation: none; }
+    .rotator__track {
+      animation: none;
+    }
   }
 </style>

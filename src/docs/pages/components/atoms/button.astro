@@ -59,7 +59,14 @@ const props = [
 >
   <PropsTable props={props} />
 
-  <Preview title="Solid" code={solidCode}>
+  <Preview
+    title="Solid"
+    code={`
+  <div class="row">
+      <Button content={baseContent} />
+      <Button content={{ label: "Secondary" }} variant="outline" />
+    </div>`}
+  >
     <div class="row">
       <Button content={baseContent} />
       <Button content={{ label: "Secondary" }} variant="outline" />

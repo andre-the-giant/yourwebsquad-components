@@ -3,20 +3,53 @@ import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
 import { components } from "../../../data/components.js";
 import Rotator from "@lib/components/Rotator/Rotator.astro";
-
-const code = '<Rotator />';
+import Icon from "@lib/components/Icon/Icon.astro";
 ---
 
 <DocLayout title="Rotator" description={"text rotating animation"} items={components}>
-  <Preview title="Preview" code={code}>
-    <p>Tu sais que je t'aime  <Rotator
+  <Preview
+    title="Preview"
+    code={`<p>Tu sais que je t'aime  <Rotator
       direction="down"
     items={["UN TOUTIPEU", "NORMALEMENT", "BEAUCOUP", "PASSIONÉMENT", "À LA FOLIE"]}
     /></p>
-    <p style="font-size:2rem;">JE mange des frites  <Rotator
-      size="2"
+    <p style="font-size:2rem;">Je mange des frites  <Rotator
     items={["LE MATIN"," LE MIDI", "LE SOIR", "TOUJOURS"]}
-    /></p>
-    
+    /></p>`}
+  >
+    <p>
+      Tu sais que je t'aime <Rotator
+        direction="down"
+        items={["UN TOUTIPEU", "NORMALEMENT", "BEAUCOUP", "PASSIONÉMENT", "À LA FOLIE"]}
+      />
+    </p>
+    <p>Default goes up unless we add direction="down"</p>
+    <p style="font-size:2rem;">
+      Je mange des frites <Rotator items={["LE MATIN", " LE MIDI", "LE SOIR", "TOUJOURS"]} />
+    </p>
+  </Preview>
+
+  <Preview
+    title="Preview"
+    code={`
+  <Rotator
+    size="3rem"
+    >
+    <span> <Icon content={{ name: "spark" }} size="md" /> DESIGN</span>
+    <span>⌨️ DEVELOP  <Icon content={{ name: "spark" }} size="sm" /></span>
+    <span>🌎 DEPLOY</span>
+    <span>🌱 SCALE</span>
+    <span>🔧 MAINTAIN</span>
+    <span>♻️ REPEAT</span>
+    </Rotator>`}
+  >
+    <Rotator size="3rem">
+      <span> <Icon content={{ name: "spark" }} size="md" /> DESIGN</span>
+      <span>⌨️ DEVELOP <Icon content={{ name: "spark" }} size="sm" /></span>
+      <span>🌎 DEPLOY</span>
+      <span>🌱 SCALE</span>
+      <span>🔧 MAINTAIN</span>
+      <span>♻️ REPEAT</span>
+    </Rotator>
   </Preview>
 </DocLayout>

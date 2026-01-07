@@ -86,49 +86,41 @@ const styleVars = {
       style={styleVars}
       {...rest}
     >
-      {
-        hasCustomItems ? (
-          <slot />
-        ) : (
-          resolvedItems.map((item) => {
-            const it = typeof item === "string" ? { label: item } : item || {};
-            return (
-              <li class="list__item">
-                <span class="list__marker list__marker--number" aria-hidden="true" />
-                <span class="list__content">{it.label}</span>
-              </li>
-            );
-          })
-        )
-      }
+      {hasCustomItems ? (
+        <slot />
+      ) : (
+        resolvedItems.map((item) => {
+          const it = typeof item === "string" ? { label: item } : item || {};
+          return (
+            <li class="list__item">
+              <span class="list__marker list__marker--number" aria-hidden="true" />
+              <span class="list__content">{it.label}</span>
+            </li>
+          );
+        })
+      )}
     </ol>
   ) : (
-    <ul
-      class={listClassName}
-      style={styleVars}
-      {...rest}
-    >
-      {
-        hasCustomItems ? (
-          <slot />
-        ) : (
-          resolvedItems.map((item) => {
-            const it = typeof item === "string" ? { label: item } : item || {};
-            return (
-              <li class="list__item">
-                <span class="list__marker list__marker--icon">
-                  {resolvedShowIcon || it.icon ? (
-                    <Icon content={{ name: it.icon ?? resolvedIcon }} size="sm" />
-                  ) : (
-                    <span class="list__dot" aria-hidden="true" />
-                  )}
-                </span>
-                <span class="list__content">{it.label}</span>
-              </li>
-            );
-          })
-        )
-      }
+    <ul class={listClassName} style={styleVars} {...rest}>
+      {hasCustomItems ? (
+        <slot />
+      ) : (
+        resolvedItems.map((item) => {
+          const it = typeof item === "string" ? { label: item } : item || {};
+          return (
+            <li class="list__item">
+              <span class="list__marker list__marker--icon">
+                {resolvedShowIcon || it.icon ? (
+                  <Icon content={{ name: it.icon ?? resolvedIcon }} size="sm" />
+                ) : (
+                  <span class="list__dot" aria-hidden="true" />
+                )}
+              </span>
+              <span class="list__content">{it.label}</span>
+            </li>
+          );
+        })
+      )}
     </ul>
   )
 }
