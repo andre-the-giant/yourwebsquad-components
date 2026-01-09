@@ -29,11 +29,7 @@ const slotItems = extractSlotItems(renderedSlot);
 const isSlotMode = !hasItemsArray && slotItems.length > 0;
 
 const defaultItems = ["Settings missing", "add items=[]"];
-const itemsSource = hasItemsArray
-  ? items
-  : slotItems.length
-    ? slotItems
-    : defaultItems;
+const itemsSource = hasItemsArray ? items : slotItems.length ? slotItems : defaultItems;
 const normalizeItem = (item) => {
   if (item === null || item === undefined) return "";
   if (typeof item === "string") return item;

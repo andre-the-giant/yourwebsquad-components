@@ -5,15 +5,10 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormTextarea from "@lib/components/Form-Textarea/Form-Textarea.astro";
 
-const basicCode = `<FormTextarea content={{ label: "Message", id: "message", placeholder: "Write your message" }} />`;
-const statesCode = `<FormTextarea content={{ label: "Notes", id: "notes" }} rows={6} />\n<FormTextarea content={{ label: "Disabled", id: "notes-disabled" }} disabled />`;
+const basicCode = `<FormTextarea label="Message" id="message" placeholder="Write your message" />`;
+const statesCode = `<FormTextarea label="Notes" id="notes" rows={6} />\n<FormTextarea label="Disabled" id="notes-disabled" disabled />`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ label?, id?, placeholder?, value? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Textarea id; auto-generated if missing." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
@@ -47,16 +42,14 @@ const props = [
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormTextarea
-        content={{ label: "Message", id: "message", placeholder: "Write your message" }}
-      />
+      <FormTextarea label="Message" id="message" placeholder="Write your message" />
     </div>
   </Preview>
 
   <Preview title="States" code={statesCode}>
     <div class="row">
-      <FormTextarea content={{ label: "Notes", id: "notes" }} rows={6} />
-      <FormTextarea content={{ label: "Disabled", id: "notes-disabled" }} disabled />
+      <FormTextarea label="Notes" id="notes" rows={6} />
+      <FormTextarea label="Disabled" id="notes-disabled" disabled />
     </div>
   </Preview>
 </DocLayout>

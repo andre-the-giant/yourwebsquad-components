@@ -6,11 +6,11 @@ import { components } from "@docs/data/components.js";
 import FormCheckbox from "@lib/components/Form-Checkbox/Form-Checkbox.astro";
 
 const basicCode = `
-<FormCheckbox content={{ label: "Enable notifications", id: "notify" }} />`;
+<FormCheckbox label="Enable notifications" id="notify" />`;
 const optionsCode = `
-<FormCheckbox content={{ label: "Right toggle" }} />\n<FormCheckbox content={{ label: "Left toggle" }} position="left" checkedColor="#0d6ea8" uncheckedColor="#e6e6e6" thumbColor="#fff" radius="20px" />
+<FormCheckbox label="Right toggle" />\n<FormCheckbox label="Left toggle" position="left" checkedColor="#0d6ea8" uncheckedColor="#e6e6e6" thumbColor="#fff" radius="20px" />
 <FormCheckbox 
-        content={{ label: "Squary left toggle starting red going red" }} 
+        label="Squary left toggle starting red going red"
         radius="3px"
         position="left" 
         uncheckedColor="green"
@@ -25,11 +25,6 @@ const optionsCode = `
 >
   <PropsTable
     props={[
-      {
-        name: "content",
-        type: "{ label?, id? }",
-        description: "Defaults object; overridden by direct props."
-      },
       { name: "id", type: "string", description: "Checkbox id; auto-generated if missing." },
       { name: "name", type: "string", description: "Form field name." },
       { name: "label", type: "string", description: "Label text." },
@@ -79,15 +74,15 @@ const optionsCode = `
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormCheckbox content={{ label: "Enable notifications", id: "notify" }} />
+      <FormCheckbox label="Enable notifications" id="notify" />
     </div>
   </Preview>
 
   <Preview title="Variants" code={optionsCode}>
     <div class="row">
-      <FormCheckbox content={{ label: "Right toggle" }} />
+      <FormCheckbox label="Right toggle" />
       <FormCheckbox
-        content={{ label: "Left toggle" }}
+        label="Left toggle"
         position="left"
         checkedColor="#0d6ea8"
         uncheckedColor="#e6e6e6"
@@ -95,7 +90,7 @@ const optionsCode = `
         radius="20px"
       />
       <FormCheckbox
-        content={{ label: "Squary left toggle starting red going red" }}
+        label="Squary left toggle starting red going red"
         radius="3px"
         position="left"
         uncheckedColor="green"

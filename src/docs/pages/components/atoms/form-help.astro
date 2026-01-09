@@ -7,18 +7,14 @@ import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 import FormHelp from "@lib/components/Form-Help/Form-Help.astro";
 
 const basicCode = `<FormInput
-  content={{ label: "Username", id: "username" }}
+  label="Username"
+  id="username"
   name="username"
   helpId="username-help"
 />
 <FormHelp id="username-help">Use 3–16 characters, letters and numbers only.</FormHelp>`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ id?, text? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Element id to wire into aria-describedby." },
   { name: "text", type: "string", description: "Help text content." },
   { name: "class", type: "string", description: "Additional className." }
@@ -34,11 +30,7 @@ const props = [
 
   <Preview title="Usage" code={basicCode}>
     <div class="row">
-      <FormInput
-        content={{ label: "Username", id: "username" }}
-        name="username"
-        helpId="username-help"
-      />
+      <FormInput label="Username" id="username" name="username" helpId="username-help" />
       <FormHelp id="username-help">Use 3–16 characters, letters and numbers only.</FormHelp>
     </div>
   </Preview>

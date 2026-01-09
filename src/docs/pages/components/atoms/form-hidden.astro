@@ -11,11 +11,6 @@ const basicCode = `<form>
 </form>`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ id?, name?, value? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Optional id for the hidden input." },
   { name: "name", type: "string", description: "Field name to submit." },
   { name: "value", type: "string", default: '""', description: "Value to submit." }

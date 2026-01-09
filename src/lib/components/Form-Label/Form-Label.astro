@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { label?: string, id?: string }
 - id?: string           // id for the label element itself (useful for aria)
 - forId?: string        // value for `for` attribute to associate with control
 - label?: string
@@ -14,7 +13,6 @@ Notes:
 - Renders a `<label>` by default but can render a `<span>` when used inside other labels.
 */
 const {
-  content = {},
   id,
   forId,
   label,
@@ -26,8 +24,8 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedLabel = label ?? content.label;
-const resolvedId = id ?? content.id ?? `form-label-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedLabel = label;
+const resolvedId = id ?? `form-label-${Math.random().toString(36).slice(2, 9)}`;
 const described = descriptionId ?? undefined;
 ---
 

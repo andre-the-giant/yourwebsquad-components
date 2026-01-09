@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { label?: string, id?: string, options?: Array<{ label: string, value: string, disabled?: boolean }>, placeholder?: string }
 - id?: string
 - name?: string
 - label?: string
@@ -16,15 +15,13 @@ Props:
 - helpId?: string
 - errorId?: string
 Notes:
-- direct props override content.*
 - component auto-generates an id when none is provided
 */
 const {
-  content = {},
   id,
   name,
   label,
-  options = content.options ?? [],
+  options = [],
   placeholder,
   value,
   disabled = false,
@@ -38,10 +35,10 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedLabel = label ?? content.label;
-const resolvedId = id ?? content.id ?? `form-select-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedPlaceholder = placeholder ?? content.placeholder;
-const selectedValue = value ?? content.value;
+const resolvedLabel = label;
+const resolvedId = id ?? `form-select-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedPlaceholder = placeholder;
+const selectedValue = value;
 
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
 import FormLabel from "../Form-Label/Form-Label.astro";

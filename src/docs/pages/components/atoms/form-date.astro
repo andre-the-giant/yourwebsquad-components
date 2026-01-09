@@ -5,16 +5,11 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormDate from "@lib/components/Form-Date/Form-Date.astro";
 
-const basicCode = `<FormDate content={{ label: "Birthday", id: "birthday" }} />`;
-const statesCode = `<FormDate content={{ label: "Range limited", id: "date-range" }} min="2024-01-01" max="2024-12-31" />
-<FormDate content={{ label: "Disabled date", id: "disabled-date" }} disabled />`;
+const basicCode = `<FormDate label="Birthday" id="birthday" />`;
+const statesCode = `<FormDate label="Range limited" id="date-range" min="2024-01-01" max="2024-12-31" />
+<FormDate label="Disabled date" id="disabled-date" disabled />`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ label?, id?, placeholder?, value?, min?, max? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Input id; auto-generated if missing." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
@@ -53,18 +48,14 @@ const props = [
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormDate content={{ label: "Birthday", id: "birthday" }} />
+      <FormDate label="Birthday" id="birthday" />
     </div>
   </Preview>
 
   <Preview title="States" code={statesCode}>
     <div class="row">
-      <FormDate
-        content={{ label: "Range limited", id: "date-range" }}
-        min="2024-01-01"
-        max="2024-12-31"
-      />
-      <FormDate content={{ label: "Disabled date", id: "disabled-date" }} disabled />
+      <FormDate label="Range limited" id="date-range" min="2024-01-01" max="2024-12-31" />
+      <FormDate label="Disabled date" id="disabled-date" disabled />
     </div>
   </Preview>
 </DocLayout>

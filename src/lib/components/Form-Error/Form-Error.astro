@@ -1,28 +1,18 @@
 ---
 /*
 Props:
-- content?: { id?: string, text?: string }
 - id?: string
 - text?: string
 - class?: string
 - role?: string
 - ariaLive?: "polite" | "assertive" | "off"
 Notes:
-- Direct props override content.*
 - Intended to pair with `errorId` passed to form fields for aria-describedby.
 */
-const {
-  content = {},
-  id,
-  text,
-  class: className,
-  role = "alert",
-  ariaLive = "polite",
-  ...rest
-} = Astro.props;
+const { id, text, class: className, role = "alert", ariaLive = "polite", ...rest } = Astro.props;
 
-const resolvedId = id ?? content.id ?? `form-error-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedText = text ?? content.text;
+const resolvedId = id ?? `form-error-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedText = text;
 ---
 
 <p

@@ -5,8 +5,8 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormRadio from "@lib/components/Form-Radio/Form-Radio.astro";
 
-const basicCode = `<FormRadio content={{ label: "Option A", id: "opt-a", value: "a" }} name="example" />\n<FormRadio content={{ label: "Option B", id: "opt-b", value: "b" }} name="example" />`;
-const variantsCode = `<FormRadio content={{ label: "Left radio" }} position="left" color="#0d6ea8" />\n<FormRadio content={{ label: "Right radio" }} position="right" color="#c92a2a" />`;
+const basicCode = `<FormRadio label="Option A" id="opt-a" value="a" name="example" />\n<FormRadio label="Option B" id="opt-b" value="b" name="example" />`;
+const variantsCode = `<FormRadio label="Left radio" position="left" color="#0d6ea8" />\n<FormRadio label="Right radio" position="right" color="#c92a2a" />`;
 ---
 
 <DocLayout
@@ -16,11 +16,6 @@ const variantsCode = `<FormRadio content={{ label: "Left radio" }} position="lef
 >
   <PropsTable
     props={[
-      {
-        name: "content",
-        type: "{ label?, id? }",
-        description: "Defaults object; overridden by direct props."
-      },
       { name: "id", type: "string", description: "Radio id; auto-generated if missing." },
       { name: "name", type: "string", description: "Form field name (groups radios)." },
       { name: "label", type: "string", description: "Label text." },
@@ -81,15 +76,15 @@ const variantsCode = `<FormRadio content={{ label: "Left radio" }} position="lef
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormRadio content={{ label: "Option A", id: "opt-a", value: "a" }} name="example" />
-      <FormRadio content={{ label: "Option B", id: "opt-b", value: "b" }} name="example" />
+      <FormRadio label="Option A" id="opt-a" value="a" name="example" />
+      <FormRadio label="Option B" id="opt-b" value="b" name="example" />
     </div>
   </Preview>
 
   <Preview title="Variants" code={variantsCode}>
     <div class="row">
-      <FormRadio content={{ label: "Left radio" }} position="left" color="#0d6ea8" />
-      <FormRadio content={{ label: "Right radio" }} position="right" color="#c92a2a" />
+      <FormRadio label="Left radio" position="left" color="#0d6ea8" />
+      <FormRadio label="Right radio" position="right" color="#c92a2a" />
     </div>
   </Preview>
 </DocLayout>

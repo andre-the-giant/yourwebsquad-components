@@ -7,7 +7,8 @@ import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 import FormError from "@lib/components/Form-Error/Form-Error.astro";
 
 const basicCode = `<FormInput
-  content={{ label: "Email", id: "email" }}
+  label="Email"
+  id="email"
   name="email"
   type="email"
   ariaInvalid={true}
@@ -16,11 +17,6 @@ const basicCode = `<FormInput
 <FormError id="email-error">Please enter a valid email address.</FormError>`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ id?, text? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Element id to wire into aria-describedby." },
   { name: "text", type: "string", description: "Error text content." },
   {
@@ -49,7 +45,8 @@ const props = [
   <Preview title="Usage" code={basicCode}>
     <div class="row">
       <FormInput
-        content={{ label: "Email", id: "email" }}
+        label="Email"
+        id="email"
         name="email"
         type="email"
         ariaInvalid={true}

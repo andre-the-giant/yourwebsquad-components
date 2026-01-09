@@ -5,15 +5,10 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 
-const basicCode = `<FormInput type="email" content={{ label: "Email", id: "email", placeholder: "you@example.com" }} />`;
-const statesCode = `<FormInput content={{ label: "Name", id: "name", placeholder: "Full name" }} />\n<FormInput content={{ label: "Disabled", id: "disabled", placeholder: "Can't edit" }} disabled />`;
+const basicCode = `<FormInput type="email" label="Email" id="email" placeholder="you@example.com" />`;
+const statesCode = `<FormInput label="Name" id="name" placeholder="Full name" />\n<FormInput label="Disabled" id="disabled" placeholder="Can't edit" disabled />`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ label?, id?, placeholder?, value? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Input id; auto-generated if missing." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
@@ -56,20 +51,14 @@ const props = [
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormInput
-        type="email"
-        content={{ label: "Email", id: "email", placeholder: "you@example.com" }}
-      />
+      <FormInput type="email" label="Email" id="email" placeholder="you@example.com" />
     </div>
   </Preview>
 
   <Preview title="States" code={statesCode}>
     <div class="row">
-      <FormInput content={{ label: "Name", id: "name", placeholder: "Full name" }} />
-      <FormInput
-        content={{ label: "Disabled", id: "disabled", placeholder: "Can't edit" }}
-        disabled
-      />
+      <FormInput label="Name" id="name" placeholder="Full name" />
+      <FormInput label="Disabled" id="disabled" placeholder="Can't edit" disabled />
     </div>
   </Preview>
 </DocLayout>

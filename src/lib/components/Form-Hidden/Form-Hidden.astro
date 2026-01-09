@@ -1,18 +1,16 @@
 ---
 /*
 Props:
-- content?: { id?: string, name?: string, value?: string }
 - id?: string
 - name?: string
 - value?: string
 Notes:
-- Direct props override content.*
 */
-const { content = {}, id, name, value, ...rest } = Astro.props;
+const { id, name, value, ...rest } = Astro.props;
 
-const resolvedId = id ?? content.id;
-const resolvedName = name ?? content.name;
-const resolvedValue = value ?? content.value ?? "";
+const resolvedId = id;
+const resolvedName = name;
+const resolvedValue = value ?? "";
 ---
 
 <input type="hidden" id={resolvedId} name={resolvedName} value={resolvedValue} {...rest} />

@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { label?: string, id?: string }
 - id?: string
 - name?: string
 - label?: string
@@ -45,8 +44,8 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedLabel = label ?? content.label;
-const resolvedId = id ?? content.id ?? `form-radio-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedLabel = label;
+const resolvedId = id ?? `form-radio-${Math.random().toString(36).slice(2, 9)}`;
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
 import FormLabel from "../Form-Label/Form-Label.astro";
 

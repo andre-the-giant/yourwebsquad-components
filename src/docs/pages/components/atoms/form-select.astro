@@ -7,15 +7,10 @@ import FormSelect from "@lib/components/Form-Select/Form-Select.astro";
 
 import options from "@docs/data/countries-list.json";
 
-const basicCode = `<FormSelect content={{ label: "Country", id: "country", options: ${JSON.stringify(options)} }} placeholder="Select a country" />`;
-const statesCode = `<FormSelect content={{ label: "Disabled", id: "country-disabled", options: ${JSON.stringify(options)} }} disabled />`;
+const basicCode = `<FormSelect label="Country" id="country" options=${JSON.stringify(options)} placeholder="Select a country" />`;
+const statesCode = `<FormSelect label="Disabled" id="country-disabled" options=${JSON.stringify(options)} disabled />`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ label?, id?, options?, placeholder? }",
-    description: "Defaults object; overridden by direct props."
-  },
   { name: "id", type: "string", description: "Select id; auto-generated if missing." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
@@ -52,16 +47,13 @@ const props = [
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormSelect
-        content={{ label: "Country", id: "country", options }}
-        placeholder="Select a country"
-      />
+      <FormSelect label="Country" id="country" options={options} placeholder="Select a country" />
     </div>
   </Preview>
 
   <Preview title="States" code={statesCode}>
     <div class="row">
-      <FormSelect content={{ label: "Disabled", id: "country-disabled", options }} disabled />
+      <FormSelect label="Disabled" id="country-disabled" options={options} disabled />
     </div>
   </Preview>
 </DocLayout>

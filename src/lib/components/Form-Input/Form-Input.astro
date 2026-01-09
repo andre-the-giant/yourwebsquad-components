@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { label?: string, id?: string, placeholder?: string, value?: string }
 - id?: string
 - name?: string
 - label?: string
@@ -17,11 +16,9 @@ Props:
 - helpId?: string   // optional id for help text to wire into aria-describedby
 - errorId?: string  // optional id for error text to wire into aria-describedby
 Notes:
-- direct props override content.*
 - component auto-generates an id when none is provided
 */
 const {
-  content = {},
   id,
   name,
   label,
@@ -40,10 +37,10 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedLabel = label ?? content.label;
-const resolvedId = id ?? content.id ?? `form-input-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedPlaceholder = placeholder ?? content.placeholder;
-const resolvedValue = value ?? content.value;
+const resolvedLabel = label;
+const resolvedId = id ?? `form-input-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedPlaceholder = placeholder;
+const resolvedValue = value;
 
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
 import FormLabel from "../Form-Label/Form-Label.astro";

@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { label?: string, id?: string, placeholder?: string, value?: string, min?: string, max?: string }
 - id?: string
 - name?: string
 - label?: string
@@ -19,11 +18,9 @@ Props:
 - errorId?: string
 - ariaControls?: string
 Notes:
-- Direct props override content.*
 - Component auto-generates an id when none is provided.
 */
 const {
-  content = {},
   id,
   name,
   label,
@@ -43,12 +40,12 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedLabel = label ?? content.label;
-const resolvedId = id ?? content.id ?? `form-date-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedPlaceholder = placeholder ?? content.placeholder;
-const resolvedValue = value ?? content.value;
-const resolvedMin = min ?? content.min;
-const resolvedMax = max ?? content.max;
+const resolvedLabel = label;
+const resolvedId = id ?? `form-date-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedPlaceholder = placeholder;
+const resolvedValue = value;
+const resolvedMin = min;
+const resolvedMax = max;
 
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
 import FormLabel from "../Form-Label/Form-Label.astro";

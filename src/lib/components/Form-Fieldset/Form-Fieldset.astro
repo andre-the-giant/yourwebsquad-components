@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { legend?: string, id?: string, description?: string }
 - id?: string
 - legend?: string
 - description?: string
@@ -13,7 +12,6 @@ Notes:
 - Wraps grouped fields (e.g., radio/checkbox sets) with semantic fieldset/legend.
 */
 const {
-  content = {},
   id,
   legend,
   description,
@@ -24,9 +22,9 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedLegend = legend ?? content.legend;
-const resolvedDescription = description ?? content.description;
-const resolvedId = id ?? content.id ?? `form-fieldset-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedLegend = legend;
+const resolvedDescription = description;
+const resolvedId = id ?? `form-fieldset-${Math.random().toString(36).slice(2, 9)}`;
 const describedIds = [helpId, errorId].filter(Boolean).join(" ");
 ---
 

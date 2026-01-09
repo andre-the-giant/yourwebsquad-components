@@ -16,7 +16,9 @@ import countryOptions from "@docs/data/countries-list.json";
 const basicCode = `<Form action="/api/contact" method="post">
 
   <FormInput
-    content={{ label: "Email", id: "contact-email", placeholder: "you@example.com" }}
+    label="Email"
+    id="contact-email"
+    placeholder="you@example.com"
     name="email"
     type="email"
     required
@@ -126,7 +128,9 @@ const props = [
     <div class="column">
       <Form action="/api/contact" method="post">
         <FormInput
-          content={{ label: "Email", id: "contact-email", placeholder: "you@example.com" }}
+          label="Email"
+          id="contact-email"
+          placeholder="you@example.com"
           name="email"
           type="email"
           required
