@@ -8,7 +8,6 @@ import chalk from "chalk";
 
 const repoRoot = process.cwd();
 const pkgPath = path.join(repoRoot, "package.json");
-const changelogPath = path.join(repoRoot, "CHANGELOG.md");
 
 function logInfo(msg) {
   console.log(chalk.cyan(msg));
@@ -73,17 +72,6 @@ async function ensureRemote() {
   }
 }
 
-async function appendChangelog(version, notes) {
-  const entry = `## ${version}\n\n${notes.trim() || "- (no notes)"}\n\n`;
-  try {
-    await fs.access(changelogPath);
-    const existing = await fs.readFile(changelogPath, "utf8");
-    await fs.writeFile(changelogPath, `${entry}${existing}`, "utf8");
-  } catch {
-    await fs.writeFile(changelogPath, `# Changelog\n\n${entry}`, "utf8");
-  }
-}
-
 async function main() {
   try {
     const pkg = await readJson(pkgPath);
@@ -107,18 +95,17 @@ async function main() {
     await ensureOnBranch("main");
     await ensureCleanGit();
 
-    const { notes } = await inquirer.prompt([
+    const { note } = await inquirer.prompt([
       {
-        type: "editor",
-        name: "notes",
-        message: "Changelog notes for this release:",
-        default: "- ...",
+        type: "input",
+        name: "note",
+        message: "Tag notes (short sentence):",
+        default: "",
       },
     ]);
 
     pkg.version = versionChoice;
     await writeJson(pkgPath, pkg);
-    await appendChangelog(versionChoice, notes);
 
     logInfo("Running format...");
     await runQuiet("npm", ["run", "format"]);
@@ -126,10 +113,16 @@ async function main() {
     logInfo("Running build...");
     await runQuiet("npm", ["run", "build"]);
 
-    await execa("git", ["add", "package.json", "CHANGELOG.md"]);
-    await execa("git", ["commit", "-m", `chore: release v${versionChoice}`]);
+    const trimmedNote = note.trim();
+    const commitMsg = trimmedNote
+      ? `chore: release v${versionChoice} - ${trimmedNote}`
+      : `chore: release v${versionChoice}`;
+    const tagMsg = trimmedNote ? `v${versionChoice} - ${trimmedNote}` : `v${versionChoice}`;
 
-    await execa("git", ["tag", `v${versionChoice}`]);
+    await execa("git", ["add", "-u"]);
+    await execa("git", ["commit", "-m", commitMsg]);
+
+    await execa("git", ["tag", "-a", `v${versionChoice}`, "-m", tagMsg]);
     await execa("git", ["push"]);
     await execa("git", ["push", "origin", `v${versionChoice}`]);
 
