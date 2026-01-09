@@ -107,14 +107,14 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
   <FormInput
     id={nameId}
     name="name"
-    content={{ label: "Name" }}
+    label="Name"
     required
     value={defaultValues.name}
     ariaInvalid={Boolean(nameError)}
     errorId={nameErrorId}
   />
 
-  <FormHidden id={nameId} name="middle_name" content={{ label: "Middle Name" }} />
+  <FormHidden id={nameId} name="middle_name" />
   {nameError ? <FormError id={nameErrorId}>{nameError}</FormError> : null}
 
   <div class="contact-form__grid">
@@ -122,7 +122,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
       <FormInput
         id={companyId}
         name="company"
-        content={{ label: "Company name" }}
+        label="Company name"
         value={defaultValues.company}
         ariaInvalid={Boolean(companyError)}
         errorId={companyErrorId}
@@ -133,7 +133,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
       <FormInput
         id={cityId}
         name="city"
-        content={{ label: "City" }}
+        label="City"
         value={defaultValues.city}
         ariaInvalid={Boolean(cityError)}
         errorId={cityErrorId}
@@ -147,7 +147,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
         id={emailId}
         name="email"
         type="email"
-        content={{ label: "Email" }}
+        label="Email"
         required
         value={defaultValues.email}
         ariaInvalid={Boolean(emailError)}
@@ -160,7 +160,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
         id={phoneId}
         name="phone"
         type="tel"
-        content={{ label: "Phone" }}
+        label="Phone"
         value={defaultValues.phone}
         ariaInvalid={Boolean(phoneError)}
         errorId={phoneErrorId}
@@ -178,7 +178,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
     <div class="contact-form__options">
       <FormRadio
         name="contactMethod"
-        content={{ label: "Email" }}
+        label="Email"
         value="email"
         checked={preference === "email" || preference === ""}
         ariaInvalid={Boolean(methodError)}
@@ -186,7 +186,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
       />
       <FormRadio
         name="contactMethod"
-        content={{ label: "Phone" }}
+        label="Phone"
         value="phone"
         checked={preference === "phone"}
         ariaInvalid={Boolean(methodError)}
@@ -217,7 +217,7 @@ const servicesSelected = Array.isArray(defaultValues.services) ? defaultValues.s
         ].map((service) => (
           <FormCheckbox
             name="services"
-            content={{ label: service.label }}
+            label={service.label}
             value={service.value}
             checked={servicesSelected.includes(service.value)}
             ariaInvalid={Boolean(servicesError)}
