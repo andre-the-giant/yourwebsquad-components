@@ -47,7 +47,7 @@ function nextVersions(current) {
   return {
     patch: `${major}.${minor}.${patch + 1}`,
     minor: `${major}.${minor + 1}.0`,
-    major: `${major + 1}.0.0`,
+    major: `${major + 1}.0.0`
   };
 }
 
@@ -86,9 +86,9 @@ async function main() {
         choices: [
           { name: `Patch (${candidates.patch})`, value: candidates.patch },
           { name: `Minor (${candidates.minor})`, value: candidates.minor },
-          { name: `Major (${candidates.major})`, value: candidates.major },
-        ],
-      },
+          { name: `Major (${candidates.major})`, value: candidates.major }
+        ]
+      }
     ]);
 
     await ensureRemote();
@@ -100,8 +100,8 @@ async function main() {
         type: "input",
         name: "note",
         message: "Tag notes (short sentence):",
-        default: "",
-      },
+        default: ""
+      }
     ]);
 
     pkg.version = versionChoice;
