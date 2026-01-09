@@ -19,8 +19,27 @@ const hasSlot = Astro.slots.has("default");
 const extractSlotItems = (rendered) => {
   if (!rendered) return [];
   const html = Array.isArray(rendered) ? rendered.join("") : String(rendered);
-  const spans = html.match(/<span[\s\S]*?<\/span>/g);
-  if (spans && spans.length) return spans;
+  const spans = [];
+  const tagRegex = /<\/?span\b[^>]*>/gi;
+  let match;
+  let depth = 0;
+  let start = -1;
+
+  while ((match = tagRegex.exec(html))) {
+    const isOpen = match[0][1] !== "/";
+    if (isOpen) {
+      if (depth === 0) start = match.index;
+      depth += 1;
+    } else {
+      depth = Math.max(0, depth - 1);
+      if (depth === 0 && start !== -1) {
+        spans.push(html.slice(start, tagRegex.lastIndex));
+        start = -1;
+      }
+    }
+  }
+
+  if (spans.length) return spans;
   return html.trim().length ? [html] : [];
 };
 
