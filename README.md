@@ -2,7 +2,7 @@
 
 # My own little component library
 
-Hey what's up ? So you found my little component library project ? 
+Hey what's up ? So you found my little component library project ?
 
 I hope you like it!
 
@@ -13,7 +13,7 @@ Let me tell you more about it.
 - **Props only:** expose explicit props. Keep the prop surface small and focused.
 - **Slots:** avoid `<slot />` unless a component cannot be expressed with props alone.
 - **Required frontmatter comment:** every component must document its props and defaults.
-- running the project with `npm run dev` will allow you to browse the docs. Each component page has a table of all props and default values. 
+- running the project with `npm run dev` will allow you to browse the docs. Each component page has a table of all props and default values.
 
 Example frontmatter comment:
 
@@ -59,23 +59,25 @@ Files created:
 
 Notes:
 
-- The script is intentionally simple text-based scaffolding. 
+- The script is intentionally simple text-based scaffolding.
 
 You can customize the templates in `scripts/create-component.js`.
+
 - After scaffolding, run `npm run format` to apply formatting.
 
 ### Manual steps
-  - Create the component in `src/lib/components/<ComponentName>/` with a primary `<ComponentName>.astro` and a small `index.astro` wrapper that imports and re-exports the component.
-  - Add a docs page in `src/docs/pages/components/{atoms|molecules|components}/<slug>.astro` (use lower-case slug like `button`).
-  - Add a small wrapper at `src/docs/pages/components/<slug>.astro` that imports the grouped page so the route `/components/<slug>` keeps working.
-  - Add an entry to `src/docs/data/components.js`:
 
-    {
-    name: "ComponentName",
-    href: "/components/component-slug",
-    description: "Short description",
-    group: "atoms" // or "molecules" or "components"
-    }
+- Create the component in `src/lib/components/<ComponentName>/` with a primary `<ComponentName>.astro` and a small `index.astro` wrapper that imports and re-exports the component.
+- Add a docs page in `src/docs/pages/components/{atoms|molecules|components}/<slug>.astro` (use lower-case slug like `button`).
+- Add a small wrapper at `src/docs/pages/components/<slug>.astro` that imports the grouped page so the route `/components/<slug>` keeps working.
+- Add an entry to `src/docs/data/components.js`:
+
+  {
+  name: "ComponentName",
+  href: "/components/component-slug",
+  description: "Short description",
+  group: "atoms" // or "molecules" or "components"
+  }
 
 ## Releasing (version bump + tag)
 
