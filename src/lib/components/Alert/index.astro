@@ -3,4 +3,8 @@ import Alert from "./Alert.astro";
 const props = Astro.props;
 ---
 
-<Alert {...props} />
+<Alert {...props}>
+  <slot />
+  <slot slot="description" name="description" />
+  <slot slot="actions" name="actions" />
+</Alert>

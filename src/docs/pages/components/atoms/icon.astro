@@ -67,11 +67,7 @@ const props = [
 
   <Preview title="Runtime SVG" code={runtimeCode}>
     <div class="row">
-      <IconComponent
-        svgPath={runtimeSvg}
-        viewBox="0 0 24 24"
-        label="Runtime hamburger"
-      />
+      <IconComponent svgPath={runtimeSvg} viewBox="0 0 24 24" label="Runtime hamburger" />
       <IconComponent
         svgPath={'<path d="M5 12h14" /><path d="M13 6l6 6-6 6" />'}
         viewBox="0 0 24 24"
@@ -85,11 +81,12 @@ const props = [
     <p>The `Icon` component supports two modes:</p>
     <ul>
       <li>
-        <strong>Registry:</strong> pass `name="icon-name"` to use a predefined icon
-        from the registry.
+        <strong>Registry:</strong> pass `name="icon-name"` to use a predefined icon from the registry.
       </li>
       <li>
-        <strong>Runtime SVG:</strong> pass `svgPath="<path .../>"` (and optional `viewBox`, `strokeWidth`, `strokeLinecap`, `strokeLinejoin`) to render ad-hoc SVG markup without rebuilding the library.
+        <strong>Runtime SVG:</strong> pass `svgPath="<path ...></path>"` (and optional `viewBox`,
+        `strokeWidth`, `strokeLinecap`, `strokeLinejoin`) to render ad-hoc SVG markup without
+        rebuilding the library.
       </li>
     </ul>
     <p>
@@ -99,8 +96,8 @@ const props = [
       `color` prop or set the parent `color` CSS.
     </p>
     <p>
-      Accessibility: provide a `label` to expose an accessible name.
-      If no label is supplied the icon is considered decorative and will be `aria-hidden`.
+      Accessibility: provide a `label` to expose an accessible name. If no label is supplied the
+      icon is considered decorative and will be `aria-hidden`.
     </p>
     <pre><code>// registry
 &lt;Icon name="external" label="Open external link" /&gt;

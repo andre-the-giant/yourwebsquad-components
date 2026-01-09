@@ -3,4 +3,8 @@ import Form from "./Form.astro";
 const props = Astro.props;
 ---
 
-<Form {...props} />
+<Form {...props}>
+  <slot />
+  <slot slot="reset" name="reset" />
+  <slot slot="submit" name="submit" />
+</Form>

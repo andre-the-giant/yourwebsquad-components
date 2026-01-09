@@ -3,4 +3,6 @@ import Button from "./Button.astro";
 const props = Astro.props;
 ---
 
-<Button {...props} />
+<Button {...props}>
+  <slot />
+</Button>
