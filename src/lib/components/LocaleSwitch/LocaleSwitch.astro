@@ -1,0 +1,60 @@
+---
+/**
+ * LocaleSwitch (library component)
+ *
+ * i18n-agnostic: you pass locales + urls.
+ *
+ * Props:
+ * - currentLocale: string — active locale code (e.g. "en")
+ * - locales: string[] — list of locale codes to render (e.g. ["en", "fr"])
+ * - urls: Record<string, string> — map locale → URL (e.g. { en: "/en/", fr: "/fr/" })
+ * - labels?: Record<string, string> — display labels (default uppercases code)
+ * - ariaLabel?: string — default "Language"
+ * - className?: string — extra class for wrapper (default "")
+ *
+ * Notes: current locale renders as outline and disables href; missing urls fall back to "#".
+ */
+const {
+  currentLocale,
+  locales,
+  urls,
+  labels = {},
+  ariaLabel = "Language",
+  className = ""
+} = Astro.props;
+
+const getLabel = (code) => labels[code] ?? code.toUpperCase();
+const getHref = (code) => (urls?.[code] ? urls[code] : "#");
+import Link from "../Link/Link.astro";
+---
+
+<nav class={`localeSwitch ${className}`} aria-label={ariaLabel}>
+  <ul class="localeSwitch__list">
+    {
+      locales.map((code) => {
+        const isCurrent = code === currentLocale;
+        return (
+          <li class="localeSwitch__item">
+            <Link
+              size="xs"
+              variant={`${isCurrent ? "outline" : "solid"}`}
+              href={!isCurrent ? getHref(code) : null}
+              aria-current={isCurrent ? "page" : undefined}
+              label={getLabel(code)}
+            />
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>
+
+<style>
+  .localeSwitch__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+</style>

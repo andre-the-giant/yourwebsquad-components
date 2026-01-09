@@ -1,12 +1,65 @@
 ---
 import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import Rotator from "@lib/components/Rotator/Rotator.astro";
 import Icon from "@lib/components/Icon/Icon.astro";
+
+const props = [
+  {
+    name: "items",
+    type: "Array<string | number | boolean | HTMLElement>",
+    description: "Items to rotate; overrides content.items. If omitted, falls back to slot or defaults."
+  },
+  {
+    name: "content",
+    type: "{ items?, interval?, speed?, size?, direction?, ariaLive? }",
+    default: "{}",
+    description: "Optional content object providing defaults for all props."
+  },
+  {
+    name: "interval",
+    type: "string",
+    default: '"1.2s"',
+    description: "Duration each item is held before moving."
+  },
+  {
+    name: "speed",
+    type: "string",
+    default: '"0.1s"',
+    description: "Duration of the transition between items."
+  },
+  {
+    name: "direction",
+    type: '"up" | "down"',
+    default: '"up"',
+    description: "Scroll direction."
+  },
+  {
+    name: "size",
+    type: "string",
+    default: '"inherit"',
+    description: "Font size/line height for the rotator."
+  },
+  {
+    name: "ariaLive",
+    type: '"off" | "polite" | "assertive"',
+    default: '"off"',
+    description: "ARIA live region politeness."
+  },
+  {
+    name: "slot",
+    type: "default",
+    default: "—",
+    description: "Provide <span> children when not using items[]."
+  }
+];
 ---
 
 <DocLayout title="Rotator" description={"text rotating animation"} items={components}>
+  <PropsTable props={props} />
+
   <Preview
     title="Preview"
     code={`

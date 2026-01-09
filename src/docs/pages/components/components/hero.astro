@@ -1,14 +1,62 @@
 ---
 import DocLayout from "../../../layouts/DocLayout.astro";
 import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import Hero from "@lib/components/Hero/Hero.astro";
 
 const code = "<Hero />";
+const props = [
+  {
+    name: "content",
+    type: "{ title?, body?, cta?: { href?, label? }, img?, clip? }",
+    default: "{}",
+    description: "Fallback values for all props; direct props override content.*"
+  },
+  {
+    name: "title",
+    type: "string",
+    description: "Heading text; overrides content.title when provided"
+  },
+  {
+    name: "body",
+    type: "string",
+    description: "Body copy (HTML allowed); overrides content.body when provided"
+  },
+  {
+    name: "cta",
+    type: "{ href?: string, label?: string }",
+    default: "—",
+    description: "CTA data; both href and label required to render; overrides content.cta"
+  },
+  {
+    name: "img",
+    type: "string",
+    default: "—",
+    description: "Background image source; overrides content.img"
+  },
+  {
+    name: "clip",
+    type: "string",
+    default: "—",
+    description: "SVG path for clipPath; overrides content.clip"
+  }
+];
 ---
 
 <DocLayout title="Hero" description={"A big fat image with a text and a cta "} items={components}>
+  <PropsTable props={props} />
+
   <Preview title="Preview" code={code}>
-    <Hero />
+    <Hero
+      title="Your Web Squad is here for you"
+      body="We built this component library to help us build websites faster."
+      img="https://picsum.photos/1280/720"
+      clip="m1,0 v1 c0,0,-0.098,-0.192,-0.224,-0.188 c-0.126,0.004,-0.438,0.188,-0.506,0.188 c-0.068,0,-0.005,-0.149,-0.109,-0.117 c-0.104,0.032,-0.16,0.068,-0.16,0.068 v-0.952"
+      cta={{
+        href: "/",
+        label: "Pump up the volume!"
+      }}
+    />
   </Preview>
 </DocLayout>

@@ -1,0 +1,98 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import LocaleSwitch from "@lib/components/LocaleSwitch/LocaleSwitch.astro";
+
+const locales = ["en", "fr", "es"];
+const currentLocale = "en";
+const urls = {
+  en: "/components/locale-switch/",
+  fr: "/components/locale-switch/",
+  es: "/components/locale-switch/"
+};
+const labels = { en: "English", fr: "Français", es: "Espanol" };
+
+const code = `<LocaleSwitch
+  locales={["en", "fr", "es"]}
+  currentLocale="en"
+  urls={{ en: "/components/locale-switch/", fr: "/components/locale-switch/", es: "/components/locale-switch/" }}
+  labels={{ en: "English", fr: "Français", es: "Espanol" }}
+/>`;
+const props = [
+  {
+    name: "locales",
+    type: "string[]",
+    description: "Locale codes to display (required)."
+  },
+  {
+    name: "currentLocale",
+    type: "string",
+    description: "Active locale code; its link is outlined, aria-current, and not clickable."
+  },
+  {
+    name: "urls",
+    type: "Record<string, string>",
+    description: "Per-locale URLs; missing entries fall back to '#'."
+  },
+  {
+    name: "labels",
+    type: "Record<string, string>",
+    default: "{}",
+    description: "Display labels per locale; defaults to locale code uppercased."
+  },
+  {
+    name: "ariaLabel",
+    type: "string",
+    default: '"Language"',
+    description: "Accessible label for the navigation wrapper."
+  },
+  {
+    name: "className",
+    type: "string",
+    default: '""',
+    description: "Additional class for the <nav> wrapper."
+  }
+];
+---
+
+<DocLayout title="LocaleSwitch" description={"Switch language in i18n websites"} items={components}>
+  <PropsTable props={props} />
+
+  <Preview title="Preview" code={code}>
+    <LocaleSwitch locales={locales} currentLocale={currentLocale} urls={urls} labels={labels} />
+  </Preview>
+  <Preview
+    title="Implementation Guide"
+    code={`
+  ---
+import { getRelativeLocaleUrl, getLocaleByPath } from "astro:i18n";
+import LocaleSwitch from "yourwebsquad-components/LocaleSwitch.astro";
+
+const LOCALES = ["en", "fr"];
+const LABELS = { en: "English", fr: "Français" };
+
+const parts = Astro.url.pathname.split("/").filter(Boolean);
+const firstSeg = parts[0] ?? "";
+const currentLocale = getLocaleByPath(firstSeg) ?? "en";
+const rest = parts.slice(1).join("/");
+
+const urls = Object.fromEntries(
+  LOCALES.map((loc) => [loc, getRelativeLocaleUrl(loc, rest)])
+);
+---
+
+<LocaleSwitch
+  locales={LOCALES}
+  currentLocale={currentLocale}
+  urls={urls}
+  labels={LABELS}
+  ariaLabel="Language switch"
+/>
+`}
+  >
+    Create a component to compute the props using astro:i18n, then passes them to LocaleSwitch. Then
+    use this component anywhere in your site.
+  </Preview>
+</DocLayout>

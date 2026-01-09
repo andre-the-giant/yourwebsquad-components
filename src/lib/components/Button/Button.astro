@@ -7,7 +7,7 @@ Props:
 - target?: string
 - rel?: string
 - variant?: "solid" | "outline" | "ghost"
-- size?: "sm" | "md" | "lg"
+- size?: "xs" | "sm" | "md" | "lg"
 - type?: "button" | "submit" | "reset"
 - disabled?: boolean
 Notes:
@@ -118,9 +118,15 @@ const className = `button button--${variant} button--${size}`;
     text-decoration: none;
   }
 
+  .button--xs {
+    padding: 0.2rem 0.5rem;
+    font-size: var(--size-xs);
+    font-weight: 400;
+  }
   .button--sm {
     padding: 0.45rem 1rem;
     font-size: var(--size-sm);
+    box-shadow: 0;
   }
 
   .button--md {

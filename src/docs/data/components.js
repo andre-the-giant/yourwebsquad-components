@@ -112,5 +112,11 @@ export const components = [
     href: "/components/rotator",
     description: "text rotating animation",
     group: "molecules"
+  },
+  {
+    name: "LocaleSwitch",
+    href: "/components/locale-switch",
+    description: "Switch language in i18n websites",
+    group: "molecules"
   }
 ];

@@ -1,4 +1,17 @@
 ---
+/*
+Props:
+- content?: { items?, interval?, speed?, size?, direction?, ariaLive? }
+- items?: (string | number | boolean | HTMLElement | null | undefined)[] — overrides content.items; falls back to slot or defaults
+- interval?: string — duration to hold each item (default "1.2s"; overrides content.interval)
+- speed?: string — transition speed between items (default "0.1s"; overrides content.speed)
+- size?: string — font size/line height (default "inherit"; overrides content.size)
+- direction?: "up" | "down" (default "up"; overrides content.direction)
+- ariaLive?: "off" | "polite" | "assertive" (default "off"; overrides content.ariaLive)
+- slot "default": optional list of <span> children used when items are not provided
+Notes: spreads ...rest on outer <span>; clip path string expected like `m0,0.5 v0.5 h0.089 (...) -0.013 c0,-0.003,0 h-1`.
+*/ 
+
 const { content = {}, items, interval, speed, size, direction, ariaLive, ...rest } = Astro.props;
 
 const hasItemsArray = Array.isArray(items ?? content.items);
@@ -84,6 +97,7 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
   return `linear(${stops.join(", ")})`;
 }
 ---
+
 <span
   class={rotatorClassName}
   aria-live={resolvedAriaLive}
@@ -93,11 +107,15 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
   {...rest}
 >
   <span class="rotator__track">
-    {displayedItems.map((item) =>
-      isSlotMode && typeof item === "string"
-        ? <span class="rotator__item" set:html={item} />
-        : <span class="rotator__item">{item}</span>
-    )}
+    {
+      displayedItems.map((item) =>
+        isSlotMode && typeof item === "string" ? (
+          <span class="rotator__item" set:html={item} />
+        ) : (
+          <span class="rotator__item">{item}</span>
+        )
+      )
+    }
   </span>
 </span>
 
