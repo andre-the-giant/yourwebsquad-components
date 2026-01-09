@@ -13,3 +13,4 @@ export { default as FormHidden } from "./components/Form-Hidden/index.astro";
 export { default as Form } from "./components/Form/index.astro";
 export { default as FormFieldset } from "./components/Form-Fieldset/index.astro";
 export { default as ContactForm } from "./components/ContactForm/index.astro";
+export { default as LocaleSwitch } from "./components/LocaleSwitch/index.astro";
