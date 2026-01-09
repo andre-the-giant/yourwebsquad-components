@@ -1,20 +1,19 @@
 ---
 /*
 Props:
-- content?: { items?, interval?, speed?, size?, direction?, ariaLive? }
-- items?: (string | number | boolean | HTMLElement | null | undefined)[] — overrides content.items; falls back to slot or defaults
-- interval?: string — duration to hold each item (default "1.2s"; overrides content.interval)
-- speed?: string — transition speed between items (default "0.1s"; overrides content.speed)
-- size?: string — font size/line height (default "inherit"; overrides content.size)
-- direction?: "up" | "down" (default "up"; overrides content.direction)
-- ariaLive?: "off" | "polite" | "assertive" (default "off"; overrides content.ariaLive)
+- items?: (string | number | boolean | HTMLElement | null | undefined)[] — falls back to slot or defaults
+- interval?: string — duration to hold each item (default "1.2s")
+- speed?: string — transition speed between items (default "0.1s")
+- size?: string — font size/line height (default "inherit")
+- direction?: "up" | "down" (default "up")
+- ariaLive?: "off" | "polite" | "assertive" (default "off")
 - slot "default": optional list of <span> children used when items are not provided
 Notes: spreads ...rest on outer <span>; clip path string expected like `m0,0.5 v0.5 h0.089 (...) -0.013 c0,-0.003,0 h-1`.
-*/ 
+*/
 
-const { content = {}, items, interval, speed, size, direction, ariaLive, ...rest } = Astro.props;
+const { items, interval, speed, size, direction, ariaLive, ...rest } = Astro.props;
 
-const hasItemsArray = Array.isArray(items ?? content.items);
+const hasItemsArray = Array.isArray(items);
 const hasSlot = Astro.slots.has("default");
 
 const extractSlotItems = (rendered) => {
@@ -31,7 +30,7 @@ const isSlotMode = !hasItemsArray && slotItems.length > 0;
 
 const defaultItems = ["Settings missing", "add items=[]"];
 const itemsSource = hasItemsArray
-  ? (items ?? content.items)
+  ? items
   : slotItems.length
     ? slotItems
     : defaultItems;
@@ -43,11 +42,11 @@ const normalizeItem = (item) => {
 };
 const resolvedItems = (itemsSource.length ? itemsSource : defaultItems).map(normalizeItem);
 
-const resolvedInterval = interval ?? content.interval ?? "1.2s";
-const resolvedSpeed = speed ?? content.speed ?? "0.1s";
-const resolvedDirection = direction ?? content.direction ?? "up";
-const resolvedAriaLive = ariaLive ?? content.ariaLive ?? "off";
-const resolvedSize = size ?? content.size ?? "inherit";
+const resolvedInterval = interval ?? "1.2s";
+const resolvedSpeed = speed ?? "0.1s";
+const resolvedDirection = direction ?? "up";
+const resolvedAriaLive = ariaLive ?? "off";
+const resolvedSize = size ?? "inherit";
 const rotatorClassName = `rotator rotator--direction-${resolvedDirection}`;
 
 const stepCount = resolvedItems.length;

@@ -5,21 +5,12 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import Button from "@lib/components/Button/Button.astro";
 
-const baseContent = { label: "Start a project" };
-const linkContent = { label: "View case study", href: "/case-studies" };
-
-const solidCode = `<Button content={{ label: "Start a project" }} />`;
-const outlineCode = `<Button content={{ label: "View case study", href: "/case-studies" }} variant="outline" />`;
-const ghostCode = `<Button content={{ label: "Contact" }} variant="ghost" />`;
-const sizesCode = `<Button content={{ label: "Small" }} size="sm" />\n<Button content={{ label: "Medium" }} size="md" />\n<Button content={{ label: "Large" }} size="lg" />`;
+const solidCode = `<Button label="Start a project" />`;
+const outlineCode = `<Button label="View case study" href="/case-studies" variant="outline" />`;
+const ghostCode = `<Button label="Contact" variant="ghost" />`;
+const sizesCode = `<Button label="XS" size="xs" />\n<Button label="Small" size="sm" />\n<Button label="Medium" size="md" />\n<Button label="Large" size="lg" />`;
 
 const props = [
-  {
-    name: "content",
-    type: "{ label?, href?, target?, rel? }",
-    default: "—",
-    description: "Default values, overridden by direct props."
-  },
   { name: "label", type: "string", default: '"Button"', description: "Button text." },
   { name: "href", type: "string", description: "When set renders an anchor." },
   { name: "target", type: "string", description: "Link target (e.g., _blank)." },
@@ -37,7 +28,7 @@ const props = [
   },
   {
     name: "size",
-    type: `"sm" | "md" | "lg"`,
+    type: `"xs" | "sm" | "md" | "lg"`,
     default: '"md"',
     description: "Padding and font sizing."
   },
@@ -47,8 +38,7 @@ const props = [
     default: '"button"',
     description: "Native button type."
   },
-  { name: "disabled", type: "boolean", default: "false", description: "Disables button/anchor." },
-  { name: "animateHover", type: "boolean", default: "false", description: "Adds hover animation." }
+  { name: "disabled", type: "boolean", default: "false", description: "Disables button/anchor." }
 ];
 ---
 
@@ -63,33 +53,34 @@ const props = [
     title="Solid"
     code={`
   <div class="row">
-      <Button content={baseContent} />
-      <Button content={{ label: "Secondary" }} variant="outline" />
+      <Button label="Start a project" />
+      <Button label="Secondary" variant="outline" />
     </div>`}
   >
     <div class="row">
-      <Button content={baseContent} />
-      <Button content={{ label: "Secondary" }} variant="outline" />
+      <Button label="Start a project" />
+      <Button label="Secondary" variant="outline" />
     </div>
   </Preview>
 
   <Preview title="Outline" code={outlineCode}>
     <div class="row">
-      <Button content={linkContent} variant="outline" />
+      <Button label="View case study" href="/case-studies" variant="outline" />
     </div>
   </Preview>
 
   <Preview title="Ghost" code={ghostCode}>
     <div class="row">
-      <Button content={{ label: "Contact" }} variant="ghost" />
+      <Button label="Contact" variant="ghost" />
     </div>
   </Preview>
 
   <Preview title="Sizes" code={sizesCode}>
     <div class="row">
-      <Button content={{ label: "Small" }} size="sm" />
-      <Button content={{ label: "Medium" }} size="md" />
-      <Button content={{ label: "Large" }} size="lg" />
+      <Button label="XS" size="xs" />
+      <Button label="Small" size="sm" />
+      <Button label="Medium" size="md" />
+      <Button label="Large" size="lg" />
     </div>
   </Preview>
 </DocLayout>

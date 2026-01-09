@@ -8,38 +8,32 @@ import Hero from "@lib/components/Hero/Hero.astro";
 const code = "<Hero />";
 const props = [
   {
-    name: "content",
-    type: "{ title?, body?, cta?: { href?, label? }, img?, clip? }",
-    default: "{}",
-    description: "Fallback values for all props; direct props override content.*"
-  },
-  {
     name: "title",
     type: "string",
-    description: "Heading text; overrides content.title when provided"
+    description: "Heading text."
   },
   {
     name: "body",
     type: "string",
-    description: "Body copy (HTML allowed); overrides content.body when provided"
+    description: "Body copy (HTML allowed)."
   },
   {
     name: "cta",
     type: "{ href?: string, label?: string }",
     default: "—",
-    description: "CTA data; both href and label required to render; overrides content.cta"
+    description: "CTA data; both href and label required to render."
   },
   {
     name: "img",
     type: "string",
     default: "—",
-    description: "Background image source; overrides content.img"
+    description: "Background image source."
   },
   {
     name: "clip",
     type: "string",
     default: "—",
-    description: "SVG path for clipPath; overrides content.clip"
+    description: "SVG path for clipPath."
   }
 ];
 ---

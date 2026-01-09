@@ -1,7 +1,6 @@
 ---
 /*
 Props:
-- content?: { label?: string, href?: string, target?: string, rel?: string }
 - label?: string
 - href?: string
 - target?: string
@@ -11,11 +10,10 @@ Props:
 - type?: "button" | "submit" | "reset"
 - disabled?: boolean
 Notes:
-- direct props override content.*
+- rel defaults to "noreferrer" when target is "_blank".
 */
 const {
-  content = {},
-  label,
+  label = "Button",
   href,
   target,
   rel,
@@ -25,10 +23,10 @@ const {
   disabled = false
 } = Astro.props;
 
-const resolvedLabel = label ?? content.label ?? "Button";
-const resolvedHref = href ?? content.href;
-const resolvedTarget = target ?? content.target;
-const resolvedRel = rel ?? content.rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
+const resolvedLabel = label;
+const resolvedHref = href;
+const resolvedTarget = target;
+const resolvedRel = rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
 const className = `button button--${variant} button--${size}`;
 ---
 

@@ -10,13 +10,7 @@ const props = [
   {
     name: "items",
     type: "Array<string | number | boolean | HTMLElement>",
-    description: "Items to rotate; overrides content.items. If omitted, falls back to slot or defaults."
-  },
-  {
-    name: "content",
-    type: "{ items?, interval?, speed?, size?, direction?, ariaLive? }",
-    default: "{}",
-    description: "Optional content object providing defaults for all props."
+    description: "Items to rotate. If omitted, falls back to slot content or defaults."
   },
   {
     name: "interval",

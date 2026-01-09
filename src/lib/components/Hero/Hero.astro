@@ -1,24 +1,22 @@
 ---
 /*
 Props:
-- content?: { title?, body?, cta?: { href?, label? }, img?, clip? }
-- title?: string — overrides content.title
-- body?: string — HTML allowed; overrides content.body
-- cta?: { href?: string, label?: string } — overrides content.cta
-- img?: string — overrides content.img (src passed to <Image>)
-- clip?: string — SVG path for clipPath; overrides content.clip
-Notes: direct props take precedence over content.*; spreads ...rest on outer <div>.
+- title?: string
+- body?: string — HTML allowed
+- cta?: { href?: string, label?: string }
+- img?: string — src passed to <Image>
+- clip?: string — SVG path for clipPath
 */
-const { content = {}, title, body, cta, img, clip, ...rest } = Astro.props;
+const { title, body, cta, img, clip } = Astro.props;
 import Image from "../Image/Image.astro";
 import Link from "../Link/Link.astro";
-const resolvedTitle = title ?? content.title ?? null;
-const resolvedBody = body ?? content.body ?? null;
-const resolvedClip = clip ?? content.clip ?? null;
-const resolvedCtaHref = cta?.href ?? content.cta?.href ?? null;
-const resolvedCtaLabel = cta?.label ?? content.cta?.label ?? null;
+const resolvedTitle = title ?? null;
+const resolvedBody = body ?? null;
+const resolvedClip = clip ?? null;
+const resolvedCtaHref = cta?.href ?? null;
+const resolvedCtaLabel = cta?.label ?? null;
 const isCta = Boolean(resolvedCtaHref && resolvedCtaLabel);
-const resolvedImage = img ?? content.img ?? null;
+const resolvedImage = img ?? null;
 ---
 
 <div class="hero">
@@ -35,7 +33,7 @@ const resolvedImage = img ?? content.img ?? null;
     {
       isCta && (
         <div class="hero-cta">
-          <Link variant="solid" size="lg" label={resolvedCtaLabel} />
+          <Link variant="solid" size="lg" href={resolvedCtaHref} label={resolvedCtaLabel} />
         </div>
       )
     }
