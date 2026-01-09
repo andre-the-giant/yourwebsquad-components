@@ -3,19 +3,6 @@ import Icon from "../Icon/Icon.astro";
 
 /*
 Props:
-- content?: {
-    as?: "ul" | "ol";
-    items?: Array<string | { label: string; icon?: string }>;
-    icon?: string;              // registry name for bullet icon
-    showIcon?: boolean;
-    numberStyle?: { color?: string; background?: string; weight?: string; size?: string; radius?: string };
-    gap?: string;
-    lineHeight?: string;
-    start?: number;
-    reversed?: boolean;
-    type?: "1" | "a" | "A" | "i" | "I";
-    class?: string;
-  }
 - as?: "ul" | "ol"
 - items?: Array<string | { label: string; icon?: string }>
 - icon?: string
@@ -28,10 +15,9 @@ Props:
 - type?: "1" | "a" | "A" | "i" | "I"
 - class?: string
 Notes:
-- direct props override content.*
+- direct props only; no content merges
 */
 const {
-  content = {},
   as,
   items,
   icon,
@@ -46,22 +32,22 @@ const {
   ...rest
 } = Astro.props;
 
-const resolvedAs = (as ?? content.as ?? "ul").toLowerCase() === "ol" ? "ol" : "ul";
-const resolvedItems = Array.isArray(items ?? content.items) ? (items ?? content.items) : [];
-const resolvedIcon = icon ?? content.icon;
-const resolvedShowIcon = showIcon ?? content.showIcon ?? Boolean(resolvedIcon);
+const resolvedAs = (as ?? "ul").toLowerCase() === "ol" ? "ol" : "ul";
+const resolvedItems = Array.isArray(items) ? items : [];
+const resolvedIcon = icon;
+const resolvedShowIcon = showIcon ?? Boolean(resolvedIcon);
 const resolvedNumberStyle = {
-  color: (numberStyle ?? {}).color ?? content.numberStyle?.color,
-  background: (numberStyle ?? {}).background ?? content.numberStyle?.background,
-  weight: (numberStyle ?? {}).weight ?? content.numberStyle?.weight ?? "var(--weight-semibold)",
-  size: (numberStyle ?? {}).size ?? content.numberStyle?.size ?? "var(--size-sm)",
-  radius: (numberStyle ?? {}).radius ?? content.numberStyle?.radius ?? "999px"
+  color: (numberStyle ?? {}).color,
+  background: (numberStyle ?? {}).background,
+  weight: (numberStyle ?? {}).weight ?? "var(--weight-semibold)",
+  size: (numberStyle ?? {}).size ?? "var(--size-sm)",
+  radius: (numberStyle ?? {}).radius ?? "999px"
 };
-const resolvedGap = gap ?? content.gap ?? "var(--space-2)";
-const resolvedLineHeight = lineHeight ?? content.lineHeight ?? "var(--line-normal)";
-const resolvedStart = start ?? content.start;
-const resolvedReversed = reversed ?? content.reversed ?? false;
-const resolvedType = type ?? content.type;
+const resolvedGap = gap ?? "var(--space-2)";
+const resolvedLineHeight = lineHeight ?? "var(--line-normal)";
+const resolvedStart = start;
+const resolvedReversed = reversed ?? false;
+const resolvedType = type;
 const listClassName = `list list--${resolvedAs} ${className ?? ""}`.trim();
 const hasCustomItems = Astro.slots.has("default");
 

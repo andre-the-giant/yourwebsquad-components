@@ -2,20 +2,36 @@
 // @ts-nocheck
 /*
 Props:
-- content?: { name?: string, label?: string }
 - name?: string
 - label?: string
 - size?: "sm" | "md" | "lg"
+- svgPath?: string
+- svg?: string
+- viewBox?: string
+- strokeWidth?: string | number
+- strokeLinecap?: string
+- strokeLinejoin?: string
 Notes:
-- direct props override content.*
 - set label to expose aria-label; otherwise icon is aria-hidden
 */
 import icons from "./icons/index.js";
 
-const { content = {}, name, label, size = "md", class: className, color } = Astro.props;
+const {
+  name,
+  label,
+  size = "md",
+  class: className,
+  color,
+  svgPath,
+  svg,
+  viewBox: viewBoxProp,
+  strokeWidth: strokeWidthProp,
+  strokeLinecap: strokeLinecapProp,
+  strokeLinejoin: strokeLinejoinProp
+} = Astro.props;
 
-const resolvedName = name ?? content.name ?? "spark";
-const resolvedLabel = label ?? content.label ?? content?.ariaLabel;
+const resolvedName = name ?? "spark";
+const resolvedLabel = label;
 const sizeMap = {
   sm: "16px",
   md: "24px",
@@ -42,18 +58,10 @@ let viewBox = "0 0 24 24";
 let iconStrokeWidth = "2";
 let iconStrokeLinecap = "round";
 let iconStrokeLinejoin = "round";
-if (content && content.svgPath) {
-  innerSvg = sanitizeSvgString(content.svgPath);
-  if (content.viewBox) viewBox = content.viewBox;
-  if (content.strokeWidth) iconStrokeWidth = String(content.strokeWidth);
-  if (content.strokeLinecap) iconStrokeLinecap = String(content.strokeLinecap);
-  if (content.strokeLinejoin) iconStrokeLinejoin = String(content.strokeLinejoin);
-} else if (content && content.svg) {
-  innerSvg = sanitizeSvgString(content.svg);
-  if (content.viewBox) viewBox = content.viewBox;
-  if (content.strokeWidth) iconStrokeWidth = String(content.strokeWidth);
-  if (content.strokeLinecap) iconStrokeLinecap = String(content.strokeLinecap);
-  if (content.strokeLinejoin) iconStrokeLinejoin = String(content.strokeLinejoin);
+if (svgPath) {
+  innerSvg = sanitizeSvgString(svgPath);
+} else if (svg) {
+  innerSvg = sanitizeSvgString(svg);
 } else if (icons[String(resolvedName)]) {
   const def = icons[String(resolvedName)];
   innerSvg = sanitizeSvgString(def.svg || "");
@@ -62,6 +70,10 @@ if (content && content.svgPath) {
   if (def.strokeLinecap) iconStrokeLinecap = String(def.strokeLinecap);
   if (def.strokeLinejoin) iconStrokeLinejoin = String(def.strokeLinejoin);
 }
+if (viewBoxProp) viewBox = viewBoxProp;
+if (strokeWidthProp) iconStrokeWidth = String(strokeWidthProp);
+if (strokeLinecapProp) iconStrokeLinecap = String(strokeLinecapProp);
+if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
 ---
 
 <svg

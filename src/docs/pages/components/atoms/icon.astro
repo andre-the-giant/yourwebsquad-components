@@ -6,24 +6,17 @@ import { components } from "../../../data/components.js";
 import IconComponent from "@lib/components/Icon/Icon.astro";
 
 const iconNames = ["spark", "arrow-right", "grid"];
-const defaultCode = `<Icon content={{ name: "spark" }} />`;
-const sizesCode = `<Icon content={{ name: "spark" }} size="sm" />\n<Icon content={{ name: "spark" }} size="md" />\n<Icon content={{ name: "spark" }} size="lg" />`;
+const defaultCode = `<Icon name="spark" />`;
+const sizesCode = `<Icon name="spark" size="sm" />\n<Icon name="spark" size="md" />\n<Icon name="spark" size="lg" />`;
 const registryNames = ["hamburger", "external", "arrow-right", "spark"];
-const registryCode = `// Use a predefined registry name\n<Icon content={{ name: \"hamburger\" }} />\n<Icon content={{ name: \"external\" }} />`;
+const registryCode = `// Use a predefined registry name\n<Icon name="hamburger" />\n<Icon name="external" />`;
 
 const runtimeSvg = `<path d=\"M3 6h18\" /><path d=\"M3 12h18\" /><path d=\"M3 18h18\" />`;
-const runtimeCode = `// Pass raw SVG inner markup at runtime\n<Icon content={{ svgPath: '${runtimeSvg}', viewBox: '0 0 24 24' }} size=\"md\" label=\"Runtime hamburger\" />`;
+const runtimeCode = `// Pass raw SVG inner markup at runtime\n<Icon svgPath='${runtimeSvg}' viewBox='0 0 24 24' size="md" label="Runtime hamburger" />`;
 const alertIcons = ["info", "success", "warning", "error"];
-const alertIconsCode = alertIcons
-  .map((name) => `<Icon content={{ name: "${name}" }} />`)
-  .join("\\n");
+const alertIconsCode = alertIcons.map((name) => `<Icon name="${name}" />`).join("\\n");
 
 const props = [
-  {
-    name: "content",
-    type: "{ name?, label?, svgPath?, svg?, viewBox?, strokeWidth?, strokeLinecap?, strokeLinejoin? }",
-    description: "Defaults/inline SVG details; overridden by direct props."
-  },
   { name: "name", type: "string", default: '"spark"', description: "Registry icon name." },
   {
     name: "label",
@@ -36,6 +29,12 @@ const props = [
     default: '"md"',
     description: "Pre-set pixel sizes (16/24/32)."
   },
+  { name: "svgPath", type: "string", description: "Inner SVG path(s) to render." },
+  { name: "svg", type: "string", description: "Full inner SVG markup (without outer <svg>)." },
+  { name: "viewBox", type: "string", description: "Custom viewBox when using svg/svgPath." },
+  { name: "strokeWidth", type: "string | number", description: "Stroke width override." },
+  { name: "strokeLinecap", type: "string", description: "Stroke linecap override." },
+  { name: "strokeLinejoin", type: "string", description: "Stroke linejoin override." },
   { name: "class", type: "string", description: "Additional className." },
   { name: "color", type: "string", description: "Override currentColor." }
 ];
@@ -50,33 +49,32 @@ const props = [
 
   <Preview title="Default" code={defaultCode}>
     <div class="row">
-      {iconNames.map((name) => <IconComponent content={{ name }} />)}
+      {iconNames.map((name) => <IconComponent name={name} />)}
     </div>
   </Preview>
 
   <Preview title="Registry icons" code={registryCode}>
     <div class="row">
-      {registryNames.map((name) => <IconComponent content={{ name }} />)}
+      {registryNames.map((name) => <IconComponent name={name} />)}
     </div>
   </Preview>
 
   <Preview title="Alert icons" code={alertIconsCode}>
     <div class="row">
-      {alertIcons.map((name) => <IconComponent content={{ name }} label={`${name} icon`} />)}
+      {alertIcons.map((name) => <IconComponent name={name} label={`${name} icon`} />)}
     </div>
   </Preview>
 
   <Preview title="Runtime SVG" code={runtimeCode}>
     <div class="row">
       <IconComponent
-        content={{ svgPath: runtimeSvg, viewBox: "0 0 24 24" }}
+        svgPath={runtimeSvg}
+        viewBox="0 0 24 24"
         label="Runtime hamburger"
       />
       <IconComponent
-        content={{
-          svgPath: '<path d="M5 12h14" /><path d="M13 6l6 6-6 6" />',
-          viewBox: "0 0 24 24"
-        }}
+        svgPath={'<path d="M5 12h14" /><path d="M13 6l6 6-6 6" />'}
+        viewBox="0 0 24 24"
         label="Runtime arrow"
       />
     </div>
@@ -87,13 +85,11 @@ const props = [
     <p>The `Icon` component supports two modes:</p>
     <ul>
       <li>
-        <strong>Registry:</strong> pass `content={{ name: "icon-name" }}` to use a predefined icon
+        <strong>Registry:</strong> pass `name="icon-name"` to use a predefined icon
         from the registry.
       </li>
       <li>
-        <strong>Runtime SVG:</strong> pass `content={
-          { svgPath: "<path .../>", viewBox: "0 0 24 24" }
-        }` to render ad-hoc SVG markup without rebuilding the library.
+        <strong>Runtime SVG:</strong> pass `svgPath="<path .../>"` (and optional `viewBox`, `strokeWidth`, `strokeLinecap`, `strokeLinejoin`) to render ad-hoc SVG markup without rebuilding the library.
       </li>
     </ul>
     <p>
@@ -103,21 +99,21 @@ const props = [
       `color` prop or set the parent `color` CSS.
     </p>
     <p>
-      Accessibility: provide a `label` (or `ariaLabel` in `content`) to expose an accessible name.
+      Accessibility: provide a `label` to expose an accessible name.
       If no label is supplied the icon is considered decorative and will be `aria-hidden`.
     </p>
     <pre><code>// registry
-&lt;Icon content={{ name: "external" }} label="Open external link" /&gt;
+&lt;Icon name="external" label="Open external link" /&gt;
 
 // runtime
-&lt;Icon content={{ svgPath: '<path d="M3 6h18" />', viewBox: '0 0 24 24' }} label="Menu" /&gt;</code></pre>
+&lt;Icon svgPath='<path d="M3 6h18" />' viewBox='0 0 24 24' label="Menu" /&gt;</code></pre>
   </section>
 
   <Preview title="Sizes" code={sizesCode}>
     <div class="row">
-      <IconComponent content={{ name: "spark" }} size="sm" />
-      <IconComponent content={{ name: "spark" }} size="md" />
-      <IconComponent content={{ name: "spark" }} size="lg" />
+      <IconComponent name="spark" size="sm" />
+      <IconComponent name="spark" size="md" />
+      <IconComponent name="spark" size="lg" />
     </div>
   </Preview>
 </DocLayout>

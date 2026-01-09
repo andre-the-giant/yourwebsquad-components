@@ -1,13 +1,19 @@
 ---
 /*
 Props:
-- content?: { shape }
-Notes:
-- direct props override content.*
+- format?: string
+- quality?: number
+- widths?: number[]
+- alt?: string
+- backgroundPosition?: string
+- aspectRatio?: string
+- fetchpriority?: string
+- loading?: "lazy" | "eager"
+- sizes?: string
+- src?: string
 */
 import { Image } from "astro:assets";
 const {
-  content = {},
   format = "webp",
   quality = 60,
   widths = [640, 960, 1280, 1600, 1920],
