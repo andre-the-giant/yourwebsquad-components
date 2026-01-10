@@ -18,11 +18,43 @@ Props:
 - ariaInvalid?: boolean
 - helpId?: string
 - errorId?: string
+- ariaControls?: string
+- class?: string
+- style?: string
 Notes:
 - Native radio kept for accessibility. Styling provides a modern circular toggle with animated dot.
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import FormLabel from "../Form-Label/Form-Label.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  name: { type: "string" },
+  label: { type: "string" },
+  value: { type: ["string", "number"] },
+  checked: { type: "boolean" },
+  disabled: { type: "boolean" },
+  required: { type: "boolean" },
+  layout: { type: "string" },
+  position: { type: "string" },
+  color: { type: "string" },
+  size: { type: "string" },
+  radius: { type: "string" },
+  ariaLabel: { type: "string" },
+  ariaDescribedBy: { type: "string" },
+  ariaInvalid: { type: "boolean" },
+  helpId: { type: "string" },
+  errorId: { type: "string" },
+  ariaControls: { type: "string" }
+};
+
 const {
   id,
+  class: className,
+  style,
   name,
   label,
   value,
@@ -31,9 +63,9 @@ const {
   required = false,
   layout = "row",
   position = "left",
-  color,
-  size = "20px",
-  radius = "50%",
+  color: _color,
+  size: _size,
+  radius: _radius,
   ariaLabel,
   ariaDescribedBy,
   ariaInvalid = false,
@@ -41,21 +73,22 @@ const {
   errorId,
   ariaControls,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Form-Radio" });
 
 const resolvedLabel = label;
 const resolvedId = id ?? `form-radio-${Math.random().toString(36).slice(2, 9)}`;
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
-import FormLabel from "../Form-Label/Form-Label.astro";
 
 const styleVars = {
-  "--radio-color": color ?? "currentColor",
-  "--radio-size": size,
-  "--radio-radius": radius
+  "--radio-color": "currentColor",
+  "--radio-size": "20px",
+  "--radio-radius": "50%"
 };
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, className);
 ---
 
-<div class={`form-field form-radio--${layout}`} role="radiogroup" style={styleVars}>
+<div class={resolvedClass} role="radiogroup" style={resolvedStyle || undefined}>
   <label class={`radio-row ${position === "left" ? "pos-left" : "pos-right"}`} for={resolvedId}>
     {
       position === "left" ? (

@@ -4,13 +4,43 @@ Props:
 - id?: string
 - name?: string
 - value?: string
+- class?: string
+- style?: string
 Notes:
 */
-const { id, name, value, ...rest } = Astro.props;
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const resolvedId = id;
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  name: { type: "string" },
+  value: { type: ["string", "number"] }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  name,
+  value,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Form-Hidden" });
+
+const resolvedId = id ?? `form-hidden-${Math.random().toString(36).slice(2, 9)}`;
 const resolvedName = name;
 const resolvedValue = value ?? "";
+const resolvedStyle = makeStyleVars({}, style);
+const resolvedClass = mergeClasses(className);
 ---
 
-<input type="hidden" id={resolvedId} name={resolvedName} value={resolvedValue} {...rest} />
+<input
+  type="hidden"
+  id={resolvedId}
+  name={resolvedName}
+  value={resolvedValue}
+  class={resolvedClass || undefined}
+  style={resolvedStyle || undefined}
+  {...rest}
+/>

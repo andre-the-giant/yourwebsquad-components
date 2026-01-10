@@ -8,14 +8,22 @@ import FormCheckbox from "@lib/components/Form-Checkbox/Form-Checkbox.astro";
 const basicCode = `
 <FormCheckbox label="Enable notifications" id="notify" />`;
 const optionsCode = `
-<FormCheckbox label="Right toggle" />\n<FormCheckbox label="Left toggle" position="left" checkedColor="#0d6ea8" uncheckedColor="#e6e6e6" thumbColor="#fff" radius="20px" />
+<FormCheckbox label="Right toggle" />\n<FormCheckbox label="Left toggle" position="left" style="--toggle-checked: #0d6ea8; --toggle-unchecked: #e6e6e6; --toggle-thumb: #fff; --toggle-radius: 20px;" />
 <FormCheckbox 
         label="Squary left toggle starting red going red"
-        radius="3px"
-        position="left" 
-        uncheckedColor="green"
-        checkedColor="red"
+        position="left"
+        style="--toggle-radius: 3px; --toggle-unchecked: green; --toggle-checked: red;"
          />`;
+const styleVars = [
+  { name: "--toggle-checked", description: "Track color when checked.", default: "currentColor" },
+  {
+    name: "--toggle-unchecked",
+    description: "Track color when unchecked.",
+    default: "transparent"
+  },
+  { name: "--toggle-thumb", description: "Thumb color.", default: "var(--color-surface)" },
+  { name: "--toggle-radius", description: "Track/thumb radius.", default: "999px" }
+];
 ---
 
 <DocLayout
@@ -26,6 +34,8 @@ const optionsCode = `
   <PropsTable
     props={[
       { name: "id", type: "string", description: "Checkbox id; auto-generated if missing." },
+      { name: "class", type: "string", description: "Wrapper class names." },
+      { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
       { name: "name", type: "string", description: "Form field name." },
       { name: "label", type: "string", description: "Label text." },
       { name: "checked", type: "boolean", default: "false", description: "Checked state." },
@@ -42,10 +52,30 @@ const optionsCode = `
         default: '"right"',
         description: "Toggle placement relative to label."
       },
-      { name: "checkedColor", type: "string", description: "Track color when checked." },
-      { name: "uncheckedColor", type: "string", description: "Track color when unchecked." },
-      { name: "thumbColor", type: "string", description: "Thumb color." },
-      { name: "radius", type: "string", description: "Track/thumb border-radius." },
+      {
+        deprecated: true,
+        name: "checkedColor",
+        type: "string",
+        description: "Deprecated — use style vars (--toggle-checked)."
+      },
+      {
+        deprecated: true,
+        name: "uncheckedColor",
+        type: "string",
+        description: "Deprecated — use style vars (--toggle-unchecked)."
+      },
+      {
+        deprecated: true,
+        name: "thumbColor",
+        type: "string",
+        description: "Deprecated — use style vars (--toggle-thumb)."
+      },
+      {
+        deprecated: true,
+        name: "radius",
+        type: "string",
+        description: "Deprecated — use style vars (--toggle-radius)."
+      },
       { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
       {
         name: "ariaDescribedBy",
@@ -71,6 +101,8 @@ const optionsCode = `
       { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
     ]}
   />
+
+  <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">

@@ -20,8 +20,12 @@ const nestedCode = `<List>
   <li>Build</li>
   <li>QA</li>
 </List>`;
+const cssVarCode = `<List items={["A", "B", "C"]} style="--list-gap: 1.25rem; --list-num-bg: rgba(13,110,168,0.1); --list-num-color: #0d6ea8;" />`;
 
 const props = [
+  { name: "id", type: "string", description: "Optional id for the list." },
+  { name: "class", type: "string", description: "Additional className." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   { name: "as", type: `"ul" | "ol"`, default: '"ul"', description: "List tag." },
   {
     name: "items",
@@ -31,16 +35,30 @@ const props = [
   { name: "icon", type: "string", description: "Registry icon name for bullets." },
   { name: "showIcon", type: "boolean", description: "Force icon bullets on UL." },
   {
+    deprecated: true,
     name: "numberStyle",
     type: "{ color?, background?, weight?, size?, radius? }",
-    description: "OL number styling via CSS vars."
+    description: "Deprecated — use style vars (--list-num-*)."
   },
   { name: "gap", type: "string", description: "Row gap between items." },
   { name: "lineHeight", type: "string", description: "Line-height for list text." },
   { name: "start", type: "number", description: "Starting index for ordered list." },
   { name: "reversed", type: "boolean", description: "Reverse ordered list." },
-  { name: "type", type: `"1" | "a" | "A" | "i" | "I"`, description: "Ordered list type." },
-  { name: "class", type: "string", description: "Additional className." }
+  { name: "type", type: `"1" | "a" | "A" | "i" | "I"`, description: "Ordered list type." }
+];
+
+const styleVars = [
+  { name: "--list-gap", description: "Row gap between items.", default: "var(--space-2)" },
+  { name: "--list-line", description: "Line-height for text.", default: "var(--line-normal)" },
+  { name: "--list-num-color", description: "Number/bullet color.", default: "currentColor" },
+  { name: "--list-num-bg", description: "Number background.", default: "transparent" },
+  {
+    name: "--list-num-weight",
+    description: "Number font weight.",
+    default: "var(--weight-semibold)"
+  },
+  { name: "--list-num-size", description: "Number font size.", default: "var(--size-sm)" },
+  { name: "--list-num-radius", description: "Number badge radius.", default: "999px" }
 ];
 ---
 
@@ -50,6 +68,7 @@ const props = [
   items={components}
 >
   <PropsTable props={props} />
+  <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Basic UL" code={`<List items={${JSON.stringify(basicItems, null, 2)}} />`}>
     <List items={basicItems} />
@@ -64,12 +83,12 @@ const props = [
 
   <Preview
     title="Ordered with styled numbers"
-    code={`<List as="ol" items={${JSON.stringify(numberedItems, null, 2)}} numberStyle={{ background: "rgba(47,95,164,0.1)", color: "rgb(47,95,164)" }} />`}
+    code={`<List as="ol" items={${JSON.stringify(numberedItems, null, 2)}} style="--list-num-bg: rgba(47,95,164,0.1); --list-num-color: rgb(47,95,164);" />`}
   >
     <List
       as="ol"
       items={numberedItems}
-      numberStyle={{ background: "rgba(47,95,164,0.1)", color: "rgb(47,95,164)" }}
+      style="--list-num-bg: rgba(47,95,164,0.1); --list-num-color: rgb(47,95,164);"
     />
   </Preview>
 
@@ -82,5 +101,12 @@ const props = [
       <li>Build</li>
       <li>QA</li>
     </List>
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <List
+      items={["A", "B", "C"]}
+      style="--list-gap: 1.25rem; --list-num-bg: rgba(13,110,168,0.1); --list-num-color: #0d6ea8;"
+    />
   </Preview>
 </DocLayout>

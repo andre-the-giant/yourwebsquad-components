@@ -8,9 +8,24 @@ Props:
 - errorId?: string
 - required?: boolean
 - class?: string
+- style?: string
 Notes:
 - Wraps grouped fields (e.g., radio/checkbox sets) with semantic fieldset/legend.
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  legend: { type: "string" },
+  description: { type: "string" },
+  helpId: { type: "string" },
+  errorId: { type: "string" },
+  required: { type: "boolean" }
+};
+
 const {
   id,
   legend,
@@ -19,19 +34,24 @@ const {
   errorId,
   required = false,
   class: className,
+  style,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Form-Fieldset" });
 
 const resolvedLegend = legend;
 const resolvedDescription = description;
 const resolvedId = id ?? `form-fieldset-${Math.random().toString(36).slice(2, 9)}`;
 const describedIds = [helpId, errorId].filter(Boolean).join(" ");
+const styleVars = {};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("form-fieldset", className);
 ---
 
 <fieldset
   id={resolvedId}
-  class={`form-fieldset ${className ?? ""}`.trim()}
+  class={resolvedClass}
   aria-describedby={describedIds || undefined}
+  style={resolvedStyle || undefined}
   {...rest}
 >
   {

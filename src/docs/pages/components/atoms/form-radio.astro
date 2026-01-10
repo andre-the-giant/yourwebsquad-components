@@ -6,7 +6,13 @@ import { components } from "@docs/data/components.js";
 import FormRadio from "@lib/components/Form-Radio/Form-Radio.astro";
 
 const basicCode = `<FormRadio label="Option A" id="opt-a" value="a" name="example" />\n<FormRadio label="Option B" id="opt-b" value="b" name="example" />`;
-const variantsCode = `<FormRadio label="Left radio" position="left" color="#0d6ea8" />\n<FormRadio label="Right radio" position="right" color="#c92a2a" />`;
+const variantsCode = `<FormRadio label="Left radio" position="left" style="--radio-color: #0d6ea8;" />\n<FormRadio label="Right radio" position="right" style="--radio-color: #c92a2a;" />`;
+const cssVarCode = `<FormRadio label="Custom color" style="--radio-color: rebeccapurple; --radio-size: 24px; --radio-radius: 8px;" />`;
+const styleVars = [
+  { name: "--radio-color", description: "Active color.", default: "currentColor" },
+  { name: "--radio-size", description: "Outer size.", default: "20px" },
+  { name: "--radio-radius", description: "Outer radius.", default: "50%" }
+];
 ---
 
 <DocLayout
@@ -17,6 +23,8 @@ const variantsCode = `<FormRadio label="Left radio" position="left" color="#0d6e
   <PropsTable
     props={[
       { name: "id", type: "string", description: "Radio id; auto-generated if missing." },
+      { name: "class", type: "string", description: "Wrapper class names." },
+      { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
       { name: "name", type: "string", description: "Form field name (groups radios)." },
       { name: "label", type: "string", description: "Label text." },
       { name: "value", type: "string", description: "Submitted value for this radio." },
@@ -40,13 +48,25 @@ const variantsCode = `<FormRadio label="Left radio" position="left" color="#0d6e
         default: '"left"',
         description: "Radio placement relative to label."
       },
-      { name: "color", type: "string", description: "Active color." },
-      { name: "size", type: "string", default: '"20px"', description: "Diameter of radio." },
       {
+        deprecated: true,
+        name: "color",
+        type: "string",
+        description: "Deprecated — use style vars (see below)."
+      },
+      {
+        deprecated: true,
+        name: "size",
+        type: "string",
+        default: '"20px"',
+        description: "Deprecated — use style vars (--radio-size)."
+      },
+      {
+        deprecated: true,
         name: "radius",
         type: "string",
         default: '"50%"',
-        description: "Border radius for outer ring."
+        description: "Deprecated — use style vars (--radio-radius)."
       },
       { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
       {
@@ -74,6 +94,8 @@ const variantsCode = `<FormRadio label="Left radio" position="left" color="#0d6e
     ]}
   />
 
+  <PropsTable title="Style variables" props={styleVars} />
+
   <Preview title="Basic" code={basicCode}>
     <div class="row">
       <FormRadio label="Option A" id="opt-a" value="a" name="example" />
@@ -83,8 +105,17 @@ const variantsCode = `<FormRadio label="Left radio" position="left" color="#0d6e
 
   <Preview title="Variants" code={variantsCode}>
     <div class="row">
-      <FormRadio label="Left radio" position="left" color="#0d6ea8" />
-      <FormRadio label="Right radio" position="right" color="#c92a2a" />
+      <FormRadio label="Left radio" position="left" style="--radio-color: #0d6ea8;" />
+      <FormRadio label="Right radio" position="right" style="--radio-color: #c92a2a;" />
+    </div>
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <div class="row">
+      <FormRadio
+        label="Custom color"
+        style="--radio-color: rebeccapurple; --radio-size: 24px; --radio-radius: 8px;"
+      />
     </div>
   </Preview>
 </DocLayout>

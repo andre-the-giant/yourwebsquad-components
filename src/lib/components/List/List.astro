@@ -1,4 +1,6 @@
 ---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Icon from "../Icon/Icon.astro";
 
 /*
@@ -7,69 +9,84 @@ Props:
 - items?: Array<string | { label: string; icon?: string }>
 - icon?: string
 - showIcon?: boolean
-- numberStyle?: { color?: string; background?: string; weight?: string; size?: string; radius?: string }
 - gap?: string
 - lineHeight?: string
 - start?: number
 - reversed?: boolean
 - type?: "1" | "a" | "A" | "i" | "I"
+- id?: string
 - class?: string
+- style?: string
 Notes:
 - direct props only; no content merges
 */
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  as: { type: "string" },
+  items: { type: "array" },
+  icon: { type: "string" },
+  showIcon: { type: "boolean" },
+  gap: { type: "string" },
+  lineHeight: { type: "string" },
+  start: { type: ["number", "string"] },
+  reversed: { type: "boolean" },
+  type: { type: "string" }
+};
+
 const {
+  id,
+  class: className,
+  style,
   as,
   items,
   icon,
   showIcon,
-  numberStyle,
+  numberStyle: _numberStyle,
   gap,
   lineHeight,
   start,
   reversed,
   type,
-  class: className,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "List" });
 
 const resolvedAs = (as ?? "ul").toLowerCase() === "ol" ? "ol" : "ul";
 const resolvedItems = Array.isArray(items) ? items : [];
 const resolvedIcon = icon;
 const resolvedShowIcon = showIcon ?? Boolean(resolvedIcon);
-const resolvedNumberStyle = {
-  color: (numberStyle ?? {}).color,
-  background: (numberStyle ?? {}).background,
-  weight: (numberStyle ?? {}).weight ?? "var(--weight-semibold)",
-  size: (numberStyle ?? {}).size ?? "var(--size-sm)",
-  radius: (numberStyle ?? {}).radius ?? "999px"
-};
 const resolvedGap = gap ?? "var(--space-2)";
 const resolvedLineHeight = lineHeight ?? "var(--line-normal)";
 const resolvedStart = start;
 const resolvedReversed = reversed ?? false;
 const resolvedType = type;
-const listClassName = `list list--${resolvedAs} ${className ?? ""}`.trim();
+const resolvedId = id ?? "list-" + Math.random().toString(36).slice(2, 9);
+const listClassName = mergeClasses("list", `list--${resolvedAs}`, className);
 const hasCustomItems = Astro.slots.has("default");
 
 const styleVars = {
   "--list-gap": resolvedGap,
   "--list-line": resolvedLineHeight,
-  "--list-num-color": resolvedNumberStyle.color,
-  "--list-num-bg": resolvedNumberStyle.background,
-  "--list-num-weight": resolvedNumberStyle.weight,
-  "--list-num-size": resolvedNumberStyle.size,
-  "--list-num-radius": resolvedNumberStyle.radius
+  "--list-num-color": "currentColor",
+  "--list-num-bg": "transparent",
+  "--list-num-weight": "var(--weight-semibold)",
+  "--list-num-size": "var(--size-sm)",
+  "--list-num-radius": "999px"
 };
+
+const resolvedStyle = makeStyleVars(styleVars, style);
 ---
 
 {
   resolvedAs === "ol" ? (
     <ol
+      id={resolvedId}
       class={listClassName}
       start={resolvedStart}
       reversed={resolvedReversed || undefined}
       type={resolvedType}
-      style={styleVars}
+      style={resolvedStyle || undefined}
       {...rest}
     >
       {hasCustomItems ? (
@@ -87,7 +104,7 @@ const styleVars = {
       )}
     </ol>
   ) : (
-    <ul class={listClassName} style={styleVars} {...rest}>
+    <ul id={resolvedId} class={listClassName} style={resolvedStyle || undefined} {...rest}>
       {hasCustomItems ? (
         <slot />
       ) : (

@@ -1,5 +1,4 @@
 ---
-// @ts-nocheck
 /*
 Props:
 - name?: string
@@ -11,25 +10,49 @@ Props:
 - strokeWidth?: string | number
 - strokeLinecap?: string
 - strokeLinejoin?: string
+- id?: string
+- class?: string
+- style?: string
 Notes:
 - set label to expose aria-label; otherwise icon is aria-hidden
+- Styling (color) is controlled via CSS vars (--icon-color).
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import icons from "./icons/index.js";
 
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  name: { type: "string" },
+  label: { type: "string" },
+  size: { type: "string" },
+  svgPath: { type: "string" },
+  svg: { type: "string" },
+  viewBox: { type: "string" },
+  strokeWidth: { type: ["string", "number"] },
+  strokeLinecap: { type: "string" },
+  strokeLinejoin: { type: "string" }
+};
+
 const {
+  id,
+  class: className,
+  style,
   name,
   label,
   size = "md",
-  class: className,
-  color,
+  color: _color,
   svgPath,
   svg,
   viewBox: viewBoxProp,
   strokeWidth: strokeWidthProp,
   strokeLinecap: strokeLinecapProp,
   strokeLinejoin: strokeLinejoinProp
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Icon" });
 
+const resolvedId = id ?? "icon-" + Math.random().toString(36).slice(2, 9);
 const resolvedName = name ?? "spark";
 const resolvedLabel = label;
 const sizeMap = {
@@ -38,8 +61,12 @@ const sizeMap = {
   lg: "32px"
 };
 const iconSize = sizeMap[String(size)] ?? sizeMap.md;
-const styleColor = color ? `color: ${color};` : "";
-const styleSize = `width: ${iconSize}; height: ${iconSize};`;
+const styleVars = {
+  "--icon-size": iconSize,
+  "--icon-color": "inherit"
+};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("icon", className);
 
 // sanitize incoming svg string: remove outer <svg> wrapper, strip inline styles and
 // remove any fill/stroke attributes on inner elements so top-level SVG controls color.
@@ -77,7 +104,8 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
 ---
 
 <svg
-  class={`icon ${className ?? ""}`.trim()}
+  id={resolvedId}
+  class={resolvedClass}
   width={iconSize}
   height={iconSize}
   viewBox={viewBox}
@@ -89,7 +117,7 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
   role={resolvedLabel ? "img" : "presentation"}
   aria-hidden={resolvedLabel ? undefined : "true"}
   aria-label={resolvedLabel}
-  style={`${styleSize}${styleColor}`}
+  style={resolvedStyle || undefined}
 >
   {resolvedLabel && <title>{resolvedLabel}</title>}
   <g set:html={innerSvg} />
@@ -98,6 +126,8 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
 <style>
   .icon {
     display: inline-flex;
-    color: inherit;
+    color: var(--icon-color, inherit);
+    width: var(--icon-size);
+    height: var(--icon-size);
   }
 </style>

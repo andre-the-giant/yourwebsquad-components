@@ -20,7 +20,14 @@ const code = `<LocaleSwitch
   urls={{ en: "/components/locale-switch/", fr: "/components/locale-switch/", es: "/components/locale-switch/" }}
   labels={{ en: "English", fr: "Français", es: "Espanol" }}
 />`;
+const cssVarCode = `<LocaleSwitch locales={["en","fr"]} currentLocale="en" urls={{ en: "/", fr: "/fr/" }} style="--locale-gap: 0.75rem;" />`;
+const styleVars = [
+  { name: "--locale-gap", description: "Gap between locale buttons.", default: "var(--space-2)" }
+];
 const props = [
+  { name: "id", type: "string", description: "Optional id for the nav wrapper." },
+  { name: "class", type: "string", description: "Additional class for the nav wrapper." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   {
     name: "locales",
     type: "string[]",
@@ -47,12 +54,6 @@ const props = [
     type: "string",
     default: '"Language"',
     description: "Accessible label for the navigation wrapper."
-  },
-  {
-    name: "className",
-    type: "string",
-    default: '""',
-    description: "Additional class for the <nav> wrapper."
   }
 ];
 ---
@@ -60,8 +61,18 @@ const props = [
 <DocLayout title="LocaleSwitch" description={"Switch language in i18n websites"} items={components}>
   <PropsTable props={props} />
 
+  <PropsTable title="Style variables" props={styleVars} />
+
   <Preview title="Preview" code={code}>
     <LocaleSwitch locales={locales} currentLocale={currentLocale} urls={urls} labels={labels} />
+  </Preview>
+  <Preview title="CSS variables" code={cssVarCode}>
+    <LocaleSwitch
+      locales={["en", "fr"]}
+      currentLocale="en"
+      urls={{ en: "/", fr: "/fr/" }}
+      style="--locale-gap: 0.75rem;"
+    />
   </Preview>
   <Preview
     title="Implementation Guide"

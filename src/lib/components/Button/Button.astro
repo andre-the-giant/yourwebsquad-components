@@ -9,10 +9,33 @@ Props:
 - size?: "xs" | "sm" | "md" | "lg"
 - type?: "button" | "submit" | "reset"
 - disabled?: boolean
+- id?: string
+- class?: string
+- style?: string
 Notes:
 - rel defaults to "noreferrer" when target is "_blank".
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  label: { type: "string" },
+  href: { type: "string" },
+  target: { type: "string" },
+  rel: { type: "string" },
+  variant: { type: "string" },
+  size: { type: "string" },
+  type: { type: "string" },
+  disabled: { type: "boolean" }
+};
+
 const {
+  id,
+  class: className,
+  style,
   label = "Button",
   href,
   target,
@@ -20,29 +43,60 @@ const {
   variant = "solid",
   size = "md",
   type = "button",
-  disabled = false
-} = Astro.props;
+  disabled = false,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Button" });
 
+const resolvedId = id ?? "button-" + Math.random().toString(36).slice(2, 9);
 const resolvedLabel = label;
 const resolvedHref = href;
 const resolvedTarget = target;
 const resolvedRel = rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
-const className = `button button--${variant} button--${size}`;
+const styleVars = {
+  "--button-solid-bg": "var(--color-accent)",
+  "--button-solid-fg": "var(--color-accent-contrast)",
+  "--button-solid-border": "var(--color-accent)",
+  "--button-solid-shadow": "0 12px 25px color-mix(in srgb, var(--color-accent) 35%, transparent)",
+  "--button-outline-bg": "transparent",
+  "--button-outline-fg": "var(--color-accent)",
+  "--button-outline-border": "var(--color-accent)",
+  "--button-outline-hover-bg": "var(--color-accent-muted)",
+  "--button-outline-hover-fg": "var(--color-accent)",
+  "--button-ghost-bg": "transparent",
+  "--button-ghost-fg": "var(--color-fg)",
+  "--button-ghost-border": "transparent",
+  "--button-ghost-hover-bg": "var(--color-accent-muted)",
+  "--button-ghost-hover-fg": "var(--color-accent)",
+  "--button-focus": "var(--color-focus)",
+  "--button-disabled-opacity": "0.6"
+};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${size}`, className);
 ---
 
 {
   resolvedHref ? (
     <a
-      class={className}
+      id={resolvedId}
+      class={resolvedClass}
       href={resolvedHref}
       target={resolvedTarget}
       rel={resolvedRel}
       aria-disabled={disabled ? "true" : undefined}
+      style={resolvedStyle || undefined}
+      {...rest}
     >
       <slot>{resolvedLabel}</slot>
     </a>
   ) : (
-    <button class={className} type={type} disabled={disabled}>
+    <button
+      id={resolvedId}
+      class={resolvedClass}
+      type={type}
+      disabled={disabled}
+      style={resolvedStyle || undefined}
+      {...rest}
+    >
       <slot>{resolvedLabel}</slot>
     </button>
   )
@@ -72,21 +126,21 @@ const className = `button button--${variant} button--${size}`;
   }
 
   .button:focus-visible {
-    outline: 2px solid var(--color-focus);
+    outline: 2px solid var(--button-focus);
     outline-offset: 2px;
   }
 
   .button[aria-disabled="true"],
   .button:disabled {
-    opacity: 0.6;
+    opacity: var(--button-disabled-opacity);
     cursor: not-allowed;
   }
 
   .button--solid {
-    background: var(--color-accent);
-    color: var(--color-accent-contrast);
-    border-color: var(--color-accent);
-    box-shadow: 0 12px 25px color-mix(in srgb, var(--color-accent) 35%, transparent);
+    background: var(--button-solid-bg);
+    color: var(--button-solid-fg);
+    border-color: var(--button-solid-border);
+    box-shadow: var(--button-solid-shadow);
   }
 
   .button--solid:hover {
@@ -94,25 +148,26 @@ const className = `button button--${variant} button--${size}`;
   }
 
   .button--outline {
-    background: transparent;
-    color: var(--color-accent);
-    border-color: var(--color-accent);
+    background: var(--button-outline-bg);
+    color: var(--button-outline-fg);
+    border-color: var(--button-outline-border);
   }
 
   .button--outline:hover {
-    background: var(--color-accent-muted);
+    background: var(--button-outline-hover-bg);
+    color: var(--button-outline-hover-fg);
   }
 
   .button--ghost {
-    background: transparent;
-    color: var(--color-fg);
-    border-color: transparent;
+    background: var(--button-ghost-bg);
+    color: var(--button-ghost-fg);
+    border-color: var(--button-ghost-border);
     text-decoration: dotted underline;
   }
 
   .button--ghost:hover {
-    background: var(--color-accent-muted);
-    color: var(--color-accent);
+    background: var(--button-ghost-hover-bg);
+    color: var(--button-ghost-hover-fg);
     text-decoration: none;
   }
 

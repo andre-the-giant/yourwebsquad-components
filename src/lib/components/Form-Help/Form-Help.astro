@@ -4,16 +4,37 @@ Props:
 - id?: string
 - text?: string
 - class?: string
+- style?: string
 Notes:
 - Intended to pair with `helpId` passed to form fields for aria-describedby.
 */
-const { id, text, class: className, ...rest } = Astro.props;
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  text: { type: "string" }
+};
+
+const {
+  id,
+  text,
+  class: className,
+  style,
+  ...rest
+} = validateProps(schema, Astro.props, {
+  component: "Form-Help"
+});
 
 const resolvedId = id ?? `form-help-${Math.random().toString(36).slice(2, 9)}`;
 const resolvedText = text;
+const resolvedStyle = makeStyleVars({}, style);
+const resolvedClass = mergeClasses("form-help", className);
 ---
 
-<p id={resolvedId} class={`form-help ${className ?? ""}`} {...rest}>
+<p id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
   <slot>{resolvedText}</slot>
   {Astro.slots.has("suffix") ? <slot name="suffix" /> : null}
 </p>

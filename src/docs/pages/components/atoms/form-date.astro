@@ -8,9 +8,12 @@ import FormDate from "@lib/components/Form-Date/Form-Date.astro";
 const basicCode = `<FormDate label="Birthday" id="birthday" />`;
 const statesCode = `<FormDate label="Range limited" id="date-range" min="2024-01-01" max="2024-12-31" />
 <FormDate label="Disabled date" id="disabled-date" disabled />`;
+const cssVarCode = `<FormDate label="Custom border" style="--form-input-border: 1px solid #0d6ea8; --form-input-padding: 0.8rem 1rem;" />`;
 
 const props = [
   { name: "id", type: "string", description: "Input id; auto-generated if missing." },
+  { name: "class", type: "string", description: "Wrapper class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
   { name: "placeholder", type: "string", description: "Placeholder text." },
@@ -56,6 +59,15 @@ const props = [
     <div class="row">
       <FormDate label="Range limited" id="date-range" min="2024-01-01" max="2024-12-31" />
       <FormDate label="Disabled date" id="disabled-date" disabled />
+    </div>
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <div class="row">
+      <FormDate
+        label="Custom border"
+        style="--form-input-border: 1px solid #0d6ea8; --form-input-padding: 0.8rem 1rem;"
+      />
     </div>
   </Preview>
 </DocLayout>

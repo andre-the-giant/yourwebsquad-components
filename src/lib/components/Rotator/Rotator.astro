@@ -7,11 +7,39 @@ Props:
 - size?: string — font size/line height (default "inherit")
 - direction?: "up" | "down" (default "up")
 - ariaLive?: "off" | "polite" | "assertive" (default "off")
+- id?: string
+- class?: string
+- style?: string
 - slot "default": optional list of <span> children used when items are not provided
 Notes: spreads ...rest on outer <span>; clip path string expected like `m0,0.5 v0.5 h0.089 (...) -0.013 c0,-0.003,0 h-1`.
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const { items, interval, speed, size, direction, ariaLive, ...rest } = Astro.props;
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  items: { type: "array" },
+  interval: { type: "string" },
+  speed: { type: "string" },
+  size: { type: "string" },
+  direction: { type: "string" },
+  ariaLive: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  interval,
+  speed,
+  size,
+  direction,
+  ariaLive,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Rotator" });
 
 const hasItemsArray = Array.isArray(items);
 const hasSlot = Astro.slots.has("default");
@@ -57,12 +85,17 @@ const normalizeItem = (item) => {
 };
 const resolvedItems = (itemsSource.length ? itemsSource : defaultItems).map(normalizeItem);
 
+const resolvedId = id ?? "rotator-" + Math.random().toString(36).slice(2, 9);
 const resolvedInterval = interval ?? "1.2s";
 const resolvedSpeed = speed ?? "0.1s";
 const resolvedDirection = direction ?? "up";
 const resolvedAriaLive = ariaLive ?? "off";
 const resolvedSize = size ?? "inherit";
-const rotatorClassName = `rotator rotator--direction-${resolvedDirection}`;
+const rotatorClassName = mergeClasses(
+  "rotator",
+  `rotator--direction-${resolvedDirection}`,
+  className
+);
 
 const stepCount = resolvedItems.length;
 
@@ -81,6 +114,8 @@ const styleVars = {
   "--rotator-ease": easing,
   "--rotator-font-size": resolvedSize
 };
+
+const resolvedStyle = makeStyleVars(styleVars, style);
 
 function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}) {
   const sum = hold + ramp + settle;
@@ -113,11 +148,12 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
 ---
 
 <span
+  id={resolvedId}
   class={rotatorClassName}
   aria-live={resolvedAriaLive}
   role={resolvedAriaLive === "off" ? undefined : "status"}
   data-direction={resolvedDirection === "down" ? "down" : "up"}
-  style={styleVars}
+  style={resolvedStyle || undefined}
   {...rest}
 >
   <span class="rotator__track">

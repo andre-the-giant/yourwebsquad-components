@@ -1,7 +1,4 @@
 ---
-import Icon from "../Icon/Icon.astro";
-import Button from "../Button/Button.astro";
-
 /*
 Props:
 - type?: "info" | "success" | "warning" | "error"
@@ -12,25 +9,49 @@ Props:
 - iconLabel?: string
 - actions?: Array<{ label: string, href?: string, target?: string, rel?: string, variant?: "solid" | "outline" | "ghost", size?: "sm" | "md" | "lg", disabled?: boolean }>
 - role?: string
+- id?: string
 - class?: string
+- style?: string
 Notes:
 - direct props only; no content merges
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import Icon from "../Icon/Icon.astro";
+import Button from "../Button/Button.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  type: { type: "string" },
+  tone: { type: "string" },
+  title: { type: "string" },
+  description: { type: "string" },
+  icon: { type: ["string", "boolean"] },
+  iconLabel: { type: "string" },
+  actions: { type: "array" },
+  role: { type: "string" }
+};
+
 const {
-  type,
-  tone,
+  id,
+  class: className,
+  style,
+  type = "info",
+  tone = "soft",
   title,
   description,
   icon,
   iconLabel,
   actions,
   role,
-  class: className,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Alert" });
 
-const resolvedType = type ?? "info";
-const resolvedTone = tone ?? "soft";
+const resolvedId = id ?? "alert-" + Math.random().toString(36).slice(2, 9);
+const resolvedType = type;
+const resolvedTone = tone;
 const resolvedTitle = title;
 const resolvedDescription = description;
 const defaultIcons = {
@@ -47,6 +68,19 @@ const resolvedActions = (actions ?? []).filter(Boolean).slice(0, 2);
 const resolvedRole =
   role ?? (resolvedType === "error" || resolvedType === "warning" ? "alert" : "status");
 
+const styleVars = {
+  // "--alert-bg": "var(--color-surface)",
+  // "--alert-border": "var(--color-border)"
+};
+
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses(
+  "alert",
+  `alert--${resolvedType}`,
+  `alert--${resolvedTone}`,
+  className
+);
+
 const hasBodySlot = Astro.slots.has("default") || Astro.slots.has("description");
 const hasTitle = Boolean(resolvedTitle);
 const hasDescription = Boolean(resolvedDescription);
@@ -55,9 +89,11 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
 ---
 
 <section
-  class={`alert alert--${resolvedType} alert--${resolvedTone} ${className ?? ""}`.trim()}
+  id={resolvedId}
+  class={resolvedClass}
   role={resolvedRole}
   aria-live={resolvedRole === "alert" ? "assertive" : "polite"}
+  style={resolvedStyle || undefined}
   {...rest}
 >
   {

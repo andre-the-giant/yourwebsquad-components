@@ -4,22 +4,46 @@ Props:
 - id?: string
 - text?: string
 - class?: string
+- style?: string
 - role?: string
 - ariaLive?: "polite" | "assertive" | "off"
 Notes:
 - Intended to pair with `errorId` passed to form fields for aria-describedby.
 */
-const { id, text, class: className, role = "alert", ariaLive = "polite", ...rest } = Astro.props;
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  text: { type: "string" },
+  role: { type: "string" },
+  ariaLive: { type: "string" }
+};
+
+const {
+  id,
+  text,
+  class: className,
+  style,
+  role = "alert",
+  ariaLive = "polite",
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Form-Error" });
 
 const resolvedId = id ?? `form-error-${Math.random().toString(36).slice(2, 9)}`;
 const resolvedText = text;
+const resolvedStyle = makeStyleVars({}, style);
+const resolvedClass = mergeClasses("form-error", className);
 ---
 
 <p
   id={resolvedId}
-  class={`form-error ${className ?? ""}`}
+  class={resolvedClass}
   role={role}
   aria-live={ariaLive}
+  style={resolvedStyle || undefined}
   {...rest}
 >
   <slot>{resolvedText}</slot>

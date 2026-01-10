@@ -7,9 +7,12 @@ import FormTextarea from "@lib/components/Form-Textarea/Form-Textarea.astro";
 
 const basicCode = `<FormTextarea label="Message" id="message" placeholder="Write your message" />`;
 const statesCode = `<FormTextarea label="Notes" id="notes" rows={6} />\n<FormTextarea label="Disabled" id="notes-disabled" disabled />`;
+const cssVarCode = `<FormTextarea label="Padded notes" placeholder="Tweaked padding" style="--form-input-padding: 0.9rem 1.1rem; --form-input-border: 1px solid #0d6ea8;" />`;
 
 const props = [
   { name: "id", type: "string", description: "Textarea id; auto-generated if missing." },
+  { name: "class", type: "string", description: "Wrapper class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
   { name: "placeholder", type: "string", description: "Placeholder text." },
@@ -50,6 +53,16 @@ const props = [
     <div class="row">
       <FormTextarea label="Notes" id="notes" rows={6} />
       <FormTextarea label="Disabled" id="notes-disabled" disabled />
+    </div>
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <div class="row">
+      <FormTextarea
+        label="Padded notes"
+        placeholder="Tweaked padding"
+        style="--form-input-padding: 0.9rem 1.1rem; --form-input-border: 1px solid #0d6ea8;"
+      />
     </div>
   </Preview>
 </DocLayout>

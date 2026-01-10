@@ -6,13 +6,17 @@ import { components } from "../../../data/components.js";
 import Image from "@lib/components/Image/Image.astro";
 
 const code = `
- <Image 
-    quality="90"
-    src="https://picsum.photos/1600/900"
-    aspectRatio="30/5"
-  />`;
+  <Image 
+     quality={90}
+     src="https://picsum.photos/1600/900"
+     style="--image-aspect-ratio: 30 / 5"
+   />`;
+const cssVarCode = `<Image src="https://picsum.photos/800/800" alt="Square contain" style="--image-aspect-ratio: 1 / 1; --image-object-fit: contain; --image-object-position: top;" />`;
 
 const props = [
+  { name: "id", type: "string", description: "Optional id for the image element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   {
     name: "src",
     type: "string | ImageMetadata",
@@ -42,12 +46,27 @@ const props = [
     description: "Loading strategy."
   },
   {
-    name: "backgroundPosition",
+    name: "~~backgroundPosition~~",
     type: "string",
     default: '"center"',
-    description: "Object position."
+    description: "Deprecated — use style vars (see below)."
   },
-  { name: "aspectRatio", type: "string", default: '"16/9"', description: "CSS aspect-ratio." }
+  {
+    name: "~~aspectRatio~~",
+    type: "string",
+    default: '"16/9"',
+    description: "Deprecated — use style vars (see below)."
+  }
+];
+
+const styleVars = [
+  { name: "--image-object-fit", description: "Object-fit mode.", default: "cover" },
+  { name: "--image-object-position", description: "Object position.", default: "center" },
+  {
+    name: "--image-aspect-ratio",
+    description: "Aspect ratio for the wrapper.",
+    default: "16 / 9"
+  }
 ];
 ---
 
@@ -56,9 +75,19 @@ const props = [
   description={"Image wrapper using Astro:asset with defaults"}
   items={components}
 >
-  <PropsTable props={props} />
+  <PropsTable title="Props" props={props} />
+
+  <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Preview" code={code}>
-    <Image quality="90" src="https://picsum.photos/1600/900" aspectRatio="30/5" />
+    <Image quality={90} src="https://picsum.photos/1600/900" style="--image-aspect-ratio: 30 / 5" />
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <Image
+      src="https://picsum.photos/800/800"
+      alt="Square contain"
+      style="--image-aspect-ratio: 1 / 1; --image-object-fit: contain; --image-object-position: top;"
+    />
   </Preview>
 </DocLayout>

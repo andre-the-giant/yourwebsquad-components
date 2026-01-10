@@ -1,4 +1,6 @@
 ---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars } from "../../utils/style.js";
 import Icon from "../Icon/Icon.astro";
 import Button from "../Button/Button.astro";
 /*
@@ -10,27 +12,49 @@ Props:
 - variant?: "solid" | "outline" | "ghost" (default "ghost")
 - size?: "xs" | "sm" | "md" | "lg" (default "md")
 - disabled?: boolean
+- id?: string
+- class?: string
+- style?: string
 Notes:
 - rel defaults to "noreferrer" when target is "_blank".
 */
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  label: { type: "string" },
+  href: { type: "string" },
+  target: { type: "string" },
+  rel: { type: "string" },
+  variant: { type: "string" },
+  size: { type: "string" },
+  disabled: { type: "boolean" }
+};
+
 const {
+  id,
+  class: className,
+  style,
   label = "Read more",
   href,
   target,
   rel,
   variant = "ghost",
   size = "md",
-  disabled = false
-} = Astro.props;
-let resolvedLabel = label;
+  disabled = false,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Link" });
+const resolvedId = id ?? "link-" + Math.random().toString(36).slice(2, 9);
+const resolvedLabel = label;
 const resolvedHref = href;
 const resolvedTarget = target;
 const resolvedRel = rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
-const className = `button button--${variant} button--${size}`;
 const isExternal = resolvedHref && /^(https?:)?\/\//.test(resolvedHref);
+const resolvedStyle = makeStyleVars({}, style);
 ---
 
 <Button
+  id={resolvedId}
   class={className}
   href={resolvedHref}
   target={resolvedTarget}
@@ -38,6 +62,8 @@ const isExternal = resolvedHref && /^(https?:)?\/\//.test(resolvedHref);
   disabled={disabled}
   variant={variant}
   size={size}
+  style={resolvedStyle || undefined}
+  {...rest}
 >
   <span>{resolvedLabel}</span>
   {

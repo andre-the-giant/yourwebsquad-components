@@ -6,7 +6,16 @@ import { components } from "../../../data/components.js";
 import Hero from "@lib/components/Hero/Hero.astro";
 
 const code = "<Hero />";
+const cssVarCode = `<Hero
+  title="Gradient override"
+  body="Using custom gradient stops via CSS vars."
+  img="https://picsum.photos/1200/700"
+  style="--hero-gradient-start: rgba(255,255,255,0.5); --hero-gradient-end: rgba(0,0,0,0.7);"
+/>`;
 const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   {
     name: "title",
     type: "string",
@@ -37,10 +46,25 @@ const props = [
       "Relative (important!) SVG path for clipPath. Run it through path converter https://yoksel.github.io/relative-clip-path/"
   }
 ];
+
+const styleVars = [
+  {
+    name: "--hero-gradient-start",
+    description: "Gradient start color/stop.",
+    default: "rgba(var(--color-bg-rgb), 30%)"
+  },
+  {
+    name: "--hero-gradient-end",
+    description: "Gradient end color/stop.",
+    default: "rgba(var(--color-bg-rgb), 80%)"
+  }
+];
 ---
 
 <DocLayout title="Hero" description={"A big fat image with a text and a cta "} items={components}>
   <PropsTable props={props} />
+
+  <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Preview" code={code}>
     <Hero
@@ -52,6 +76,15 @@ const props = [
         href: "/",
         label: "Pump up the volume!"
       }}
+    />
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <Hero
+      title="Gradient override"
+      body="Using custom gradient stops via CSS vars."
+      img="https://picsum.photos/1200/700"
+      style="--hero-gradient-start: rgba(255,255,255,0.5); --hero-gradient-end: rgba(0,0,0,0.7);"
     />
   </Preview>
 </DocLayout>

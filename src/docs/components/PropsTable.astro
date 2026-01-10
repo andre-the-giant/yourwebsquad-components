@@ -19,13 +19,13 @@ const { title = "Props", props = [] } = Astro.props;
       <tbody>
         {
           props.map((prop) => (
-            <tr>
-              <td>
+            <tr class={`${prop.deprecated ? "deprecated" : ""}`}>
+              <td class="prop-name">
                 <code>{prop.name}</code>
               </td>
-              <td>{prop.type}</td>
-              <td>{prop.default ?? "—"}</td>
-              <td>{prop.description}</td>
+              <td class="prop-type">{prop.type}</td>
+              <td class="prop-default">{prop.default ?? "—"}</td>
+              <td class="prop-description">{!prop.deprecated ? prop.description : "DEPRECATED"}</td>
             </tr>
           ))
         }
@@ -51,7 +51,16 @@ const { title = "Props", props = [] } = Astro.props;
     margin: 0;
     letter-spacing: 0.02em;
   }
-
+  .deprecated {
+    .prop-name code,
+    .prop-type,
+    .prop-default {
+      text-decoration: line-through;
+    }
+    .prop-description {
+      color: red;
+    }
+  }
   .props__hint {
     font-size: var(--size-xs);
     color: var(--color-muted);

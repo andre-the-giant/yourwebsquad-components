@@ -36,7 +36,21 @@ const props = [
   { name: "strokeLinecap", type: "string", description: "Stroke linecap override." },
   { name: "strokeLinejoin", type: "string", description: "Stroke linejoin override." },
   { name: "class", type: "string", description: "Additional className." },
-  { name: "color", type: "string", description: "Override currentColor." }
+  {
+    deprecated: true,
+    name: "color",
+    type: "string",
+    description: "Deprecated — use CSS color or style vars (--icon-color)."
+  }
+];
+
+const styleVars = [
+  { name: "--icon-size", description: "Icon width/height.", default: "16/24/32px (by size prop)" },
+  {
+    name: "--icon-color",
+    description: "Icon color (stroke/fill via currentColor).",
+    default: "inherit"
+  }
 ];
 ---
 
@@ -46,6 +60,8 @@ const props = [
   items={components}
 >
   <PropsTable props={props} />
+ 
+  <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Default" code={defaultCode}>
     <div class="row">
@@ -92,8 +108,8 @@ const props = [
     <p>
       For safety and consistency the component sanitizes the inner SVG markup by removing any inline
       `fill`, `stroke` and `style` attributes. The outer &lt;svg> uses `fill="currentColor"` and
-      `stroke="currentColor"`, so icons inherit color from CSS. To override the color, pass the
-      `color` prop or set the parent `color` CSS.
+      `stroke="currentColor"`, so icons inherit color from CSS. To override the color, set parent
+      `color` or `--icon-color`.
     </p>
     <p>
       Accessibility: provide a `label` to expose an accessible name. If no label is supplied the

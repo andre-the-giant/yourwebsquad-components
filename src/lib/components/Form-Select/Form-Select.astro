@@ -14,11 +14,39 @@ Props:
 - ariaInvalid?: boolean
 - helpId?: string
 - errorId?: string
+- ariaControls?: string
+- class?: string
+- style?: string
 Notes:
 - component auto-generates an id when none is provided
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import FormLabel from "../Form-Label/Form-Label.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  name: { type: "string" },
+  label: { type: "string" },
+  options: { type: "array" },
+  placeholder: { type: "string" },
+  value: { type: ["string", "number"] },
+  disabled: { type: "boolean" },
+  required: { type: "boolean" },
+  ariaLabel: { type: "string" },
+  ariaDescribedBy: { type: "string" },
+  ariaInvalid: { type: "boolean" },
+  helpId: { type: "string" },
+  errorId: { type: "string" },
+  ariaControls: { type: "string" }
+};
+
 const {
   id,
+  class: className,
+  style,
   name,
   label,
   options = [],
@@ -33,7 +61,7 @@ const {
   errorId,
   ariaControls,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Form-Select" });
 
 const resolvedLabel = label;
 const resolvedId = id ?? `form-select-${Math.random().toString(36).slice(2, 9)}`;
@@ -41,10 +69,12 @@ const resolvedPlaceholder = placeholder;
 const selectedValue = value;
 
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
-import FormLabel from "../Form-Label/Form-Label.astro";
+const styleVars = {};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("form-field", className);
 ---
 
-<div class="form-field">
+<div class={resolvedClass} style={resolvedStyle || undefined}>
   {
     resolvedLabel ? (
       <FormLabel

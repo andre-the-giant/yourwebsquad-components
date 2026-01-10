@@ -1,4 +1,6 @@
 ---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Button from "../Button/Button.astro";
 
 /*
@@ -10,7 +12,6 @@ Props:
 - enctype?: string
 - novalidate?: boolean       // defaults true to avoid native browser bubbles
 - preventEnterSubmit?: boolean   // defaults true
-- submitLabel?: string            // default "Submit"
 - submitLabel?: string            // default "Send"
 - submitVariant?: "solid" | "outline" | "ghost"
 - submitSize?: "sm" | "md" | "lg"
@@ -26,9 +27,39 @@ Props:
 - errorSummaryTitle?: string
 - validateOnSubmit?: boolean
 - class?: string
+- style?: string
 */
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  action: { type: "string" },
+  method: { type: "string" },
+  target: { type: "string" },
+  enctype: { type: "string" },
+  novalidate: { type: "boolean" },
+  preventEnterSubmit: { type: "boolean" },
+  submitLabel: { type: "string" },
+  submitVariant: { type: "string" },
+  submitSize: { type: "string" },
+  submitDisabled: { type: "boolean" },
+  showReset: { type: "boolean" },
+  resetLabel: { type: "string" },
+  resetVariant: { type: "string" },
+  resetSize: { type: "string" },
+  resetDisabled: { type: "boolean" },
+  errors: { type: "object" },
+  globalErrors: { type: "array" },
+  showErrorSummary: { type: "boolean" },
+  errorSummaryTitle: { type: "string" },
+  validateOnSubmit: { type: "boolean" }
+};
+
 const {
   id,
+  class: className,
+  style,
   action,
   method = "post",
   target,
@@ -49,9 +80,8 @@ const {
   showErrorSummary = true,
   errorSummaryTitle = "Please fix the following errors:",
   validateOnSubmit = true,
-  class: className,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Form" });
 
 const formId = id ?? `form-${Math.random().toString(36).slice(2, 9)}`;
 const resolvedMethod = method?.toLowerCase?.() ?? "post";
@@ -68,11 +98,15 @@ const globalErrorList = normalizeArray(globalErrors).map((msg) => String(msg));
 const hasErrors = globalErrorList.length + fieldErrors.length > 0;
 const summaryId = `${formId}-error-summary`;
 const summaryListId = `${summaryId}-list`;
+
+const styleVars = {};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("form", className);
 ---
 
 <form
   id={formId}
-  class={`form ${className ?? ""}`}
+  class={resolvedClass}
   action={action}
   method={resolvedMethod}
   target={target}
@@ -80,6 +114,7 @@ const summaryListId = `${summaryId}-list`;
   novalidate={novalidate ? true : undefined}
   data-validate={validateOnSubmit ? "true" : "false"}
   data-prevent-enter={preventEnterSubmit ? "true" : undefined}
+  style={resolvedStyle || undefined}
   {...rest}
 >
   {

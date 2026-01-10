@@ -5,42 +5,86 @@ Props:
 - quality?: number
 - widths?: number[]
 - alt?: string
-- backgroundPosition?: string
-- aspectRatio?: string
 - fetchpriority?: string
 - loading?: "lazy" | "eager"
 - sizes?: string
 - src?: string
+- id?: string
+- class?: string
+- style?: string
 */
 import { Image } from "astro:assets";
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  format: { type: "string" },
+  quality: { type: "number" },
+  widths: { type: "array" },
+  alt: { type: "string" },
+  fetchpriority: { type: "string" },
+  loading: { type: "string" },
+  sizes: { type: "string" },
+  src: { type: "string" }
+};
+
 const {
+  id,
+  class: className,
+  style,
   format = "webp",
   quality = 60,
   widths = [640, 960, 1280, 1600, 1920],
   alt = "",
-  backgroundPosition = "center",
-  aspectRatio = "16/9",
   fetchpriority = "high",
-  loading = "lazy", // eager
+  loading = "lazy",
   sizes = "100vw",
-  src = "https://picsum.photos/320/180"
-} = Astro.props;
+  src = "https://picsum.photos/320/180",
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Image" });
+
+const resolvedId = id ?? "image-" + Math.random().toString(36).slice(2, 9);
 
 const imageDefaults = {
-  format: format,
-  sizes: sizes,
-  quality: quality,
-  widths: widths,
-  fetchpriority: fetchpriority,
-  loading: loading,
+  format,
+  sizes,
+  quality,
+  widths,
+  fetchpriority,
+  loading,
   width: 160,
   height: 90
 };
+
+const styleVars = {
+  "--image-object-fit": "cover",
+  "--image-object-position": "center",
+  "--image-aspect-ratio": "16/9"
+};
+
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("image", className);
 ---
 
 <Image
+  id={resolvedId}
+  class={resolvedClass}
   {...imageDefaults}
   src={src}
   alt={alt}
-  style={`width: 100%; height: 100%; object-fit: cover;object-position:${backgroundPosition};aspect-ratio:${aspectRatio}`}
+  style={resolvedStyle || undefined}
+  {...rest}
 />
+
+<style>
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: var(--image-object-fit);
+    object-position: var(--image-object-position);
+    aspect-ratio: var(--image-aspect-ratio);
+  }
+</style>

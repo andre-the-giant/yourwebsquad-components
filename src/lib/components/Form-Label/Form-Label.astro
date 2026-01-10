@@ -9,9 +9,25 @@ Props:
 - tag?: "label" | "span"
 - descriptionId?: string // id of help/error to include in aria-describedby linking
 - class?: string
+- style?: string
 Notes:
 - Renders a `<label>` by default but can render a `<span>` when used inside other labels.
 */
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  forId: { type: "string" },
+  label: { type: "string" },
+  required: { type: "boolean" },
+  visuallyHidden: { type: "boolean" },
+  tag: { type: "string" },
+  descriptionId: { type: "string" }
+};
+
 const {
   id,
   forId,
@@ -21,20 +37,27 @@ const {
   tag = "label",
   descriptionId,
   class: className,
+  style,
   ...rest
-} = Astro.props;
+} = validateProps(schema, Astro.props, { component: "Form-Label" });
 
 const resolvedLabel = label;
 const resolvedId = id ?? `form-label-${Math.random().toString(36).slice(2, 9)}`;
 const described = descriptionId ?? undefined;
+const styleVars = {
+  // "--form-label-color": "var(--color-fg-muted)"
+};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("form-label", className);
 ---
 
 {
   tag === "span" ? (
     <span
       id={resolvedId}
-      class={`form-label ${className ?? ""}`}
+      class={resolvedClass}
       aria-hidden={visuallyHidden ? "true" : undefined}
+      style={resolvedStyle || undefined}
       {...rest}
     >
       {visuallyHidden ? <span class="sr-only">{resolvedLabel}</span> : resolvedLabel}
@@ -43,9 +66,10 @@ const described = descriptionId ?? undefined;
   ) : (
     <label
       id={resolvedId}
-      class={`form-label ${className ?? ""}`}
+      class={resolvedClass}
       for={forId}
       aria-describedby={described}
+      style={resolvedStyle || undefined}
       {...rest}
     >
       {visuallyHidden ? <span class="sr-only">{resolvedLabel}</span> : resolvedLabel}
