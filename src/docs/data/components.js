@@ -118,5 +118,11 @@ export const components = [
     href: "/components/locale-switch",
     description: "Switch language in i18n websites",
     group: "molecules"
+  },
+  {
+    name: "PhotoRoll",
+    href: "/components/components/photo-roll",
+    description: "A component to display images and scroll through them",
+    group: "components"
   }
 ];

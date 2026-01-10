@@ -1,0 +1,58 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import PhotoRoll from "@lib/components/PhotoRoll/PhotoRoll.astro";
+import Image from "@lib/components/Image/Image.astro";
+
+const propsTable = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." }
+];
+
+const defaultCode = "<PhotoRoll />";
+const customCode = '<PhotoRoll id="photo-roll-sample" />';
+// list of photos 
+// todo get a list of photo using this API url
+// api response sample :
+// [
+//     {
+//         "id": "0",
+//         "author": "Alejandro Escamilla",
+//         "width": 5616,
+//         "height": 3744,
+//         "url": "https://unsplash.com/...",
+//         "download_url": "https://picsum.photos/..."
+//     }
+// ]
+const photoroll = await fetch("https://boringapi.com/api/v1/photos");
+const data = await photoroll.json();
+---
+<DocLayout
+  title="PhotoRoll"
+  description="A component to display images and scroll through them"
+  items={components}
+>
+  <PropsTable props={propsTable} />
+
+  <div class="preview-grid">
+    <Preview title="Default" code={defaultCode}>
+      <PhotoRoll>
+        {data.photos.map((photo,idx) => (
+          <Image src={photo.url} alt={photo.description} /> 
+        ))}
+      </PhotoRoll>
+    </Preview>
+    <Preview title="Custom" code={customCode}>
+      
+      <PhotoRoll
+      orientation="vertical"
+      >
+        {data.photos.map((photo,idx) => (
+          <Image src={photo.url} alt={photo.description} /> 
+        ))}
+      </PhotoRoll>
+    </Preview>
+  </div>
+</DocLayout>

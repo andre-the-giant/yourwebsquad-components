@@ -1,0 +1,137 @@
+---
+/*
+Props:
+- title?: string // TODO: document props
+- content?: { shape }
+Notes:
+- Update schema + props to match your component API.
+*/
+import { validateProps } from "../../utils/props.js";
+import Image from "../Image/Image.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  orientation: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  orientation,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "PhotoRoll" });
+
+const resolvedId = id ?? "photo-roll-" + Math.random().toString(36).slice(2, 9);
+const resolvedScroll = orientation === "vertical" ? "vertical" : "horizontal";
+const styleVars = {
+  "--photoroll-height": "700px",
+    "--photoroll-dim": "0.7",
+    "--photoroll-bright": "1",
+    "--photoroll-glow": "drop-shadow(0 0 0.35rem rgba(0, 0, 0, 0.35))"
+};
+
+const inlineStyle = Object.entries(styleVars)
+  .filter(([, value]) => value !== undefined)
+  .map(([key, value]) => key + ": " + value)
+  .join("; ");
+
+const resolvedStyle = [inlineStyle, style].filter(Boolean).join("; ");
+const resolvedClass = `photo-roll ${className ?? ""}`.trim();
+---
+
+<section
+  id={resolvedId}
+  class={resolvedClass}
+  data-scroll={resolvedScroll}
+  style={resolvedStyle || undefined}
+  {...rest}
+>
+  <div class="photo-roll__track">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .photo-roll {
+    width: 100%;
+    height: var(--photoroll-height);
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .photo-roll__track {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: 100%;
+    gap: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    scroll-padding: 0;
+  }
+
+  .photo-roll[data-scroll="horizontal"] .photo-roll__track {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+  }
+
+  .photo-roll[data-scroll="vertical"] .photo-roll__track {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+  }
+
+  .photo-roll[data-scroll="horizontal"] .photo-roll__track > * {
+    min-width: 100%;
+  }
+
+  .photo-roll[data-scroll="vertical"] .photo-roll__track > * {
+    min-height: 100%;
+  }
+
+  .photo-roll__track > * {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    box-sizing: border-box;
+    filter: brightness(var(--photoroll-dim));
+    transition: filter 240ms ease, transform 240ms ease;
+  }
+
+
+  .photo-roll__track > :first-child {
+    filter: brightness(var(--photoroll-bright));
+  }
+
+  .photo-roll__track > :hover,
+  .photo-roll__track > :focus-visible {
+    filter: brightness(calc(var(--photoroll-bright) + 0.1));
+    transform: scale(1.01);
+  }
+
+  .photo-roll__track img,
+  .photo-roll__track .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: var(--photoroll-glow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .photo-roll__track * {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>
