@@ -8,12 +8,14 @@ Notes:
 */
 import { validateProps } from "../../utils/props.js";
 import Icon from "../Icon/Icon.astro";
+import Image from "../Image/Image.astro";
 
 const schema = {
   id: { type: "string" },
   class: { type: "string" },
   style: { type: "string" },
   orientation: { type: "string" },
+  images: { type: "array" },
   showNextButton: { type: "boolean" },
   nextIcon: { type: "string" },
   nextIconSize: { type: "string" },
@@ -30,6 +32,7 @@ const {
   class: className,
   style,
   orientation,
+  images,
   showNextButton = false,
   nextIcon = "arrow-right",
   nextIconSize,
@@ -43,8 +46,23 @@ const resolvedId = id ?? "photo-roll-" + Math.random().toString(36).slice(2, 9);
 const resolvedScroll = orientation === "vertical" ? "vertical" : "horizontal";
 const resolvedNextRotation = resolvedScroll === "vertical" ? "90deg" : "0deg";
 const hasChrome = showNextButton || showBullets || autoplay;
+const resolvedImages =
+  Array.isArray(images) && images.length
+    ? images
+        .map((img, idx) => {
+          const url = typeof img?.url === "string" ? img.url : "";
+          const description = typeof img?.description === "string" ? img.description : "";
+          if (!url) return null;
+          return {
+            url,
+            description: description || `Photo ${idx + 1}`
+          };
+        })
+        .filter(Boolean)
+    : [];
+const hasImages = resolvedImages.length > 0;
 const styleVars = {
-  "--photoroll-height": "50vh",
+  "--photoroll-height": "30vh",
   "--photoroll-dim": "0.7",
   "--photoroll-bright": "1",
   "--photoroll-glow": "drop-shadow(0 0 0.35rem rgba(0, 0, 0, 0.35))",
@@ -54,12 +72,14 @@ const styleVars = {
   "--photoroll-control-shadow": "0 4px 12px rgba(0, 0, 0, 0.35)",
   "--photoroll-control-offset": "1rem",
   "--photoroll-control-z": "2",
-  "--photoroll-bullet-size": "1rem",
-  "--photoroll-bullet-gap": "0.1rem",
+  "--photoroll-bullet-size": "10px",
+  "--photoroll-bullet-gap": "0.5rem",
   "--photoroll-bullet-color": "rgba(255, 255, 255, 0.55)",
-  "--photoroll-bullet-active-color": "--color-accent",
+  "--photoroll-bullet-active-color": "white",
   "--photoroll-bullets-offset": "1rem",
-  "--photoroll-next-rotation": resolvedNextRotation
+  "--photoroll-next-rotation": resolvedNextRotation,
+  "--photoroll-zoom": "1.03",
+  "--photoroll-zoom-hover": "1.07"
 };
 
 const inlineStyle = Object.entries(styleVars)
@@ -80,7 +100,13 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   {...rest}
 >
   <div class="photo-roll__track">
-    <slot />
+    {hasImages
+      ? resolvedImages.map((photo) => (
+          <div class="imageWrap">
+            <Image src={photo.url} alt={photo.description} aspectRatio="16/9" backgroundPosition="center" />
+          </div>
+        ))
+      : <slot />}
   </div>
   {showBullets && <div class="photo-roll__bullets" data-role="bullets" />}
   {autoplay && (
@@ -378,16 +404,32 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     scroll-snap-type: y mandatory;
   }
 
+  .photo-roll[data-scroll="horizontal"] .photo-roll__track .imageWrap {
+    min-width: 100%;
+  }
 
+  .photo-roll[data-scroll="vertical"] .photo-roll__track .imageWrap {
+    min-height: 100%;
+  }
 
-  .photo-roll__track:first-child {
+  .photo-roll__track .imageWrap {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    filter: brightness(var(--photoroll-dim));
+    transition: filter 240ms ease;
+    overflow: hidden;
+  }
+
+  .photo-roll__track .imageWrap:first-child {
     filter: brightness(var(--photoroll-bright));
   }
 
-  .photo-roll__track:hover,
-  .photo-roll__track:focus-visible {
-    filter: brightness(calc(var(--photoroll-bright) + 0.1));
-    transform: scale(1.01);
+  .photo-roll__track .imageWrap:hover,
+  .photo-roll__track .imageWrap:focus-visible {
+    filter: brightness(calc(var(--photoroll-bright) + 0.08));
   }
 
   .photo-roll__track img,
@@ -397,6 +439,16 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     object-fit: cover;
     display: block;
     filter: var(--photoroll-glow);
+    transform: scale(var(--photoroll-zoom));
+    transition: transform 280ms ease, filter 240ms ease;
+  }
+
+  .photo-roll__track .imageWrap:hover img,
+  .photo-roll__track .imageWrap:focus-visible img,
+  .photo-roll__track .imageWrap:hover .image,
+  .photo-roll__track .imageWrap:focus-visible .image {
+    transform: scale(var(--photoroll-zoom-hover));
+    filter: brightness(calc(var(--photoroll-bright) + 0.12)) drop-shadow(0 10px 28px rgba(0, 0, 0, 0.35));
   }
 
   .photo-roll[data-chrome="true"] .photo-roll__track {

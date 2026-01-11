@@ -19,6 +19,11 @@ const propsTable = [
     description: "Scroll direction."
   },
   {
+    name: "images",
+    type: "Array<{ url: string; description?: string }>",
+    description: "Provide images directly; when set, slots are ignored and the array renders images."
+  },
+  {
     name: "showNextButton",
     type: "boolean",
     default: "false",
@@ -79,6 +84,16 @@ const styleVars = [
     name: "--photoroll-next-rotation",
     default: "0deg (horizontal) / 90deg (vertical)",
     description: "Rotation applied to the next icon based on orientation."
+  },
+  {
+    name: "--photoroll-zoom",
+    default: "1.03",
+    description: "Base scale applied to images for a subtle zoom-in effect."
+  },
+  {
+    name: "--photoroll-zoom-hover",
+    default: "1.07",
+    description: "Scale applied on hover/focus for images."
   }
 ];
 
