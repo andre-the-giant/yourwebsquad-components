@@ -115,6 +115,15 @@ const resolvedClass = mergeClasses("hero", className);
     max-width: 600px;
     text-align: center;
   }
+  
+  .in-photo-roll{
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: var(--image-object-fit);
+    object-position: var(--image-object-position);
+    aspect-ratio: var(--image-aspect-ratio);
+    scroll-snap-align: start;
+  }
 </style>
 {
   resolvedClip && (

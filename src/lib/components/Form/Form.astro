@@ -381,4 +381,16 @@ const resolvedClass = mergeClasses("form", className);
     display: grid;
     gap: var(--space-1);
   }
+
+  .in-photo-roll{
+    padding:1rem 1rem 3rem 1rem;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: var(--image-object-fit);
+    object-position: var(--image-object-position);
+    aspect-ratio: var(--image-aspect-ratio);
+    scroll-snap-align: start;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 </style>

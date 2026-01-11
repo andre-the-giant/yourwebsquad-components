@@ -5,6 +5,8 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import PhotoRoll from "@lib/components/PhotoRoll/PhotoRoll.astro";
 import Image from "@lib/components/Image/Image.astro";
+import Hero from "@lib/components/Hero/Hero.astro";
+import ContactForm from "@lib/components/ContactForm/ContactForm.astro";
 
 const propsTable = [
   { name: "id", type: "string", description: "Optional id for the root element." },
@@ -13,19 +15,6 @@ const propsTable = [
 
 const defaultCode = "<PhotoRoll />";
 const customCode = '<PhotoRoll id="photo-roll-sample" />';
-// list of photos 
-// todo get a list of photo using this API url
-// api response sample :
-// [
-//     {
-//         "id": "0",
-//         "author": "Alejandro Escamilla",
-//         "width": 5616,
-//         "height": 3744,
-//         "url": "https://unsplash.com/...",
-//         "download_url": "https://picsum.photos/..."
-//     }
-// ]
 const photoroll = await fetch("https://boringapi.com/api/v1/photos");
 const data = await photoroll.json();
 ---
@@ -37,21 +26,80 @@ const data = await photoroll.json();
   <PropsTable props={propsTable} />
 
   <div class="preview-grid">
-    <Preview title="Default" code={defaultCode}>
+    <Preview title="Default" code={`
+************************************
+ALL DEMOS ON THIS PAGE GET DATA FROM
+const photoroll = await fetch("https://boringapi.com/api/v1/photos");
+const data = await photoroll.json();
+ADD CLASS in-photo-roll to <Image>!
+************************************
+
+<PhotoRoll>
+  {data.photos.map((photo,idx) => (
+    <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
+  ))}
+</PhotoRoll>
+`}>
       <PhotoRoll>
         {data.photos.map((photo,idx) => (
-          <Image src={photo.url} alt={photo.description} /> 
+          <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
         ))}
       </PhotoRoll>
     </Preview>
-    <Preview title="Custom" code={customCode}>
+    <Preview title="Custom" code={`
+<PhotoRoll
+  orientation="vertical"
+>
+  {data.photos.map((photo,idx) => (
+    <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
+  ))}
+</PhotoRoll>
+`}>
       
       <PhotoRoll
       orientation="vertical"
       >
         {data.photos.map((photo,idx) => (
-          <Image src={photo.url} alt={photo.description} /> 
+          <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
         ))}
+      </PhotoRoll>
+    </Preview>
+    <Preview title="It works with Other components too ! " code={`
+************************
+Add class in-photo-roll 
+************************
+
+<PhotoRoll>
+  {data.photos.map((photo,idx) => (
+      <Hero
+        title={photo.title}
+        body={photo.description}
+        img={photo.url}
+        class="in-photo-roll"
+        />
+    ))}
+    <ContactForm
+      heading = "Yes! It works with forms !" 
+      description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
+      class="in-photo-roll"
+      />
+  ))}
+</PhotoRoll>`}>
+      <PhotoRoll
+      >
+        {data.photos.slice(-2).map((photo,idx) => (
+         <Hero
+            title={photo.title}
+            body={photo.description}
+            img={photo.url}
+            class="in-photo-roll"
+            />
+        ))}
+        <ContactForm
+          heading = "Yes! It works with forms !" 
+          description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
+          class="in-photo-roll"
+          />
       </PhotoRoll>
     </Preview>
   </div>
