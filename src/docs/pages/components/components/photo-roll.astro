@@ -21,7 +21,8 @@ const propsTable = [
   {
     name: "images",
     type: "Array<{ url: string; description?: string }>",
-    description: "Provide images directly; when set, slots are ignored and the array renders images."
+    description:
+      "Provide images directly; when set, slots are ignored and the array renders images."
   },
   {
     name: "showNextButton",
@@ -63,23 +64,51 @@ const propsTable = [
 const styleVars = [
   { name: "--photoroll-height", default: "50vh", description: "Overall component height." },
   { name: "--photoroll-dim", default: "0.7", description: "Brightness for inactive slides." },
-  { name: "--photoroll-bright", default: "1", description: "Brightness for the first/active slide." },
+  {
+    name: "--photoroll-bright",
+    default: "1",
+    description: "Brightness for the first/active slide."
+  },
   {
     name: "--photoroll-glow",
     default: "drop-shadow(0 0 0.35rem rgba(0, 0, 0, 0.35))",
     description: "Filter applied to images."
   },
   { name: "--photoroll-control-size", default: "44px", description: "Control hit target size." },
-  { name: "--photoroll-control-bg", default: "rgba(0, 0, 0, 0.65)", description: "Control background." },
+  {
+    name: "--photoroll-control-bg",
+    default: "rgba(0, 0, 0, 0.65)",
+    description: "Control background."
+  },
   { name: "--photoroll-control-color", default: "white", description: "Control icon color." },
-  { name: "--photoroll-control-shadow", default: "0 4px 12px rgba(0, 0, 0, 0.35)", description: "Control shadow." },
-  { name: "--photoroll-control-offset", default: "1rem", description: "Inset from the edges for controls." },
+  {
+    name: "--photoroll-control-shadow",
+    default: "0 4px 12px rgba(0, 0, 0, 0.35)",
+    description: "Control shadow."
+  },
+  {
+    name: "--photoroll-control-offset",
+    default: "1rem",
+    description: "Inset from the edges for controls."
+  },
   { name: "--photoroll-control-z", default: "2", description: "Stacking context for controls." },
   { name: "--photoroll-bullet-size", default: "10px", description: "Bullet diameter." },
   { name: "--photoroll-bullet-gap", default: "0.5rem", description: "Spacing between bullets." },
-  { name: "--photoroll-bullet-color", default: "rgba(255, 255, 255, 0.55)", description: "Bullet color." },
-  { name: "--photoroll-bullet-active-color", default: "white", description: "Active bullet color." },
-  { name: "--photoroll-bullets-offset", default: "1rem", description: "Bottom inset for the bullet row." },
+  {
+    name: "--photoroll-bullet-color",
+    default: "rgba(255, 255, 255, 0.55)",
+    description: "Bullet color."
+  },
+  {
+    name: "--photoroll-bullet-active-color",
+    default: "white",
+    description: "Active bullet color."
+  },
+  {
+    name: "--photoroll-bullets-offset",
+    default: "1rem",
+    description: "Bottom inset for the bullet row."
+  },
   {
     name: "--photoroll-next-rotation",
     default: "0deg (horizontal) / 90deg (vertical)",
@@ -106,8 +135,9 @@ const defaultCode = "<PhotoRoll />";
 const customCode = '<PhotoRoll id="photo-roll-sample" />';
 const photoroll = await fetch("https://boringapi.com/api/v1/photos");
 const data = await photoroll.json();
-const imagesArray=data.photos.map(({ url, description }) => ({ url, description }))
+const imagesArray = data.photos.map(({ url, description }) => ({ url, description }));
 ---
+
 <DocLayout
   title="PhotoRoll"
   description="A component to display images and scroll through them"
@@ -117,7 +147,9 @@ const imagesArray=data.photos.map(({ url, description }) => ({ url, description 
   <PropsTable title="Style variables" props={styleVars} />
 
   <div class="preview-grid">
-    <Preview title="Using the images props array" code={`
+    <Preview
+      title="Using the images props array"
+      code={`
 ********************************************************************
 ALL DEMOS ON THIS PAGE GET DATA FROM
 const photoroll = await fetch("https://boringapi.com/api/v1/photos");
@@ -130,17 +162,14 @@ Use images props array is better. Prefer it to use slots
 <PhotoRoll
       images={imagesArray}
 />
-`}>
-    <PhotoRoll
-      images={imagesArray}
-    />
+`}
+    >
+      <PhotoRoll images={imagesArray} />
     </Preview>
 
-
-
-
-
-    <Preview title="Default" code={`
+    <Preview
+      title="Default"
+      code={`
 ***********************************************
 ADD CLASS in-photo-roll to all <Image> in slot. 
 ***********************************************
@@ -149,18 +178,20 @@ ADD CLASS in-photo-roll to all <Image> in slot.
     <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
   ))}
 </PhotoRoll>
-`}>
+`}
+    >
       <PhotoRoll>
-        {data.photos.map((photo,idx) => (
-          <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
-        ))}
+        {
+          data.photos.map((photo, idx) => (
+            <Image src={photo.url} alt={photo.description} class="in-photo-roll" />
+          ))
+        }
       </PhotoRoll>
     </Preview>
 
-
-
-
-    <Preview title="Orientation vertical and buttons" code={`
+    <Preview
+      title="Orientation vertical and buttons"
+      code={`
 <PhotoRoll
   orientation="vertical"
 >
@@ -168,26 +199,20 @@ ADD CLASS in-photo-roll to all <Image> in slot.
     <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
   ))}
 </PhotoRoll>
-`}>
-      
-      <PhotoRoll
-      orientation="vertical"
-      showNextButton={true}
-      showBullets={true}
-      >
-        {data.photos.map((photo,idx) => (
-          <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
-        ))}
+`}
+    >
+      <PhotoRoll orientation="vertical" showNextButton={true} showBullets={true}>
+        {
+          data.photos.map((photo, idx) => (
+            <Image src={photo.url} alt={photo.description} class="in-photo-roll" />
+          ))
+        }
       </PhotoRoll>
     </Preview>
 
-
-
-
-
-
-
-        <Preview title="Autoplay" code={`
+    <Preview
+      title="Autoplay"
+      code={`
 <PhotoRoll
     orientation="vertical"
     autoplay={true}
@@ -198,23 +223,14 @@ ADD CLASS in-photo-roll to all <Image> in slot.
     <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
   ))}
 </PhotoRoll>
-`}>
-      
-      <PhotoRoll
-        orientation="vertical"
-        autoplay={true}
-        autoplayInterval={5}
-        images={imagesArray}
-     />
+`}
+    >
+      <PhotoRoll orientation="vertical" autoplay={true} autoplayInterval={5} images={imagesArray} />
     </Preview>
 
-
-
-
-
-
-
-        <Preview title="Autoplay with slot" code={`
+    <Preview
+      title="Autoplay with slot"
+      code={`
 <PhotoRoll
     autoplay={true}
     autoplayInterval={3}
@@ -223,24 +239,20 @@ ADD CLASS in-photo-roll to all <Image> in slot.
     <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
   ))}
 </PhotoRoll>
-`}>
-      
-      <PhotoRoll
-        autoplay={true}
-        autoplayInterval={3}
-      >
-        {data.photos.map((photo,idx) => (
-          <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
-        ))}
+`}
+    >
+      <PhotoRoll autoplay={true} autoplayInterval={3}>
+        {
+          data.photos.map((photo, idx) => (
+            <Image src={photo.url} alt={photo.description} class="in-photo-roll" />
+          ))
+        }
       </PhotoRoll>
     </Preview>
 
-
-
-
-
-    
-    <Preview title="It works with Other components too ! " code={`
+    <Preview
+      title="It works with Other components too ! "
+      code={`
 ************************
 Add class in-photo-roll 
 ************************
@@ -261,23 +273,26 @@ Add class in-photo-roll
     description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
     class="in-photo-roll"
     />
-</PhotoRoll>`}>
-      <PhotoRoll
-        style="--photoroll-zoom-active:1;"
-      >
-        {data.photos.slice(-2).map((photo,idx) => (
-         <Hero
-            title={photo.title}
-            body={photo.description}
-            img={photo.url}
-            class="in-photo-roll"
-            />
-        ))}
+</PhotoRoll>`}
+    >
+      <PhotoRoll style="--photoroll-zoom-active:1;">
+        {
+          data.photos
+            .slice(-2)
+            .map((photo, idx) => (
+              <Hero
+                title={photo.title}
+                body={photo.description}
+                img={photo.url}
+                class="in-photo-roll"
+              />
+            ))
+        }
         <ContactForm
-          heading = "Yes! It works with forms !" 
+          heading="Yes! It works with forms !"
           description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
           class="in-photo-roll"
-          />
+        />
       </PhotoRoll>
     </Preview>
   </div>

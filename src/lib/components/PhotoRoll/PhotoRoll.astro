@@ -101,48 +101,56 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   {...rest}
 >
   <div class="photo-roll__track">
-    {hasImages
-      ? resolvedImages.map((photo) => (
+    {
+      hasImages ? (
+        resolvedImages.map((photo) => (
           <div class="imageWrap">
             <Image src={photo.url} alt={photo.description} class="in-photo-roll" />
           </div>
         ))
-      : <slot />}
+      ) : (
+        <slot />
+      )
+    }
   </div>
   {showBullets && <div class="photo-roll__bullets" data-role="bullets" />}
-  {autoplay && (
-    <button
-      class="photo-roll__control photo-roll__control--autoplay"
-      type="button"
-      data-role="autoplay"
-      aria-pressed="true"
-      data-state="playing"
-    >
-      <span class="sr-only">Pause autoplay</span>
-      <span class="photo-roll__autoplay-icon photo-roll__autoplay-icon--pause">
-        <Icon name="pause" size="md" />
-      </span>
-      <span class="photo-roll__autoplay-icon photo-roll__autoplay-icon--play">
-        <Icon name="play" size="md" />
-      </span>
-    </button>
-  )}
-  {(showNextButton || autoplay) && (
-    <button
-      class={`photo-roll__control photo-roll__control--next ${showNextButton ? "" : "is-hidden"}`.trim()}
-      type="button"
-      data-role="next"
-      aria-hidden={showNextButton ? undefined : "true"}
-      tabindex={showNextButton ? undefined : "-1"}
-    >
-      <span class="sr-only">Next slide</span>
-      <Icon
-        name={nextIcon}
-        size={nextIconSize}
-        style={`--icon-rotation: var(--photoroll-next-rotation);`}
-      />
-    </button>
-  )}
+  {
+    autoplay && (
+      <button
+        class="photo-roll__control photo-roll__control--autoplay"
+        type="button"
+        data-role="autoplay"
+        aria-pressed="true"
+        data-state="playing"
+      >
+        <span class="sr-only">Pause autoplay</span>
+        <span class="photo-roll__autoplay-icon photo-roll__autoplay-icon--pause">
+          <Icon name="pause" size="md" />
+        </span>
+        <span class="photo-roll__autoplay-icon photo-roll__autoplay-icon--play">
+          <Icon name="play" size="md" />
+        </span>
+      </button>
+    )
+  }
+  {
+    (showNextButton || autoplay) && (
+      <button
+        class={`photo-roll__control photo-roll__control--next ${showNextButton ? "" : "is-hidden"}`.trim()}
+        type="button"
+        data-role="next"
+        aria-hidden={showNextButton ? undefined : "true"}
+        tabindex={showNextButton ? undefined : "-1"}
+      >
+        <span class="sr-only">Next slide</span>
+        <Icon
+          name={nextIcon}
+          size={nextIconSize}
+          style={`--icon-rotation: var(--photoroll-next-rotation);`}
+        />
+      </button>
+    )
+  }
 </section>
 
 <script is:inline define:vars={{ autoplayInterval }}>
@@ -247,11 +255,11 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       });
     };
 
-  const clampIndex = (index) => {
-    const total = getSlides().length;
-    if (!total) return -1;
-    const mod = ((index % total) + total) % total;
-    return mod;
+    const clampIndex = (index) => {
+      const total = getSlides().length;
+      if (!total) return -1;
+      const mod = ((index % total) + total) % total;
+      return mod;
     };
 
     const currentIndex = () => {
@@ -348,7 +356,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       setAutoplayVisualState("playing");
       const idx = currentIndex();
       setActiveSlide(idx >= 0 ? idx : 0);
-      const intervalMs = Math.max(Number(autoplayInterval*1000) || 0, 1);
+      const intervalMs = Math.max(Number(autoplayInterval * 1000) || 0, 1);
       const tick = () => {
         if (!isPlaying) return;
         if (nextButton instanceof HTMLElement) {
@@ -374,7 +382,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       setAutoplayVisualState("playing");
       const idx = currentIndex();
       setActiveSlide(idx >= 0 ? idx : 0);
-      const intervalMs = Math.max(Number(autoplayInterval*1000) || 0, 1);
+      const intervalMs = Math.max(Number(autoplayInterval * 1000) || 0, 1);
       const tick = () => {
         if (!isPlaying) return;
         if (nextButton instanceof HTMLElement) {
@@ -604,7 +612,11 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     justify-content: center;
     cursor: pointer;
     z-index: var(--photoroll-control-z);
-    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease,
+    transition:
+      transform 160ms ease,
+      box-shadow 160ms ease,
+      background 160ms ease,
+      opacity 160ms ease,
       border-color 160ms ease;
     outline: none;
     padding: 0;
@@ -687,8 +699,12 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 140ms ease, background-color 140ms ease, box-shadow 140ms ease,
-      border-color 140ms ease, opacity 140ms ease;
+    transition:
+      transform 140ms ease,
+      background-color 140ms ease,
+      box-shadow 140ms ease,
+      border-color 140ms ease,
+      opacity 140ms ease;
   }
 
   [data-role="bullets"] .photo-roll__bullet-dot {
@@ -702,7 +718,9 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
 
   [data-role="bullets"] .photo-roll__bullet[aria-current="true"] {
     transform: scale(1.1);
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.1), 0 8px 18px rgba(0, 0, 0, 0.22);
+    box-shadow:
+      0 0 0 6px rgba(255, 255, 255, 0.1),
+      0 8px 18px rgba(0, 0, 0, 0.22);
     background: transparent;
   }
 
