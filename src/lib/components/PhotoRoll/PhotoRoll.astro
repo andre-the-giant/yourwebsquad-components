@@ -78,8 +78,9 @@ const styleVars = {
   "--photoroll-bullet-active-color": "white",
   "--photoroll-bullets-offset": "1rem",
   "--photoroll-next-rotation": resolvedNextRotation,
-  "--photoroll-zoom": "1.03",
-  "--photoroll-zoom-hover": "1.07"
+  "--photoroll-zoom": "1",
+  "--photoroll-zoom-active": "1.3",
+  "--photoroll-zoom-duration": "10s"
 };
 
 const inlineStyle = Object.entries(styleVars)
@@ -103,7 +104,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     {hasImages
       ? resolvedImages.map((photo) => (
           <div class="imageWrap">
-            <Image src={photo.url} alt={photo.description} aspectRatio="16/9" backgroundPosition="center" />
+            <Image src={photo.url} alt={photo.description} class="in-photo-roll" />
           </div>
         ))
       : <slot />}
@@ -167,15 +168,55 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     const getSlides = () =>
       Array.from(track.children).filter((child) => child instanceof HTMLElement);
 
+    const applyBaseSlideClass = () => {
+      getSlides().forEach((slide) => slide.classList.add("imageWrap"));
+    };
+
+    let slideObserver = null;
+
+    const observeSlides = () => {
+      if (slideObserver) {
+        slideObserver.disconnect();
+        slideObserver = null;
+      }
+      const slides = getSlides();
+      if (!slides.length) return;
+      slideObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const slide = entry.target;
+            const idx = slides.indexOf(slide);
+            if (idx >= 0) {
+              setActiveSlide(idx);
+              updateBulletsState(idx);
+            }
+          });
+        },
+        {
+          root: track,
+          threshold: [0.55, 0.65, 0.8]
+        }
+      );
+      slides.forEach((slide) => slideObserver.observe(slide));
+    };
+
     let autoplayTimer = null;
     let isPlaying = false;
     let bullets = [];
 
-    const clampIndex = (index) => {
-      const total = getSlides().length;
-      if (!total) return -1;
-      const mod = ((index % total) + total) % total;
-      return mod;
+  const setActiveSlide = (activeIdx) => {
+    const slides = getSlides();
+    slides.forEach((slide, idx) => {
+      slide.classList.toggle("is-active", idx === activeIdx);
+    });
+  };
+
+  const clampIndex = (index) => {
+    const total = getSlides().length;
+    if (!total) return -1;
+    const mod = ((index % total) + total) % total;
+    return mod;
     };
 
     const currentIndex = () => {
@@ -203,6 +244,8 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       const left = scrollAxis === "horizontal" ? target.offsetLeft : undefined;
       const top = scrollAxis === "vertical" ? target.offsetTop : undefined;
       track.scrollTo({ left, top, behavior: "smooth" });
+      setActiveSlide(targetIndex);
+      updateBulletsState(targetIndex);
     };
 
     const goNext = () => goToIndex(currentIndex() + 1);
@@ -235,13 +278,14 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       updateBulletsState();
     }
 
-    function updateBulletsState() {
-      if (!bullets.length) return;
-      const activeIdx = currentIndex();
-      bullets.forEach((btn, idx) => {
-        btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
-      });
-    }
+  function updateBulletsState(activeOverride) {
+    if (!bullets.length) return;
+    const activeIdx = typeof activeOverride === "number" ? activeOverride : currentIndex();
+    bullets.forEach((btn, idx) => {
+      btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+    });
+    if (activeIdx >= 0) setActiveSlide(activeIdx);
+  }
 
     function startAutoplay() {
       if (!autoplayButton) return;
@@ -343,11 +387,21 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
 
     if (bulletsEl instanceof HTMLElement) {
       buildBullets();
-      const observer = new MutationObserver(() => buildBullets());
-      observer.observe(track, { childList: true });
-      track.addEventListener("scroll", () => {
-        updateBulletsState();
+      const observer = new MutationObserver(() => {
+        applyBaseSlideClass();
+        buildBullets();
+        observeSlides();
       });
+      observer.observe(track, { childList: true });
+      observeSlides();
+      track.addEventListener(
+        "scroll",
+        () => {
+          const idx = currentIndex();
+          updateBulletsState(idx);
+        },
+        { passive: true }
+      );
     }
 
     if (autoplayButton instanceof HTMLElement) {
@@ -361,6 +415,11 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       });
       startAutoplay();
     }
+
+    applyBaseSlideClass();
+    observeSlides();
+    // set initial active slide
+    setActiveSlide(currentIndex());
 
     roll.dataset.bound = "true";
   }
@@ -404,15 +463,15 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     scroll-snap-type: y mandatory;
   }
 
-  .photo-roll[data-scroll="horizontal"] .photo-roll__track .imageWrap {
+  .photo-roll[data-scroll="horizontal"] .photo-roll__track > * {
     min-width: 100%;
   }
 
-  .photo-roll[data-scroll="vertical"] .photo-roll__track .imageWrap {
+  .photo-roll[data-scroll="vertical"] .photo-roll__track > * {
     min-height: 100%;
   }
 
-  .photo-roll__track .imageWrap {
+  .photo-roll__track > * {
     flex-shrink: 0;
     width: 100%;
     height: 100%;
@@ -421,15 +480,11 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     filter: brightness(var(--photoroll-dim));
     transition: filter 240ms ease;
     overflow: hidden;
+    transform-origin: center center;
   }
 
-  .photo-roll__track .imageWrap:first-child {
+  .photo-roll__track > *.is-active {
     filter: brightness(var(--photoroll-bright));
-  }
-
-  .photo-roll__track .imageWrap:hover,
-  .photo-roll__track .imageWrap:focus-visible {
-    filter: brightness(calc(var(--photoroll-bright) + 0.08));
   }
 
   .photo-roll__track img,
@@ -440,15 +495,15 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     display: block;
     filter: var(--photoroll-glow);
     transform: scale(var(--photoroll-zoom));
-    transition: transform 280ms ease, filter 240ms ease;
+    transition: filter 240ms ease;
+    transform-origin: center center;
+    animation: none;
   }
 
-  .photo-roll__track .imageWrap:hover img,
-  .photo-roll__track .imageWrap:focus-visible img,
-  .photo-roll__track .imageWrap:hover .image,
-  .photo-roll__track .imageWrap:focus-visible .image {
-    transform: scale(var(--photoroll-zoom-hover));
-    filter: brightness(calc(var(--photoroll-bright) + 0.12)) drop-shadow(0 10px 28px rgba(0, 0, 0, 0.35));
+  .photo-roll__track > *.is-active img,
+  .photo-roll__track > *.is-active .image {
+    animation: photoroll-zoom var(--photoroll-zoom-duration) ease-in-out forwards;
+    filter: var(--photoroll-glow);
   }
 
   .photo-roll[data-chrome="true"] .photo-roll__track {
@@ -463,6 +518,16 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     .photo-roll__track * {
       transition: none;
       transform: none;
+      animation: none;
+    }
+  }
+
+  @keyframes photoroll-zoom {
+    0% {
+      transform: scale(var(--photoroll-zoom));
+    }
+    100% {
+      transform: scale(var(--photoroll-zoom-active));
     }
   }
 
