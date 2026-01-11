@@ -10,13 +10,83 @@ import ContactForm from "@lib/components/ContactForm/ContactForm.astro";
 
 const propsTable = [
   { name: "id", type: "string", description: "Optional id for the root element." },
-  { name: "class", type: "string", description: "Additional class names." }
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles for the root element." },
+  {
+    name: "orientation",
+    type: `"horizontal" | "vertical"`,
+    default: '"horizontal"',
+    description: "Scroll direction."
+  },
+  {
+    name: "showNextButton",
+    type: "boolean",
+    default: "false",
+    description: "Displays the right-side next control."
+  },
+  {
+    name: "nextIcon",
+    type: "string",
+    default: '"arrow-right"',
+    description: "Icon name for the next control."
+  },
+  {
+    name: "nextIconSize",
+    type: "string",
+    description: "Icon size passed to the Icon component (sm | md | lg | CSS length)."
+  },
+  {
+    name: "showBullets",
+    type: "boolean",
+    default: "false",
+    description: "Displays bullet pagination at the bottom."
+  },
+  {
+    name: "autoplay",
+    type: "boolean",
+    default: "false",
+    description: "Automatically advances slides; shows play/pause control."
+  },
+  {
+    name: "autoplayInterval",
+    type: "number",
+    default: "5000",
+    description: "Interval in ms between autoplay moves (must be greater than 0)."
+  }
+];
+
+const styleVars = [
+  { name: "--photoroll-height", default: "50vh", description: "Overall component height." },
+  { name: "--photoroll-dim", default: "0.7", description: "Brightness for inactive slides." },
+  { name: "--photoroll-bright", default: "1", description: "Brightness for the first/active slide." },
+  {
+    name: "--photoroll-glow",
+    default: "drop-shadow(0 0 0.35rem rgba(0, 0, 0, 0.35))",
+    description: "Filter applied to images."
+  },
+  { name: "--photoroll-control-size", default: "44px", description: "Control hit target size." },
+  { name: "--photoroll-control-bg", default: "rgba(0, 0, 0, 0.65)", description: "Control background." },
+  { name: "--photoroll-control-color", default: "white", description: "Control icon color." },
+  { name: "--photoroll-control-shadow", default: "0 4px 12px rgba(0, 0, 0, 0.35)", description: "Control shadow." },
+  { name: "--photoroll-control-offset", default: "1rem", description: "Inset from the edges for controls." },
+  { name: "--photoroll-control-z", default: "2", description: "Stacking context for controls." },
+  { name: "--photoroll-bullet-size", default: "10px", description: "Bullet diameter." },
+  { name: "--photoroll-bullet-gap", default: "0.5rem", description: "Spacing between bullets." },
+  { name: "--photoroll-bullet-color", default: "rgba(255, 255, 255, 0.55)", description: "Bullet color." },
+  { name: "--photoroll-bullet-active-color", default: "white", description: "Active bullet color." },
+  { name: "--photoroll-bullets-offset", default: "1rem", description: "Bottom inset for the bullet row." },
+  {
+    name: "--photoroll-next-rotation",
+    default: "0deg (horizontal) / 90deg (vertical)",
+    description: "Rotation applied to the next icon based on orientation."
+  }
 ];
 
 const defaultCode = "<PhotoRoll />";
 const customCode = '<PhotoRoll id="photo-roll-sample" />';
 const photoroll = await fetch("https://boringapi.com/api/v1/photos");
 const data = await photoroll.json();
+const imagesArray=data.photos.map(({ url, description }) => ({ url, description }))
 ---
 <DocLayout
   title="PhotoRoll"
@@ -24,16 +94,36 @@ const data = await photoroll.json();
   items={components}
 >
   <PropsTable props={propsTable} />
+  <PropsTable title="Style variables" props={styleVars} />
 
   <div class="preview-grid">
-    <Preview title="Default" code={`
-************************************
+    <Preview title="Using the images props array" code={`
+********************************************************************
 ALL DEMOS ON THIS PAGE GET DATA FROM
 const photoroll = await fetch("https://boringapi.com/api/v1/photos");
 const data = await photoroll.json();
-ADD CLASS in-photo-roll to <Image>!
-************************************
+Use images props array is better. Prefer it to use slots
+********************************************************************
 
+// const imagesArray=data.photos.map(({ url, description }) => ({ url, description }))
+
+<PhotoRoll
+      images={imagesArray}
+/>
+`}>
+    <PhotoRoll
+      images={imagesArray}
+    />
+    </Preview>
+
+
+
+
+
+    <Preview title="Default" code={`
+***********************************************
+ADD CLASS in-photo-roll to all <Image> in slot. 
+***********************************************
 <PhotoRoll>
   {data.photos.map((photo,idx) => (
     <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
@@ -46,7 +136,11 @@ ADD CLASS in-photo-roll to <Image>!
         ))}
       </PhotoRoll>
     </Preview>
-    <Preview title="Custom" code={`
+
+
+
+
+    <Preview title="Orientation vertical and buttons" code={`
 <PhotoRoll
   orientation="vertical"
 >
@@ -58,12 +152,45 @@ ADD CLASS in-photo-roll to <Image>!
       
       <PhotoRoll
       orientation="vertical"
+      showNextButton={true}
+      showBullets={true}
       >
         {data.photos.map((photo,idx) => (
           <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
         ))}
       </PhotoRoll>
     </Preview>
+
+
+
+
+
+
+
+        <Preview title="Autoplay" code={`
+<PhotoRoll
+  orientation="vertical"
+>
+  {data.photos.map((photo,idx) => (
+    <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
+  ))}
+</PhotoRoll>
+`}>
+      
+      <PhotoRoll
+        autoplay={true}
+      >
+        {data.photos.map((photo,idx) => (
+          <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
+        ))}
+      </PhotoRoll>
+    </Preview>
+
+
+
+
+
+    
     <Preview title="It works with Other components too ! " code={`
 ************************
 Add class in-photo-roll 

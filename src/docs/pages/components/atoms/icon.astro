@@ -5,10 +5,10 @@ import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import IconComponent from "@lib/components/Icon/Icon.astro";
 
-const iconNames = ["spark", "arrow-right", "grid"];
+const iconNames = ["spark", "arrow-right", "grid", "play", "pause"];
 const defaultCode = `<Icon name="spark" />`;
 const sizesCode = `<Icon name="spark" size="sm" />\n<Icon name="spark" size="md" />\n<Icon name="spark" size="lg" />`;
-const registryNames = ["hamburger", "external", "arrow-right", "spark"];
+const registryNames = ["hamburger", "external", "arrow-right", "spark", "play", "pause"];
 const registryCode = `// Use a predefined registry name\n<Icon name="hamburger" />\n<Icon name="external" />`;
 
 const runtimeSvg = `<path d=\"M3 6h18\" /><path d=\"M3 12h18\" /><path d=\"M3 18h18\" />`;
@@ -35,6 +35,7 @@ const props = [
   { name: "strokeWidth", type: "string | number", description: "Stroke width override." },
   { name: "strokeLinecap", type: "string", description: "Stroke linecap override." },
   { name: "strokeLinejoin", type: "string", description: "Stroke linejoin override." },
+  { name: "rotate", type: "string | number", description: "Rotate the icon (e.g., 90deg or 90)." },
   { name: "class", type: "string", description: "Additional className." },
   {
     deprecated: true,
@@ -50,7 +51,8 @@ const styleVars = [
     name: "--icon-color",
     description: "Icon color (stroke/fill via currentColor).",
     default: "inherit"
-  }
+  },
+  { name: "--icon-rotation", description: "Rotation applied to the icon.", default: "0deg" }
 ];
 ---
 

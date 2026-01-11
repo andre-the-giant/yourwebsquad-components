@@ -43,5 +43,13 @@ export default {
     viewBox: "0 0 24 24",
     svg: `<path d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />`,
     strokeWidth: "1"
+  },
+  play: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M9 5l10 7-10 7z" />`
+  },
+  pause: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M9 5v14M15 5v14" />`
   }
 };

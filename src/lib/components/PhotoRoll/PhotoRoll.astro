@@ -7,13 +7,22 @@ Notes:
 - Update schema + props to match your component API.
 */
 import { validateProps } from "../../utils/props.js";
-import Image from "../Image/Image.astro";
+import Icon from "../Icon/Icon.astro";
 
 const schema = {
   id: { type: "string" },
   class: { type: "string" },
   style: { type: "string" },
-  orientation: { type: "string" }
+  orientation: { type: "string" },
+  showNextButton: { type: "boolean" },
+  nextIcon: { type: "string" },
+  nextIconSize: { type: "string" },
+  showBullets: { type: "boolean" },
+  autoplay: { type: "boolean" },
+  autoplayInterval: {
+    type: "number",
+    validate: (value) => value > 0 || "autoplayInterval must be greater than 0"
+  }
 };
 
 const {
@@ -21,16 +30,36 @@ const {
   class: className,
   style,
   orientation,
+  showNextButton = false,
+  nextIcon = "arrow-right",
+  nextIconSize,
+  showBullets = false,
+  autoplay = false,
+  autoplayInterval = 5000,
   ...rest
 } = validateProps(schema, Astro.props, { component: "PhotoRoll" });
 
 const resolvedId = id ?? "photo-roll-" + Math.random().toString(36).slice(2, 9);
 const resolvedScroll = orientation === "vertical" ? "vertical" : "horizontal";
+const resolvedNextRotation = resolvedScroll === "vertical" ? "90deg" : "0deg";
+const hasChrome = showNextButton || showBullets || autoplay;
 const styleVars = {
   "--photoroll-height": "50vh",
-    "--photoroll-dim": "0.7",
-    "--photoroll-bright": "1",
-    "--photoroll-glow": "drop-shadow(0 0 0.35rem rgba(0, 0, 0, 0.35))"
+  "--photoroll-dim": "0.7",
+  "--photoroll-bright": "1",
+  "--photoroll-glow": "drop-shadow(0 0 0.35rem rgba(0, 0, 0, 0.35))",
+  "--photoroll-control-size": "44px",
+  "--photoroll-control-bg": "rgba(0, 0, 0, 0.65)",
+  "--photoroll-control-color": "white",
+  "--photoroll-control-shadow": "0 4px 12px rgba(0, 0, 0, 0.35)",
+  "--photoroll-control-offset": "1rem",
+  "--photoroll-control-z": "2",
+  "--photoroll-bullet-size": "1rem",
+  "--photoroll-bullet-gap": "0.1rem",
+  "--photoroll-bullet-color": "rgba(255, 255, 255, 0.55)",
+  "--photoroll-bullet-active-color": "--color-accent",
+  "--photoroll-bullets-offset": "1rem",
+  "--photoroll-next-rotation": resolvedNextRotation
 };
 
 const inlineStyle = Object.entries(styleVars)
@@ -46,13 +75,272 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   id={resolvedId}
   class={resolvedClass}
   data-scroll={resolvedScroll}
+  data-chrome={hasChrome ? "true" : undefined}
   style={resolvedStyle || undefined}
   {...rest}
 >
   <div class="photo-roll__track">
     <slot />
   </div>
+  {showBullets && <div class="photo-roll__bullets" data-role="bullets" />}
+  {autoplay && (
+    <button
+      class="photo-roll__control photo-roll__control--autoplay"
+      type="button"
+      data-role="autoplay"
+      aria-pressed="true"
+      data-state="playing"
+    >
+      <span class="sr-only">Pause autoplay</span>
+      <span class="photo-roll__autoplay-icon photo-roll__autoplay-icon--pause">
+        <Icon name="pause" size="md" />
+      </span>
+      <span class="photo-roll__autoplay-icon photo-roll__autoplay-icon--play">
+        <Icon name="play" size="md" />
+      </span>
+    </button>
+  )}
+  {showNextButton && (
+    <button class="photo-roll__control photo-roll__control--next" type="button" data-role="next">
+      <span class="sr-only">Next slide</span>
+      <Icon
+        name={nextIcon}
+        size={nextIconSize}
+        style={`--icon-rotation: var(--photoroll-next-rotation);`}
+      />
+    </button>
+  )}
 </section>
+
+<script is:inline>
+  function isTextInput(el) {
+    if (!el || !(el instanceof HTMLElement)) return false;
+    const tag = el.tagName?.toLowerCase();
+    const type = el.getAttribute?.("type")?.toLowerCase?.();
+    const textTypes = ["text", "email", "search", "url", "tel", "password", "number"];
+    if (tag === "textarea") return true;
+    if (tag === "input" && textTypes.includes(type)) return true;
+    if (tag === "input" && !type) return true;
+    if (el.isContentEditable) return true;
+    return false;
+  }
+
+  function initPhotoRoll(roll) {
+    if (!(roll instanceof HTMLElement)) return;
+    if (roll.dataset.bound === "true") return;
+    const track = roll.querySelector(".photo-roll__track");
+    if (!(track instanceof HTMLElement)) return;
+    const nextButton = roll.querySelector('[data-role="next"]');
+    const autoplayButton = roll.querySelector('[data-role="autoplay"]');
+    const bulletsEl = roll.querySelector('[data-role="bullets"]');
+    const scrollAxis = roll.dataset.scroll === "vertical" ? "vertical" : "horizontal";
+    const scopeAttr = Array.from(roll.attributes).find((attr) =>
+      attr.name.startsWith("data-astro-cid")
+    )?.name;
+
+    const getSlides = () =>
+      Array.from(track.children).filter((child) => child instanceof HTMLElement);
+
+    let autoplayTimer = null;
+    let isPlaying = false;
+    let bullets = [];
+
+    const clampIndex = (index) => {
+      const total = getSlides().length;
+      if (!total) return -1;
+      const mod = ((index % total) + total) % total;
+      return mod;
+    };
+
+    const currentIndex = () => {
+      const slides = getSlides();
+      if (!slides.length) return -1;
+      const position = scrollAxis === "vertical" ? track.scrollTop : track.scrollLeft;
+      let closest = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+      slides.forEach((slide, idx) => {
+        const offset = scrollAxis === "vertical" ? slide.offsetTop : slide.offsetLeft;
+        const distance = Math.abs(offset - position);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closest = idx;
+        }
+      });
+      return closest;
+    };
+
+    const goToIndex = (index) => {
+      const slides = getSlides();
+      if (!slides.length) return;
+      const targetIndex = clampIndex(index);
+      const target = slides[targetIndex];
+      const left = scrollAxis === "horizontal" ? target.offsetLeft : undefined;
+      const top = scrollAxis === "vertical" ? target.offsetTop : undefined;
+      track.scrollTo({ left, top, behavior: "smooth" });
+    };
+
+    const goNext = () => goToIndex(currentIndex() + 1);
+    const goPrev = () => goToIndex(currentIndex() - 1);
+
+    function buildBullets() {
+      if (!(bulletsEl instanceof HTMLElement)) return;
+      const slides = getSlides();
+      const activeIdx = currentIndex();
+      if (bullets.length !== slides.length) {
+        bulletsEl.innerHTML = "";
+        bullets = slides.map((_, idx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "photo-roll__bullet";
+          if (scopeAttr) btn.setAttribute(scopeAttr, "");
+          btn.dataset.index = String(idx);
+          btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+          btn.setAttribute("aria-label", `Go to slide ${idx + 1} of ${slides.length}`);
+          const dot = document.createElement("span");
+          dot.setAttribute("aria-hidden", "true");
+          dot.className = "photo-roll__bullet-dot";
+          if (scopeAttr) dot.setAttribute(scopeAttr, "");
+          btn.appendChild(dot);
+          btn.addEventListener("click", () => goToIndex(idx));
+          bulletsEl.appendChild(btn);
+          return btn;
+        });
+      }
+      updateBulletsState();
+    }
+
+    function updateBulletsState() {
+      if (!bullets.length) return;
+      const activeIdx = currentIndex();
+      bullets.forEach((btn, idx) => {
+        btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+      });
+    }
+
+    function startAutoplay() {
+      if (!autoplayButton) return;
+      if (autoplayTimer) clearInterval(autoplayTimer);
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      if (reduceMotion) {
+        isPlaying = false;
+        setAutoplayVisualState("paused");
+        return;
+      }
+      isPlaying = true;
+      setAutoplayVisualState("playing");
+      autoplayTimer = setInterval(() => {
+        if (!isPlaying) return;
+        goNext();
+      }, autoplayInterval);
+    }
+
+    function stopAutoplayTimer() {
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+      }
+    }
+
+    function setAutoplayVisualState(state) {
+      if (!autoplayButton) return;
+      autoplayButton.dataset.state = state;
+      autoplayButton.setAttribute("aria-pressed", state === "playing" ? "true" : "false");
+      const labelEl = autoplayButton.querySelector(".sr-only");
+      if (labelEl) labelEl.textContent = state === "playing" ? "Pause autoplay" : "Play autoplay";
+    }
+
+    function pauseAutoplay() {
+      isPlaying = false;
+      stopAutoplayTimer();
+      setAutoplayVisualState("paused");
+    }
+
+    function resumeAutoplay() {
+      if (!autoplayButton) return;
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      if (reduceMotion) {
+        pauseAutoplay();
+        return;
+      }
+      isPlaying = true;
+      setAutoplayVisualState("playing");
+      stopAutoplayTimer();
+      autoplayTimer = setInterval(() => {
+        if (!isPlaying) return;
+        goNext();
+      }, autoplayInterval);
+    }
+
+    const handleKeydown = (event) => {
+      const target = event.target;
+      if (!target || !(target instanceof HTMLElement)) return;
+      if (!roll.contains(target)) return;
+
+      const key = event.key;
+      if (isTextInput(target)) return;
+
+      if (key === "ArrowRight" || key === "ArrowDown") {
+        event.preventDefault();
+        goNext();
+        return;
+      }
+      if (key === "ArrowLeft" || key === "ArrowUp") {
+        event.preventDefault();
+        goPrev();
+        return;
+      }
+      if (key === "Home") {
+        event.preventDefault();
+        goToIndex(0);
+        return;
+      }
+      if (key === "End") {
+        event.preventDefault();
+        goToIndex(getSlides().length - 1);
+        return;
+      }
+      if (key === " " || key === "Spacebar") {
+        if (!autoplayButton) return;
+        event.preventDefault();
+        autoplayButton.click();
+      }
+    };
+
+    roll.addEventListener("keydown", handleKeydown);
+    if (nextButton instanceof HTMLElement && nextButton.dataset.clickBound !== "true") {
+      nextButton.dataset.clickBound = "true";
+      nextButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        goNext();
+      });
+    }
+
+    if (bulletsEl instanceof HTMLElement) {
+      buildBullets();
+      const observer = new MutationObserver(() => buildBullets());
+      observer.observe(track, { childList: true });
+      track.addEventListener("scroll", () => {
+        updateBulletsState();
+      });
+    }
+
+    if (autoplayButton instanceof HTMLElement) {
+      autoplayButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (isPlaying) {
+          pauseAutoplay();
+        } else {
+          resumeAutoplay();
+        }
+      });
+      startAutoplay();
+    }
+
+    roll.dataset.bound = "true";
+  }
+
+  document.querySelectorAll(".photo-roll").forEach(initPhotoRoll);
+</script>
 
 <style>
   .photo-roll {
@@ -60,6 +348,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     height: var(--photoroll-height);
     box-sizing: border-box;
     position: relative;
+    color: white;
   }
 
   .photo-roll__track {
@@ -89,32 +378,14 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     scroll-snap-type: y mandatory;
   }
 
-  .photo-roll[data-scroll="horizontal"] .photo-roll__track > * {
-    min-width: 100%;
-  }
-
-  .photo-roll[data-scroll="vertical"] .photo-roll__track > * {
-    min-height: 100%;
-  }
-
-  .photo-roll__track > * {
-    flex-shrink: 0;
-    width: 100%;
-    height: 100%;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    box-sizing: border-box;
-    filter: brightness(var(--photoroll-dim));
-    transition: filter 240ms ease, transform 240ms ease;
-  }
 
 
-  .photo-roll__track > :first-child {
+  .photo-roll__track:first-child {
     filter: brightness(var(--photoroll-bright));
   }
 
-  .photo-roll__track > :hover,
-  .photo-roll__track > :focus-visible {
+  .photo-roll__track:hover,
+  .photo-roll__track:focus-visible {
     filter: brightness(calc(var(--photoroll-bright) + 0.1));
     transform: scale(1.01);
   }
@@ -128,10 +399,160 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     filter: var(--photoroll-glow);
   }
 
+  .photo-roll[data-chrome="true"] .photo-roll__track {
+    scrollbar-width: none;
+  }
+
+  .photo-roll[data-chrome="true"] .photo-roll__track::-webkit-scrollbar {
+    display: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .photo-roll__track * {
       transition: none;
       transform: none;
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .photo-roll__control {
+    position: absolute;
+    width: var(--photoroll-control-size);
+    height: var(--photoroll-control-size);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--photoroll-control-bg);
+    color: var(--photoroll-control-color);
+    box-shadow: var(--photoroll-control-shadow);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: var(--photoroll-control-z);
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease,
+      border-color 160ms ease;
+    outline: none;
+    padding: 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .photo-roll__control:hover,
+  .photo-roll__control:focus-visible {
+    transform: scale(1.07);
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  .photo-roll__control:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .photo-roll__control--next {
+    right: var(--photoroll-control-offset);
+    top: 50%;
+    transform: translateY(-10%);
+  }
+
+  .photo-roll__control--autoplay {
+    right: var(--photoroll-control-offset);
+    bottom: var(--photoroll-bullets-offset);
+    gap: 0.25rem;
+  }
+
+  .photo-roll__autoplay-icon {
+    display: inline-flex;
+  }
+
+  .photo-roll__autoplay-icon--play {
+    display: none;
+  }
+
+  [data-state="paused"] .photo-roll__autoplay-icon--pause {
+    display: none;
+  }
+
+  [data-state="paused"] .photo-roll__autoplay-icon--play {
+    display: inline-flex;
+  }
+
+  [data-role="bullets"] {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: var(--photoroll-bullets-offset);
+    display: inline-flex;
+    gap: var(--photoroll-bullet-gap);
+    z-index: var(--photoroll-control-z);
+    padding: 0.3rem 0.6rem;
+    background: rgba(10, 12, 16, 0.55);
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+  }
+
+  [data-role="bullets"] .photo-roll__bullet {
+    width: calc(var(--photoroll-bullet-size) + 6px);
+    height: calc(var(--photoroll-bullet-size) + 6px);
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    padding: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 140ms ease, background-color 140ms ease, box-shadow 140ms ease,
+      border-color 140ms ease, opacity 140ms ease;
+  }
+
+  [data-role="bullets"] .photo-roll__bullet-dot {
+    width: var(--photoroll-bullet-size);
+    height: var(--photoroll-bullet-size);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.65);
+    display: inline-block;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  }
+
+  [data-role="bullets"] .photo-roll__bullet[aria-current="true"] {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.1), 0 8px 18px rgba(0, 0, 0, 0.22);
+    background: transparent;
+  }
+
+  [data-role="bullets"] .photo-roll__bullet[aria-current="true"] .photo-roll__bullet-dot {
+    background: var(--photoroll-bullet-active-color);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  }
+
+  [data-role="bullets"] .photo-roll__bullet:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .photo-roll__control--next {
+      right: calc(var(--photoroll-control-offset) * 0.5);
+    }
+    .photo-roll__control--autoplay {
+      right: calc(var(--photoroll-control-offset) * 0.5);
+      bottom: calc(var(--photoroll-bullets-offset) * 0.5);
     }
   }
 </style>

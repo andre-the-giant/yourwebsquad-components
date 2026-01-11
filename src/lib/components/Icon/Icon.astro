@@ -33,7 +33,8 @@ const schema = {
   viewBox: { type: "string" },
   strokeWidth: { type: ["string", "number"] },
   strokeLinecap: { type: "string" },
-  strokeLinejoin: { type: "string" }
+  strokeLinejoin: { type: "string" },
+  rotate: { type: ["string", "number"] }
 };
 
 const {
@@ -49,7 +50,8 @@ const {
   viewBox: viewBoxProp,
   strokeWidth: strokeWidthProp,
   strokeLinecap: strokeLinecapProp,
-  strokeLinejoin: strokeLinejoinProp
+  strokeLinejoin: strokeLinejoinProp,
+  rotate
 } = validateProps(schema, Astro.props, { component: "Icon" });
 
 const resolvedId = id ?? "icon-" + Math.random().toString(36).slice(2, 9);
@@ -63,7 +65,13 @@ const sizeMap = {
 const iconSize = sizeMap[String(size)] ?? sizeMap.md;
 const styleVars = {
   "--icon-size": iconSize,
-  "--icon-color": "inherit"
+  "--icon-color": "inherit",
+  "--icon-rotation": (() => {
+    if (rotate === undefined || rotate === null) return "0deg";
+    if (typeof rotate === "number" && !Number.isNaN(rotate)) return `${rotate}deg`;
+    const str = String(rotate).trim();
+    return str || "0deg";
+  })()
 };
 const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("icon", className);
@@ -129,5 +137,7 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
     color: var(--icon-color, inherit);
     width: var(--icon-size);
     height: var(--icon-size);
+    transform: rotate(var(--icon-rotation, 0deg));
+    transform-origin: center center;
   }
 </style>
