@@ -55,8 +55,8 @@ const propsTable = [
   {
     name: "autoplayInterval",
     type: "number",
-    default: "5000",
-    description: "Interval in ms between autoplay moves (must be greater than 0)."
+    default: "5",
+    description: "Interval in seconds between autoplay moves (must be greater than 0)."
   }
 ];
 
@@ -87,7 +87,7 @@ const styleVars = [
   },
   {
     name: "--photoroll-zoom",
-    default: "1.03",
+    default: "1",
     description: "Base scale applied to images for a subtle zoom-in effect."
   },
   {
@@ -189,7 +189,35 @@ ADD CLASS in-photo-roll to all <Image> in slot.
 
         <Preview title="Autoplay" code={`
 <PhotoRoll
-  orientation="vertical"
+    orientation="vertical"
+    autoplay={true}
+    autoplayInterval={5}
+    images={imagesArray}
+>
+  {data.photos.map((photo,idx) => (
+    <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
+  ))}
+</PhotoRoll>
+`}>
+      
+      <PhotoRoll
+        orientation="vertical"
+        autoplay={true}
+        autoplayInterval={5}
+        images={imagesArray}
+     />
+    </Preview>
+
+
+
+
+
+
+
+        <Preview title="Autoplay with slot" code={`
+<PhotoRoll
+    autoplay={true}
+    autoplayInterval={3}
 >
   {data.photos.map((photo,idx) => (
     <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
@@ -199,6 +227,7 @@ ADD CLASS in-photo-roll to all <Image> in slot.
       
       <PhotoRoll
         autoplay={true}
+        autoplayInterval={3}
       >
         {data.photos.map((photo,idx) => (
           <Image src={photo.url} alt={photo.description} class="in-photo-roll" /> 
@@ -216,23 +245,25 @@ ADD CLASS in-photo-roll to all <Image> in slot.
 Add class in-photo-roll 
 ************************
 
-<PhotoRoll>
-  {data.photos.map((photo,idx) => (
-      <Hero
-        title={photo.title}
-        body={photo.description}
-        img={photo.url}
-        class="in-photo-roll"
-        />
-    ))}
-    <ContactForm
-      heading = "Yes! It works with forms !" 
-      description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
+<PhotoRoll
+        style="--photoroll-zoom-active:1;"
+      >
+  {data.photos.slice(-2).map((photo,idx) => (
+    <Hero
+      title={photo.title}
+      body={photo.description}
+      img={photo.url}
       class="in-photo-roll"
       />
   ))}
+  <ContactForm
+    heading = "Yes! It works with forms !" 
+    description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
+    class="in-photo-roll"
+    />
 </PhotoRoll>`}>
       <PhotoRoll
+        style="--photoroll-zoom-active:1;"
       >
         {data.photos.slice(-2).map((photo,idx) => (
          <Hero

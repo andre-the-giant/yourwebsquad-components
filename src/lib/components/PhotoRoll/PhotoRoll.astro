@@ -23,7 +23,7 @@ const schema = {
   autoplay: { type: "boolean" },
   autoplayInterval: {
     type: "number",
-    validate: (value) => value > 0 || "autoplayInterval must be greater than 0"
+    validate: (value) => value > 0 || "autoplayInterval in seconds - must be greater than 0"
   }
 };
 
@@ -38,7 +38,7 @@ const {
   nextIconSize,
   showBullets = false,
   autoplay = false,
-  autoplayInterval = 5000,
+  autoplayInterval = 5,
   ...rest
 } = validateProps(schema, Astro.props, { component: "PhotoRoll" });
 
@@ -127,8 +127,14 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       </span>
     </button>
   )}
-  {showNextButton && (
-    <button class="photo-roll__control photo-roll__control--next" type="button" data-role="next">
+  {(showNextButton || autoplay) && (
+    <button
+      class={`photo-roll__control photo-roll__control--next ${showNextButton ? "" : "is-hidden"}`.trim()}
+      type="button"
+      data-role="next"
+      aria-hidden={showNextButton ? undefined : "true"}
+      tabindex={showNextButton ? undefined : "-1"}
+    >
       <span class="sr-only">Next slide</span>
       <Icon
         name={nextIcon}
@@ -139,7 +145,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   )}
 </section>
 
-<script is:inline>
+<script is:inline define:vars={{ autoplayInterval }}>
   function isTextInput(el) {
     if (!el || !(el instanceof HTMLElement)) return false;
     const tag = el.tagName?.toLowerCase();
@@ -169,7 +175,34 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       Array.from(track.children).filter((child) => child instanceof HTMLElement);
 
     const applyBaseSlideClass = () => {
-      getSlides().forEach((slide) => slide.classList.add("imageWrap"));
+      getSlides().forEach((slide, idx) => {
+        slide.classList.add("imageWrap");
+        if (scopeAttr && !slide.hasAttribute(scopeAttr)) slide.setAttribute(scopeAttr, "");
+        if (idx === 0 && !slide.classList.contains("is-active")) {
+          slide.classList.add("is-active");
+          activeIndex = 0;
+        }
+      });
+    };
+
+    const wrapImagesIfAllImages = () => {
+      const children = Array.from(track.children).filter((child) => child instanceof HTMLElement);
+      if (!children.length) return;
+      const isImageLike = (el) => {
+        const tag = el.tagName?.toLowerCase?.();
+        return tag === "img" || tag === "picture" || el.classList.contains("image");
+      };
+      if (!children.every((el) => el.classList.contains("imageWrap") || isImageLike(el))) return;
+      children.forEach((node) => {
+        if (!(node instanceof HTMLElement)) return;
+        if (node.classList.contains("imageWrap")) return;
+        if (!isImageLike(node)) return;
+        const wrapper = document.createElement("div");
+        wrapper.className = "imageWrap";
+        if (scopeAttr) wrapper.setAttribute(scopeAttr, "");
+        node.replaceWith(wrapper);
+        wrapper.appendChild(node);
+      });
     };
 
     let slideObserver = null;
@@ -204,13 +237,15 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     let autoplayTimer = null;
     let isPlaying = false;
     let bullets = [];
+    let activeIndex = -1;
 
-  const setActiveSlide = (activeIdx) => {
-    const slides = getSlides();
-    slides.forEach((slide, idx) => {
-      slide.classList.toggle("is-active", idx === activeIdx);
-    });
-  };
+    const setActiveSlide = (activeIdx) => {
+      const slides = getSlides();
+      activeIndex = activeIdx;
+      slides.forEach((slide, idx) => {
+        slide.classList.toggle("is-active", idx === activeIdx);
+      });
+    };
 
   const clampIndex = (index) => {
     const total = getSlides().length;
@@ -248,8 +283,12 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       updateBulletsState(targetIndex);
     };
 
-    const goNext = () => goToIndex(currentIndex() + 1);
-    const goPrev = () => goToIndex(currentIndex() - 1);
+    const goNext = () => {
+      goToIndex(currentIndex() + 1);
+    };
+    const goPrev = () => {
+      goToIndex(currentIndex() - 1);
+    };
 
     function buildBullets() {
       if (!(bulletsEl instanceof HTMLElement)) return;
@@ -278,30 +317,13 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       updateBulletsState();
     }
 
-  function updateBulletsState(activeOverride) {
-    if (!bullets.length) return;
-    const activeIdx = typeof activeOverride === "number" ? activeOverride : currentIndex();
-    bullets.forEach((btn, idx) => {
-      btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
-    });
-    if (activeIdx >= 0) setActiveSlide(activeIdx);
-  }
-
-    function startAutoplay() {
-      if (!autoplayButton) return;
-      if (autoplayTimer) clearInterval(autoplayTimer);
-      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-      if (reduceMotion) {
-        isPlaying = false;
-        setAutoplayVisualState("paused");
-        return;
-      }
-      isPlaying = true;
-      setAutoplayVisualState("playing");
-      autoplayTimer = setInterval(() => {
-        if (!isPlaying) return;
-        goNext();
-      }, autoplayInterval);
+    function updateBulletsState(activeOverride) {
+      if (!bullets.length) return;
+      const activeIdx = typeof activeOverride === "number" ? activeOverride : currentIndex();
+      bullets.forEach((btn, idx) => {
+        btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+      });
+      if (activeIdx >= 0) setActiveSlide(activeIdx);
     }
 
     function stopAutoplayTimer() {
@@ -319,6 +341,26 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       if (labelEl) labelEl.textContent = state === "playing" ? "Pause autoplay" : "Play autoplay";
     }
 
+    function startAutoplay() {
+      if (!autoplayButton) return;
+      stopAutoplayTimer();
+      isPlaying = true;
+      setAutoplayVisualState("playing");
+      const idx = currentIndex();
+      setActiveSlide(idx >= 0 ? idx : 0);
+      const intervalMs = Math.max(Number(autoplayInterval*1000) || 0, 1);
+      const tick = () => {
+        if (!isPlaying) return;
+        if (nextButton instanceof HTMLElement) {
+          nextButton.click();
+        } else {
+          goNext();
+        }
+      };
+      autoplayTimer = setInterval(tick, intervalMs);
+      tick();
+    }
+
     function pauseAutoplay() {
       isPlaying = false;
       stopAutoplayTimer();
@@ -327,18 +369,22 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
 
     function resumeAutoplay() {
       if (!autoplayButton) return;
-      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-      if (reduceMotion) {
-        pauseAutoplay();
-        return;
-      }
+      stopAutoplayTimer();
       isPlaying = true;
       setAutoplayVisualState("playing");
-      stopAutoplayTimer();
-      autoplayTimer = setInterval(() => {
+      const idx = currentIndex();
+      setActiveSlide(idx >= 0 ? idx : 0);
+      const intervalMs = Math.max(Number(autoplayInterval*1000) || 0, 1);
+      const tick = () => {
         if (!isPlaying) return;
-        goNext();
-      }, autoplayInterval);
+        if (nextButton instanceof HTMLElement) {
+          nextButton.click();
+        } else {
+          goNext();
+        }
+      };
+      autoplayTimer = setInterval(tick, intervalMs);
+      tick();
     }
 
     const handleKeydown = (event) => {
@@ -385,15 +431,21 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       });
     }
 
+    // prepare slides before wiring controls
+    wrapImagesIfAllImages();
+    applyBaseSlideClass();
+    observeSlides();
+    setActiveSlide(currentIndex());
+
     if (bulletsEl instanceof HTMLElement) {
       buildBullets();
       const observer = new MutationObserver(() => {
+        wrapImagesIfAllImages();
         applyBaseSlideClass();
         buildBullets();
         observeSlides();
       });
       observer.observe(track, { childList: true });
-      observeSlides();
       track.addEventListener(
         "scroll",
         () => {
@@ -415,11 +467,6 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       });
       startAutoplay();
     }
-
-    applyBaseSlideClass();
-    observeSlides();
-    // set initial active slide
-    setActiveSlide(currentIndex());
 
     roll.dataset.bound = "true";
   }
@@ -463,15 +510,15 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     scroll-snap-type: y mandatory;
   }
 
-  .photo-roll[data-scroll="horizontal"] .photo-roll__track > * {
+  .photo-roll[data-scroll="horizontal"] .photo-roll__track .imageWrap {
     min-width: 100%;
   }
 
-  .photo-roll[data-scroll="vertical"] .photo-roll__track > * {
+  .photo-roll[data-scroll="vertical"] .photo-roll__track .imageWrap {
     min-height: 100%;
   }
 
-  .photo-roll__track > * {
+  .photo-roll__track .imageWrap {
     flex-shrink: 0;
     width: 100%;
     height: 100%;
@@ -483,7 +530,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     transform-origin: center center;
   }
 
-  .photo-roll__track > *.is-active {
+  .photo-roll__track .imageWrap.is-active {
     filter: brightness(var(--photoroll-bright));
   }
 
@@ -500,8 +547,8 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     animation: none;
   }
 
-  .photo-roll__track > *.is-active img,
-  .photo-roll__track > *.is-active .image {
+  .photo-roll__track .imageWrap.is-active,
+  .photo-roll__track .imageWrap.is-active {
     animation: photoroll-zoom var(--photoroll-zoom-duration) ease-in-out forwards;
     filter: var(--photoroll-glow);
   }
@@ -582,6 +629,12 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     right: var(--photoroll-control-offset);
     top: 50%;
     transform: translateY(-10%);
+  }
+
+  .photo-roll__control--next.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
   }
 
   .photo-roll__control--autoplay {
