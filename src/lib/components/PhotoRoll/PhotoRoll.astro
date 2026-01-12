@@ -349,6 +349,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
             btn.addEventListener("click", (event) => {
               event.preventDefault();
               goToIndex(targetIdx);
+              resetAutoplayInterval();
             });
           }
         });
@@ -375,6 +376,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
         btn.addEventListener("click", (event) => {
           event.preventDefault();
           goToIndex(idx);
+          resetAutoplayInterval();
         });
         bulletsEl.appendChild(btn);
         return btn;
@@ -399,6 +401,32 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       }
     }
 
+    const runAutoplayTick = () => {
+      if (!isPlaying) return;
+      if (nextButton instanceof HTMLElement) {
+        nextButton.click();
+      } else {
+        goNext();
+      }
+    };
+
+    function scheduleAutoplayTimer(options = {}) {
+      const { immediate = false } = options;
+      if (!autoplayButton) return;
+      stopAutoplayTimer();
+      if (!isPlaying) return;
+      const idx = currentIndex();
+      setActiveSlide(idx >= 0 ? idx : 0);
+      const intervalMs = Math.max(Number(autoplayInterval * 1000) || 0, 1);
+      autoplayTimer = setInterval(runAutoplayTick, intervalMs);
+      if (immediate) runAutoplayTick();
+    }
+
+    function resetAutoplayInterval() {
+      if (!isPlaying) return;
+      scheduleAutoplayTimer({ immediate: false });
+    }
+
     function setAutoplayVisualState(state) {
       if (!autoplayButton) return;
       autoplayButton.dataset.state = state;
@@ -412,19 +440,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       stopAutoplayTimer();
       isPlaying = true;
       setAutoplayVisualState("playing");
-      const idx = currentIndex();
-      setActiveSlide(idx >= 0 ? idx : 0);
-      const intervalMs = Math.max(Number(autoplayInterval * 1000) || 0, 1);
-      const tick = () => {
-        if (!isPlaying) return;
-        if (nextButton instanceof HTMLElement) {
-          nextButton.click();
-        } else {
-          goNext();
-        }
-      };
-      autoplayTimer = setInterval(tick, intervalMs);
-      tick();
+      scheduleAutoplayTimer({ immediate: true });
     }
 
     function pauseAutoplay() {
@@ -438,19 +454,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       stopAutoplayTimer();
       isPlaying = true;
       setAutoplayVisualState("playing");
-      const idx = currentIndex();
-      setActiveSlide(idx >= 0 ? idx : 0);
-      const intervalMs = Math.max(Number(autoplayInterval * 1000) || 0, 1);
-      const tick = () => {
-        if (!isPlaying) return;
-        if (nextButton instanceof HTMLElement) {
-          nextButton.click();
-        } else {
-          goNext();
-        }
-      };
-      autoplayTimer = setInterval(tick, intervalMs);
-      tick();
+      scheduleAutoplayTimer({ immediate: true });
     }
 
     const handleKeydown = (event) => {
@@ -464,21 +468,25 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       if (key === "ArrowRight" || key === "ArrowDown") {
         event.preventDefault();
         goNext();
+        resetAutoplayInterval();
         return;
       }
       if (key === "ArrowLeft" || key === "ArrowUp") {
         event.preventDefault();
         goPrev();
+        resetAutoplayInterval();
         return;
       }
       if (key === "Home") {
         event.preventDefault();
         goToIndex(0);
+        resetAutoplayInterval();
         return;
       }
       if (key === "End") {
         event.preventDefault();
         goToIndex(getSlides().length - 1);
+        resetAutoplayInterval();
         return;
       }
       if (key === " " || key === "Spacebar") {
@@ -494,6 +502,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       nextButton.addEventListener("click", (event) => {
         event.preventDefault();
         goNext();
+        if (event.isTrusted) resetAutoplayInterval();
       });
     }
 
