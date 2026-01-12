@@ -117,22 +117,20 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   {
     showBullets && (
       <div class="photo-roll__bullets" data-role="bullets">
-        {
-          hasImages
-            ? resolvedImages.map((photo, idx) => (
-                <button
-                  type="button"
-                  class="photo-roll__bullet"
-                  data-role="bullet"
-                  data-index={idx}
-                  aria-current={idx === 0 ? "true" : "false"}
-                  aria-label={`Go to slide ${idx + 1} of ${resolvedImages.length}`}
-                >
-                  <span aria-hidden="true" class="photo-roll__bullet-dot" data-role="dot" />
-                </button>
-              ))
-            : null
-        }
+        {hasImages
+          ? resolvedImages.map((photo, idx) => (
+              <button
+                type="button"
+                class="photo-roll__bullet"
+                data-role="bullet"
+                data-index={idx}
+                aria-current={idx === 0 ? "true" : "false"}
+                aria-label={`Go to slide ${idx + 1} of ${resolvedImages.length}`}
+              >
+                <span aria-hidden="true" class="photo-roll__bullet-dot" data-role="dot" />
+              </button>
+            ))
+          : null}
       </div>
     )
   }
