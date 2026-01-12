@@ -97,6 +97,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   class={resolvedClass}
   data-scroll={resolvedScroll}
   data-chrome={hasChrome ? "true" : undefined}
+  data-images-prop={hasImages ? "true" : undefined}
   style={resolvedStyle || undefined}
   {...rest}
 >
@@ -116,9 +117,22 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   {
     showBullets && (
       <div class="photo-roll__bullets" data-role="bullets">
-        <div class="photo-roll__bullet">
-          <div class="photo-roll__bullet-dot" />
-        </div>
+        {
+          hasImages
+            ? resolvedImages.map((photo, idx) => (
+                <button
+                  type="button"
+                  class="photo-roll__bullet"
+                  data-role="bullet"
+                  data-index={idx}
+                  aria-current={idx === 0 ? "true" : "false"}
+                  aria-label={`Go to slide ${idx + 1} of ${resolvedImages.length}`}
+                >
+                  <span aria-hidden="true" class="photo-roll__bullet-dot" data-role="dot" />
+                </button>
+              ))
+            : null
+        }
       </div>
     )
   }
@@ -186,6 +200,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     const scopeAttr = Array.from(roll.attributes).find((attr) =>
       attr.name.startsWith("data-astro-cid")
     )?.name;
+    const usesImagesProp = roll.dataset.imagesProp === "true";
 
     const getSlides = () =>
       Array.from(track.children).filter((child) => child instanceof HTMLElement);
@@ -309,37 +324,72 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     function buildBullets() {
       if (!(bulletsEl instanceof HTMLElement)) return;
       const slides = getSlides();
+      if (!slides.length) return;
       const activeIdx = currentIndex();
-      if (bullets.length !== slides.length) {
-        bulletsEl.innerHTML = "";
-        bullets = slides.map((_, idx) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "photo-roll__bullet";
-          if (scopeAttr) btn.setAttribute(scopeAttr, "");
-          btn.dataset.index = String(idx);
+      const totalSlides = slides.length;
+
+      if (usesImagesProp) {
+        bullets = Array.from(bulletsEl.querySelectorAll('[data-role="bullet"]')).filter(
+          (btn) => btn instanceof HTMLElement
+        );
+        bullets.forEach((btn, idx) => {
+          const targetIdx = Number(btn.dataset.index ?? idx);
+          btn.dataset.index = String(targetIdx);
           btn.dataset.role = "bullet";
-          btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
-          btn.setAttribute("aria-label", `Go to slide ${idx + 1} of ${slides.length}`);
-          const dot = document.createElement("span");
-          dot.setAttribute("aria-hidden", "true");
-          dot.className = "photo-roll__bullet-dot";
-          dot.dataset.role = "dot";
-          if (scopeAttr) dot.setAttribute(scopeAttr, "");
-          btn.appendChild(dot);
-          btn.addEventListener("click", () => goToIndex(idx));
-          bulletsEl.appendChild(btn);
-          return btn;
+          btn.setAttribute("aria-label", `Go to slide ${targetIdx + 1} of ${totalSlides}`);
+          btn.setAttribute("aria-current", targetIdx === activeIdx ? "true" : "false");
+          if (scopeAttr && !btn.hasAttribute(scopeAttr)) btn.setAttribute(scopeAttr, "");
+          if (btn instanceof HTMLButtonElement) btn.type = "button";
+          const dot = btn.querySelector('[data-role="dot"]');
+          if (dot instanceof HTMLElement) {
+            dot.setAttribute("aria-hidden", "true");
+            dot.classList.add("photo-roll__bullet-dot");
+            if (scopeAttr && !dot.hasAttribute(scopeAttr)) dot.setAttribute(scopeAttr, "");
+          }
+          if (btn.dataset.clickBound !== "true") {
+            btn.dataset.clickBound = "true";
+            btn.addEventListener("click", (event) => {
+              event.preventDefault();
+              goToIndex(targetIdx);
+            });
+          }
         });
+        updateBulletsState(activeIdx);
+        return;
       }
-      updateBulletsState();
+
+      bulletsEl.innerHTML = "";
+      bullets = slides.map((_, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "photo-roll__bullet";
+        if (scopeAttr) btn.setAttribute(scopeAttr, "");
+        btn.dataset.index = String(idx);
+        btn.dataset.role = "bullet";
+        btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+        btn.setAttribute("aria-label", `Go to slide ${idx + 1} of ${totalSlides}`);
+        const dot = document.createElement("span");
+        dot.setAttribute("aria-hidden", "true");
+        dot.className = "photo-roll__bullet-dot";
+        dot.dataset.role = "dot";
+        if (scopeAttr) dot.setAttribute(scopeAttr, "");
+        btn.appendChild(dot);
+        btn.addEventListener("click", (event) => {
+          event.preventDefault();
+          goToIndex(idx);
+        });
+        bulletsEl.appendChild(btn);
+        return btn;
+      });
+      updateBulletsState(activeIdx);
     }
 
     function updateBulletsState(activeOverride) {
       if (!bullets.length) return;
       const activeIdx = typeof activeOverride === "number" ? activeOverride : currentIndex();
       bullets.forEach((btn, idx) => {
-        btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
+        const targetIdx = Number(btn.dataset.index ?? idx);
+        btn.setAttribute("aria-current", targetIdx === activeIdx ? "true" : "false");
       });
       if (activeIdx >= 0) setActiveSlide(activeIdx);
     }
