@@ -124,5 +124,11 @@ export const components = [
     href: "/components/components/photo-roll",
     description: "A component to display images and scroll through them",
     group: "components"
+  },
+  {
+    name: "Map",
+    href: "/components/components/map",
+    description: "Display a google map centered on a google business",
+    group: "components"
   }
 ];

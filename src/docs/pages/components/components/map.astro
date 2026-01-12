@@ -1,0 +1,70 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Map from "@lib/components/Map/Map.astro";
+
+const propsTable = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Additional CSS style." },
+  {
+    name: "url",
+    type: "string",
+    description: "URL of the embed you get on google maps from the business."
+  }
+];
+const styleVars = [
+  {
+    name: "--map-filter",
+    default: "none",
+    description: "Filter applied to the map. ex: grayscale(20%) invert(95%) or hue-rotate(280deg)."
+  }
+];
+const defaultCode = "<Map />";
+const customCode = '<Map id="map-sample" />';
+---
+
+<DocLayout
+  title="Map"
+  description="Display a google map centered on a google business"
+  items={components}
+>
+  <PropsTable props={propsTable} />
+  <PropsTable title="Style variables" props={styleVars} />
+  <div class="preview-grid">
+    <Preview title="Default" code={defaultCode}>
+      <div style="height:400px;width:100%;">
+        <Map />
+      </div>
+    </Preview>
+
+    <Preview
+      title="Custom"
+      code={`
+<div style="height:600px; width:600px">
+  <Map 
+    id="map-sample" 
+    style="--map-filter: grayscale(100%)" 
+    url="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d177814.68864947787!2d-79.3921185366832!3d43.766183522472616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4d1ced7d01537%3A0xbb3bd663cc867ed7!2sluna%20dental%20lab!5e0!3m2!1sen!2sca!4v1600044637998!5m2!1sen!2sca"
+  />
+</div>`}
+    >
+      <div style="height:600px; width:600px">
+        <Map
+          id="map-sample"
+          style="--map-filter: grayscale(100%)"
+          url="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d177814.68864947787!2d-79.3921185366832!3d43.766183522472616!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4d1ced7d01537%3A0xbb3bd663cc867ed7!2sluna%20dental%20lab!5e0!3m2!1sen!2sca!4v1600044637998!5m2!1sen!2sca"
+        />
+      </div>
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+/*
+Props:
+- title?: string // TODO: document props
+- content?: { shape }
+Notes:
+- Update schema + props to match your component API.
+*/
+import { validateProps } from "../../utils/props.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  url: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  url,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Map" });
+
+const resolvedId = id ?? "map-" + Math.random().toString(36).slice(2, 9);
+const styleVars = {
+  "--map-filter": "blur(1px)"
+};
+
+const inlineStyle = Object.entries(styleVars)
+  .filter(([, value]) => value !== undefined)
+  .map(([key, value]) => key + ": " + value)
+  .join("; ");
+
+const resolvedStyle = [inlineStyle, style].filter(Boolean).join("; ");
+const resolvedClass = `map ${className ?? ""}`.trim();
+const resolvedUrl =
+  url ??
+  "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d921409.5295789742!2d-77.56507788132775!3d44.187330791764865!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6dc35a555395012f%3A0x6dbb25de539e7453!2sYour%20Web%20Squad%20Ltd.!5e1!3m2!1sen!2sca!4v1768249199163!5m2!1sen!2sca";
+---
+
+<iframe
+  id={resolvedId}
+  class={resolvedClass}
+  style={resolvedStyle || undefined}
+  src={resolvedUrl}
+  allowfullscreen=""
+  aria-hidden="false"
+  tabindex="-1"
+  {...rest}></iframe>
+
+<style>
+  .map {
+    border: 0;
+    filter: var(--map-filter);
+    width: 100%;
+    height: 100%;
+  }
+</style>
