@@ -310,11 +310,13 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
           btn.className = "photo-roll__bullet";
           if (scopeAttr) btn.setAttribute(scopeAttr, "");
           btn.dataset.index = String(idx);
+          btn.dataset.role = "bullet";
           btn.setAttribute("aria-current", idx === activeIdx ? "true" : "false");
           btn.setAttribute("aria-label", `Go to slide ${idx + 1} of ${slides.length}`);
           const dot = document.createElement("span");
           dot.setAttribute("aria-hidden", "true");
           dot.className = "photo-roll__bullet-dot";
+          dot.dataset.role = "dot";
           if (scopeAttr) dot.setAttribute(scopeAttr, "");
           btn.appendChild(dot);
           btn.addEventListener("click", () => goToIndex(idx));
@@ -688,7 +690,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
   }
 
-  [data-role="bullets"] .photo-roll__bullet {
+[data-role="bullets"] [data-role="bullet"] {
     width: calc(var(--photoroll-bullet-size) + 6px);
     height: calc(var(--photoroll-bullet-size) + 6px);
     border-radius: 50%;
@@ -707,7 +709,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       opacity 140ms ease;
   }
 
-  [data-role="bullets"] .photo-roll__bullet-dot {
+  [data-role="bullet"] [data-role="dot"] {
     width: var(--photoroll-bullet-size);
     height: var(--photoroll-bullet-size);
     border-radius: 50%;
@@ -716,7 +718,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
   }
 
-  [data-role="bullets"] .photo-roll__bullet[aria-current="true"] {
+  [data-role="bullets"] [data-role="bullet"][aria-current="true"] {
     transform: scale(1.1);
     box-shadow:
       0 0 0 6px rgba(255, 255, 255, 0.1),
@@ -724,12 +726,12 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     background: transparent;
   }
 
-  [data-role="bullets"] .photo-roll__bullet[aria-current="true"] .photo-roll__bullet-dot {
+  [data-role="bullets"] [data-role="bullet"][aria-current="true"] [data-role="dot"] {
     background: var(--photoroll-bullet-active-color);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
   }
 
-  [data-role="bullets"] .photo-roll__bullet:focus-visible {
+  [data-role="bullets"] [data-role="bullet"]:focus-visible {
     outline: 2px solid white;
     outline-offset: 2px;
   }
