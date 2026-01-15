@@ -4,38 +4,84 @@ import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import Form from "@lib/components/Form/Form.astro";
-import FormInput from "@lib/components/Form-Input/Form-Input.astro";
-import FormSelect from "@lib/components/Form-Select/Form-Select.astro";
-import FormDate from "@lib/components/Form-Date/Form-Date.astro";
-import FormHelp from "@lib/components/Form-Help/Form-Help.astro";
-import FormError from "@lib/components/Form-Error/Form-Error.astro";
-import FormHidden from "@lib/components/Form-Hidden/Form-Hidden.astro";
 
-import countryOptions from "@docs/data/countries-list.json";
+const basicCode = `<Form formId="contact" locale="en" />`;
 
-const basicCode = `<Form action="/api/contact" method="post">
+const integrationSnippet = `import { defineConfig } from "astro/config";
+import yourwebsquadForms from "yourwebsquad-components/forms-integration";
 
-  <FormInput
-    label="Email"
-    id="contact-email"
-    placeholder="you@example.com"
-    name="email"
-    type="email"
-    required
-  />
+export default defineConfig({
+  outDir: "build",
+  integrations: [yourwebsquadForms()]
+});`;
 
-</Form>`;
+const contentSnippet = `// src/content/config.ts
+import { defineCollection, z } from "astro:content";
 
-const sampleErrors = {
-  email: "Email is required",
-  country: "Pick a country"
-};
-const sampleGlobalErrors = ["Please correct the fields below."];
+const option = z.object({
+  value: z.string(),
+  label: z.union([z.string(), z.record(z.string(), z.string())])
+});
+
+const forms = defineCollection({
+  type: "data",
+  schema: z.object({
+    id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    title: z.union([z.string(), z.record(z.string(), z.string())]),
+    endpoint: z.string().optional(),
+    fields: z.array(
+      z.object({
+        name: z.string(),
+        label: z.union([z.string(), z.record(z.string(), z.string())]),
+        type: z.enum(["text","email","textarea","tel","number","checkbox","radio","select","date","hidden"]),
+        required: z.boolean().default(false),
+        options: z.array(option).optional()
+      })
+    ),
+    email: z.object({
+      to: z.union([z.string().email(), z.array(z.string().email())]),
+      subject: z.union([z.string(), z.record(z.string(), z.string())]),
+      intro: z.union([z.string(), z.record(z.string(), z.string())]).optional()
+    })
+  })
+});
+
+export const collections = { forms };`;
+
+const sampleForm = `{
+  "id": "contact",
+  "title": { "en": "Contact us" },
+  "endpoint": "/api/contact/",
+  "fields": [
+    { "name": "name", "label": { "en": "Name" }, "type": "text", "required": true },
+    { "name": "email", "label": { "en": "Email" }, "type": "email", "required": true },
+    { "name": "service", "label": { "en": "Service" }, "type": "select", "required": true,
+      "options": [
+        { "value": "website", "label": { "en": "Website" } },
+        { "value": "seo", "label": { "en": "SEO" } }
+      ]
+    },
+    { "name": "message", "label": { "en": "Message" }, "type": "textarea", "required": true },
+    { "name": "middle_name", "label": { "en": "Leave blank" }, "type": "hidden" }
+  ],
+  "email": {
+    "to": ["hello@example.com"],
+    "subject": { "en": "New inquiry from \${name}" },
+    "intro": { "en": "Contact form submission" },
+    "replyToField": "email"
+  },
+  "security": {
+    "honeypot": { "name": "middle_name", "enabled": true },
+    "rateLimit": { "max": 5, "windowSeconds": 60 }
+  }
+}`;
 
 const props = [
-  { name: "id", type: "string", description: "Optional form id (auto-generated if omitted)." },
-  { name: "action", type: "string", description: "Form action URL." },
-  { name: "method", type: `"get" | "post"`, default: '"post"', description: "HTTP method." },
+  { name: "formId", type: "string", description: "Id of the form entry from the `forms` content collection." },
+  { name: "form", type: "object", description: "Pre-resolved form object (bypasses content collection lookup)." },
+  { name: "locale", type: "string", description: "Locale key to resolve localized labels/placeholders." },
+  { name: "id", type: "string", description: "Optional HTML id (auto-generated if omitted)." },
+  { name: "action", type: "string", description: "Override form endpoint (defaults to form.endpoint)." },
   { name: "target", type: "string", description: "Form target (e.g., _blank)." },
   { name: "enctype", type: "string", description: "Encoding type." },
   {
@@ -89,53 +135,38 @@ const props = [
     default: "false",
     description: "Disable reset button."
   },
-  {
-    name: "errors",
-    type: "Record<string, string | string[]>",
-    default: "{}",
-    description: "Field error map for summary display."
-  },
-  {
-    name: "globalErrors",
-    type: "string[]",
-    default: "[]",
-    description: "Non-field errors for summary."
-  },
-  {
-    name: "showErrorSummary",
-    type: "boolean",
-    default: "true",
-    description: "Toggle error summary rendering."
-  },
-  {
-    name: "errorSummaryTitle",
-    type: "string",
-    default: '"Please fix the following errors:"',
-    description: "Heading for summary block."
-  },
   { name: "class", type: "string", description: "Additional className for form." }
 ];
 ---
 
 <DocLayout
   title="Form"
-  description="Form wrapper that manages submit behavior, prevents Enter submits by default, and renders an error summary. Includes Send and Reset buttons by default."
+  description="Schema-driven form wrapper that renders fields from the forms content collection, prevents Enter submits by default, and includes Send and Reset buttons."
   items={components}
 >
   <PropsTable props={props} />
 
   <Preview title="Basic form" code={basicCode}>
     <div class="column">
-      <Form action="/api/contact" method="post">
-        <FormInput
-          label="Email"
-          id="contact-email"
-          placeholder="you@example.com"
-          name="email"
-          type="email"
-          required
-        />
-      </Form>
+      <Form formId="contact" />
+    </div>
+  </Preview>
+
+  <Preview title="Setup: Astro config" code={integrationSnippet} lang="js">
+    <div class="column">
+      <p>Add the forms integration to generate PHP endpoints during <code>astro build</code>.</p>
+    </div>
+  </Preview>
+
+  <Preview title="Setup: Content collection" code={contentSnippet} lang="ts">
+    <div class="column">
+      <p>Define the <code>forms</code> collection (JSON data) in your project.</p>
+    </div>
+  </Preview>
+
+  <Preview title="Sample form entry" code={sampleForm} lang="json">
+    <div class="column">
+      <p>Place JSON files in <code>src/content/forms/</code>. Build will emit <code>/build/api/&lt;id&gt;/index.php</code>.</p>
     </div>
   </Preview>
 

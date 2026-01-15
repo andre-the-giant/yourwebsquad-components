@@ -2,12 +2,27 @@
 import { validateProps } from "../../utils/props.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Button from "../Button/Button.astro";
+import FormInput from "../Form-Input/index.astro";
+import FormTextarea from "../Form-Textarea/index.astro";
+import FormSelect from "../Form-Select/index.astro";
+import FormCheckbox from "../Form-Checkbox/index.astro";
+import FormRadio from "../Form-Radio/index.astro";
+import FormDate from "../Form-Date/index.astro";
+import FormHidden from "../Form-Hidden/index.astro";
+import FormFieldset from "../Form-Fieldset/index.astro";
+import FormError from "../Form-Error/index.astro";
+import FormHelp from "../Form-Help/index.astro";
+import Alert from "../Alert/index.astro";
+import { loadFormDefinition } from "../../forms/loader.js";
+import { resolveLocalized } from "../../forms/schema.js";
 
 /*
 Props:
+- formId?: string          // preferred: id of form in content collection
+- form?: object            // pre-resolved form definition
+- locale?: string          // locale key to resolve localized strings
 - id?: string
-- action?: string
-- method?: "get" | "post"
+- action?: string          // overrides form endpoint
 - target?: string
 - enctype?: string
 - novalidate?: boolean       // defaults true to avoid native browser bubbles
@@ -21,21 +36,19 @@ Props:
 - resetVariant?: "solid" | "outline" | "ghost"
 - resetSize?: "sm" | "md" | "lg"
 - resetDisabled?: boolean
-- errors?: Record<string, string | string[]>
-- globalErrors?: Array<string>
-- showErrorSummary?: boolean
-- errorSummaryTitle?: string
 - validateOnSubmit?: boolean
 - class?: string
 - style?: string
 */
 
 const schema = {
+  formId: { type: "string" },
+  form: { type: "object" },
+  locale: { type: "string" },
   id: { type: "string" },
   class: { type: "string" },
   style: { type: "string" },
   action: { type: "string" },
-  method: { type: "string" },
   target: { type: "string" },
   enctype: { type: "string" },
   novalidate: { type: "boolean" },
@@ -49,19 +62,17 @@ const schema = {
   resetVariant: { type: "string" },
   resetSize: { type: "string" },
   resetDisabled: { type: "boolean" },
-  errors: { type: "object" },
-  globalErrors: { type: "array" },
-  showErrorSummary: { type: "boolean" },
-  errorSummaryTitle: { type: "string" },
   validateOnSubmit: { type: "boolean" }
 };
 
 const {
+  formId,
+  form,
+  locale,
   id,
   class: className,
   style,
-  action,
-  method = "post",
+  action: actionProp,
   target,
   enctype,
   novalidate = true,
@@ -75,140 +86,383 @@ const {
   resetVariant = "outline",
   resetSize = "md",
   resetDisabled = false,
-  errors = {},
-  globalErrors = [],
-  showErrorSummary = true,
-  errorSummaryTitle = "Please fix the following errors:",
   validateOnSubmit = true,
   ...rest
 } = validateProps(schema, Astro.props, { component: "Form" });
 
-const formId = id ?? `form-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedMethod = method?.toLowerCase?.() ?? "post";
+let normalizedForm = null;
+if (formId || form) {
+  normalizedForm = await loadFormDefinition({ formId, form });
+}
 
-const entries = Object.entries(errors || {}).filter(
-  ([, value]) => value !== undefined && value !== null
-);
-const normalizeArray = (value) =>
-  Array.isArray(value) ? value : value !== undefined && value !== null ? [value] : [];
-const fieldErrors = entries.flatMap(([field, value]) =>
-  normalizeArray(value).map((msg) => ({ field, msg: String(msg) }))
-);
-const globalErrorList = normalizeArray(globalErrors).map((msg) => String(msg));
-const hasErrors = globalErrorList.length + fieldErrors.length > 0;
-const summaryId = `${formId}-error-summary`;
-const summaryListId = `${summaryId}-list`;
+const formHtmlId =
+  id ?? (normalizedForm?.id ? `form-${normalizedForm.id}` : `form-${Math.random().toString(36).slice(2, 9)}`);
+const resolvedAction = actionProp ?? normalizedForm?.endpoint;
+const resolvedTitle = normalizedForm ? resolveLocalized(normalizedForm.title, locale) : undefined;
+
+const honeypotConfig = normalizedForm?.security?.honeypot;
+const includeHoneypot = honeypotConfig?.enabled !== false && Boolean(honeypotConfig?.name);
+const honeypotName = (honeypotConfig?.name || "middle_name").trim();
+const honeypotLabel = resolveLocalized(honeypotConfig?.label, locale) || "Please leave this field blank";
+const honeypotId = `${formHtmlId}-${honeypotName}`;
+
+const fieldErrorMap = new Map();
 
 const styleVars = {};
 const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("form", className);
+const ariaMap = new Map();
+const nextId = (prefix) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+
+function registerField(name) {
+  if (!ariaMap.has(name)) {
+    ariaMap.set(name, { helpId: nextId(`help-${name}`), errorId: nextId(`error-${name}`) });
+  }
+  return ariaMap.get(name);
+}
+
+const formFields = normalizedForm?.fields ?? [];
 ---
 
-<form
-  id={formId}
-  class={resolvedClass}
-  action={action}
-  method={resolvedMethod}
-  target={target}
-  enctype={enctype}
-  novalidate={novalidate ? true : undefined}
-  data-validate={validateOnSubmit ? "true" : "false"}
-  data-prevent-enter={preventEnterSubmit ? "true" : undefined}
-  style={resolvedStyle || undefined}
-  {...rest}
->
-  {
-    showErrorSummary ? (
-      <div
-        class={`form-error-summary ${hasErrors ? "" : "is-hidden"}`.trim()}
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-        tabindex="-1"
-        id={summaryId}
-        data-error-summary
-        hidden={!hasErrors}
-      >
-        <p class="summary-title" data-summary-title>
-          {errorSummaryTitle}
-        </p>
-        <ul id={summaryListId} data-error-list>
-          {globalErrorList.map((err) => (
-            <li>{err}</li>
-          ))}
-          {fieldErrors.map(({ field, msg }) => (
-            <li>
-              {field ? <strong>{field}:</strong> : null} {msg}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ) : null
-  }
+<div class="form-wrapper" data-form-wrapper>
+  <div class="form-alerts">
+    <Alert
+      type="warning"
+      tone="soft"
+      title="Please fix the highlighted fields"
+      class="form-alert is-hidden"
+      data-alert="client"
+      hidden
+    >
+      <ul data-alert-list="client"></ul>
+    </Alert>
 
-  <div class="form-body">
-    <slot />
+    <Alert
+      type="error"
+      tone="soft"
+      title="Something went wrong"
+      class="form-alert is-hidden"
+      data-alert="server"
+      hidden
+    >
+      <ul data-alert-list="server">
+        {null}
+      </ul>
+    </Alert>
+
+    <Alert
+      type="success"
+      tone="soft"
+      title="Success"
+      class="form-alert is-hidden"
+      data-alert="success"
+      hidden
+    >
+      <p data-alert-message="success">Thanks! Your message was sent.</p>
+    </Alert>
   </div>
 
-  <div class="form-actions">
-    {
-      showReset ? (
-        <slot name="reset">
-          <Button type="reset" variant={resetVariant} size={resetSize} disabled={resetDisabled}>
-            {resetLabel}
-          </Button>
-        </slot>
-      ) : null
-    }
+  <form
+    id={formHtmlId}
+    class={resolvedClass}
+    action={resolvedAction}
+    method="post"
+    target={target}
+    enctype={enctype}
+    novalidate={novalidate ? true : undefined}
+    data-validate={validateOnSubmit ? "true" : "false"}
+    data-prevent-enter={preventEnterSubmit ? "true" : undefined}
+    style={resolvedStyle || undefined}
+    {...rest}
+  >
+    {resolvedTitle ? <h3 class="form-title">{resolvedTitle}</h3> : null}
 
-    <slot name="submit">
-      <Button type="submit" variant={submitVariant} size={submitSize} disabled={submitDisabled}>
-        {submitLabel}
-      </Button>
-    </slot>
-  </div>
-</form>
+    <div class="form-body">
+      {
+        includeHoneypot ? (
+          <div class="form-honeypot" aria-hidden="true">
+            <FormInput
+              id={honeypotId}
+              name={honeypotName}
+              label={honeypotLabel}
+              ariaLabel={honeypotLabel}
+              tabindex="-1"
+            />
+          </div>
+        ) : null
+      }
+      {formFields.length > 0 ? (
+        formFields.map((field) => {
+          const help = registerField(field.name);
+          const shared = {
+            name: field.name,
+            required: field.required,
+            ariaDescribedBy: [help.helpId, help.errorId].join(" ").trim() || undefined,
+            ariaInvalid: fieldErrorMap.has(field.name) ? true : undefined
+          };
+
+          const localizedLabel = resolveLocalized(field.label, locale);
+          const localizedPlaceholder = resolveLocalized(field.placeholder, locale);
+          const validationAttrs = {
+            maxLength: field.maxLength,
+            minLength: field.minLength,
+            pattern: field.pattern
+          };
+
+          if (field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number") {
+            return (
+              <div class="form-field-block">
+                <FormInput
+                  label={localizedLabel}
+                  type={field.type === "text" ? "text" : field.type}
+                  placeholder={localizedPlaceholder}
+                  value={field.defaultValue}
+                  helpId={help.helpId}
+                  errorId={help.errorId}
+                  {...shared}
+                  {...validationAttrs}
+                />
+                <FormHelp id={help.helpId} />
+                <FormError id={help.errorId} data-field-error={field.name}>
+                  {fieldErrorMap.get(field.name)?.join(" ")}
+                </FormError>
+              </div>
+            );
+          }
+
+          if (field.type === "textarea") {
+            return (
+              <div class="form-field-block">
+                <FormTextarea
+                  label={localizedLabel}
+                  placeholder={localizedPlaceholder}
+                  value={field.defaultValue}
+                  helpId={help.helpId}
+                  errorId={help.errorId}
+                  {...shared}
+                  {...validationAttrs}
+                />
+                <FormHelp id={help.helpId} />
+                <FormError id={help.errorId} data-field-error={field.name}>
+                  {fieldErrorMap.get(field.name)?.join(" ")}
+                </FormError>
+              </div>
+            );
+          }
+
+          if (field.type === "select") {
+            return (
+              <div class="form-field-block">
+                <FormSelect
+                  label={localizedLabel}
+                  options={(field.options || []).map((opt) => ({
+                    ...opt,
+                    label: resolveLocalized(opt.label, locale)
+                  }))}
+                  placeholder={localizedPlaceholder}
+                  value={field.defaultValue}
+                  helpId={help.helpId}
+                  errorId={help.errorId}
+                  {...shared}
+                />
+                <FormHelp id={help.helpId} />
+                <FormError id={help.errorId} data-field-error={field.name}>
+                  {fieldErrorMap.get(field.name)?.join(" ")}
+                </FormError>
+              </div>
+            );
+          }
+
+          if (field.type === "checkbox") {
+            return (
+              <div class="form-field-block">
+                <FormCheckbox
+                  label={localizedLabel}
+                  checked={Boolean(field.defaultValue)}
+                  helpId={help.helpId}
+                  errorId={help.errorId}
+                  {...shared}
+                />
+                <FormHelp id={help.helpId} />
+                <FormError id={help.errorId} data-field-error={field.name}>
+                  {fieldErrorMap.get(field.name)?.join(" ")}
+                </FormError>
+              </div>
+            );
+          }
+
+          if (field.type === "radio") {
+            const options = field.options || [];
+            const groupId = nextId(`fieldset-${field.name}`);
+            return (
+              <FormFieldset
+                id={groupId}
+                legend={localizedLabel}
+                required={field.required}
+                helpId={help.helpId}
+                errorId={help.errorId}
+              >
+                <div class="form-radio-group">
+                  {options.map((opt, idx) => {
+                    const optId = `${field.name}-${idx}`;
+                    return (
+                      <FormRadio
+                        id={optId}
+                        name={field.name}
+                        value={opt.value}
+                        label={resolveLocalized(opt.label, locale)}
+                        checked={field.defaultValue === opt.value}
+                        required={field.required}
+                        ariaDescribedBy={[help.helpId, help.errorId].join(" ").trim() || undefined}
+                      />
+                    );
+                  })}
+                </div>
+                <FormHelp slot="help" id={help.helpId} />
+                <FormError slot="error" id={help.errorId} data-field-error={field.name}>
+                  {fieldErrorMap.get(field.name)?.join(" ")}
+                </FormError>
+              </FormFieldset>
+            );
+          }
+
+          if (field.type === "date") {
+            return (
+              <div class="form-field-block">
+                <FormDate
+                  label={localizedLabel}
+                  value={field.defaultValue}
+                  helpId={help.helpId}
+                  errorId={help.errorId}
+                  {...shared}
+                  {...validationAttrs}
+                />
+                <FormHelp id={help.helpId} />
+                <FormError id={help.errorId} data-field-error={field.name}>
+                  {fieldErrorMap.get(field.name)?.join(" ")}
+                </FormError>
+              </div>
+            );
+          }
+
+          if (field.type === "hidden") {
+            return <FormHidden name={field.name} value={field.defaultValue} />;
+          }
+
+          return null;
+        })
+      ) : (
+        <slot />
+      )}
+    </div>
+
+    <div class="form-actions">
+      {
+        showReset ? (
+          <slot name="reset">
+            <Button type="reset" variant={resetVariant} size={resetSize} disabled={resetDisabled}>
+              {resetLabel}
+            </Button>
+          </slot>
+        ) : null
+      }
+
+      <slot name="submit">
+        <Button type="submit" variant={submitVariant} size={submitSize} disabled={submitDisabled}>
+          {submitLabel}
+        </Button>
+      </slot>
+    </div>
+  </form>
+</div>
 
 <script is:inline>
-  document.querySelectorAll("form[data-prevent-enter]").forEach((form) => {
-    if (!(form instanceof HTMLFormElement)) return;
-    if (form.dataset.enterBound === "true") return;
-    form.dataset.enterBound = "true";
-    form.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      const target = event.target;
-      if (!target) return;
-      const tag = target.tagName?.toLowerCase();
-      const type = target.getAttribute?.("type");
-      const allow =
-        tag === "textarea" ||
-        tag === "select" ||
-        type === "submit" ||
-        type === "button" ||
-        type === "reset";
-      if (allow) return;
-      event.preventDefault();
-    });
-  });
-</script>
-
-<script is:inline>
-  document.querySelectorAll("form").forEach((form) => {
+  document.querySelectorAll("[data-form-wrapper]").forEach((wrapper) => {
+    const form = wrapper.querySelector("form");
     if (!(form instanceof HTMLFormElement)) return;
     if (form.dataset.validationBound === "true") return;
     form.dataset.validationBound = "true";
-    const summary = form.querySelector("[data-error-summary]");
-    const list = summary?.querySelector("[data-error-list]");
-    const summaryTitle = summary?.querySelector("[data-summary-title]");
-    const shouldValidate = form.dataset.validate !== "false";
+
     const action = form.getAttribute("action");
     const method = (form.getAttribute("method") || "post").toUpperCase();
     const enctype = form.getAttribute("enctype") || "application/x-www-form-urlencoded";
+    const shouldValidate = form.dataset.validate !== "false";
 
-    // Focus summary if server-rendered errors exist
-    if (summary && summary.hidden === false) {
-      summary.focus({ preventScroll: false });
+    const alertClient = wrapper.querySelector('[data-alert="client"]');
+    const alertServer = wrapper.querySelector('[data-alert="server"]');
+    const alertSuccess = wrapper.querySelector('[data-alert="success"]');
+    const listClient = wrapper.querySelector('[data-alert-list="client"]');
+    const listServer = wrapper.querySelector('[data-alert-list="server"]');
+    const successMessage = wrapper.querySelector('[data-alert-message="success"]');
+
+    const fieldErrorEls = wrapper.querySelectorAll("[data-field-error]");
+
+    function hideAlert(alertEl) {
+      if (!alertEl) return;
+      alertEl.classList.add("is-hidden");
+      alertEl.setAttribute("hidden", "true");
     }
+
+    function showAlert(alertEl) {
+      if (!alertEl) return;
+      alertEl.classList.remove("is-hidden");
+      alertEl.removeAttribute("hidden");
+      alertEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function setFieldErrors(map = {}) {
+      fieldErrorEls.forEach((el) => {
+        const field = el.dataset.fieldError;
+        const messages = map[field] || [];
+        el.textContent = messages.join(" ");
+        if (messages.length === 0) {
+          el.setAttribute("hidden", "true");
+        } else {
+          el.removeAttribute("hidden");
+        }
+      });
+
+      const inputs = form.querySelectorAll("input[name], select[name], textarea[name]");
+      inputs.forEach((input) => {
+        const messages = map[input.name] || [];
+        if (messages.length) {
+          input.setAttribute("aria-invalid", "true");
+        } else {
+          input.removeAttribute("aria-invalid");
+        }
+      });
+    }
+
+    function listToUl(listEl, messages) {
+      if (!listEl) return;
+      listEl.innerHTML = "";
+      messages.forEach((msg) => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        listEl.appendChild(li);
+      });
+    }
+
+    document.querySelectorAll("form[data-prevent-enter]").forEach((f) => {
+      if (!(f instanceof HTMLFormElement)) return;
+      if (f.dataset.enterBound === "true") return;
+      f.dataset.enterBound = "true";
+      f.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        const target = event.target;
+        if (!target) return;
+        const tag = target.tagName?.toLowerCase();
+        const type = target.getAttribute?.("type");
+        const allow =
+          tag === "textarea" ||
+          tag === "select" ||
+          type === "submit" ||
+          type === "button" ||
+          type === "reset";
+        if (allow) return;
+        event.preventDefault();
+      });
+    });
 
     form.addEventListener("submit", async (event) => {
       if (!shouldValidate) return;
@@ -219,37 +473,29 @@ const resolvedClass = mergeClasses("form", className);
 
       if (invalidFields.length) {
         event.preventDefault();
-        if (summary && list) {
-          summaryTitle && (summaryTitle.textContent = "Please fix the following errors:");
-          list.innerHTML = "";
-          invalidFields.forEach((el) => {
-            const id = el.id;
-            const label =
-              (id ? form.querySelector(`label[for="${id}"]`)?.textContent?.trim() : "") ||
-              el.getAttribute("aria-label") ||
-              el.getAttribute("name") ||
-              id ||
-              "This field";
-            const li = document.createElement("li");
-            li.textContent = `${label} is required or invalid.`;
-            list.appendChild(li);
-          });
-          summary.hidden = false;
-          summary.classList.remove("is-hidden");
-          summary.classList.remove("is-success");
-          summary.focus({ preventScroll: false });
-          summary.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        setFieldErrors({});
+        const messages = invalidFields.map((el) => {
+          const id = el.id;
+          const label =
+            (id ? form.querySelector(`label[for="${id}"]`)?.textContent?.trim() : "") ||
+            el.getAttribute("aria-label") ||
+            el.getAttribute("name") ||
+            id ||
+            "This field";
+          return `${label} is required or invalid.`;
+        });
+        hideAlert(alertServer);
+        listToUl(listClient, messages);
+        showAlert(alertClient);
+        const first = invalidFields[0];
+        first?.focus({ preventScroll: false });
         return;
       }
 
       if (action) {
         event.preventDefault();
-        if (!summary || !list) return;
-        list.innerHTML = "";
-        summary.classList.remove("is-success");
-        summary.hidden = true;
-        summary.classList.add("is-hidden");
+        hideAlert(alertClient);
+        hideAlert(alertServer);
 
         const formData = new FormData(form);
         const opts = { method, headers: {} };
@@ -280,60 +526,54 @@ const resolvedClass = mergeClasses("form", className);
           showError(err);
         }
       }
-
-      async function handleResponse(res) {
-        let payload = null;
-        const text = await res.text();
-        try {
-          payload = text ? JSON.parse(text) : null;
-        } catch (_) {
-          payload = null;
-        }
-
-        const messages = [];
-        const fieldErrors = payload && typeof payload.errors === "object" ? payload.errors : null;
-        const globalMsg =
-          (payload && (payload.message || payload.detail || payload.error)) ||
-          (res.ok ? "Thanks! Your message was sent." : res.statusText);
-
-        if (fieldErrors) {
-          Object.entries(fieldErrors).forEach(([field, value]) => {
-            const arr = Array.isArray(value) ? value : value ? [value] : [];
-            arr.forEach((msg) => messages.push(`${field}: ${msg}`));
-          });
-        }
-        if (globalMsg) messages.unshift(globalMsg);
-
-        list.innerHTML = "";
-        messages.forEach((msg) => {
-          const li = document.createElement("li");
-          li.textContent = msg;
-          list.appendChild(li);
-        });
-
-        if (summary) {
-          summaryTitle &&
-            (summaryTitle.textContent = res.ok ? "Success" : "Please review and retry");
-          summary.hidden = false;
-          summary.classList.remove("is-hidden");
-          summary.classList.toggle("is-success", res.ok);
-          summary.focus({ preventScroll: false });
-          summary.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
-
-      function showError(err) {
-        if (!summary || !list) return;
-        list.innerHTML = "";
-        const li = document.createElement("li");
-        li.textContent = err?.message || "Network error. Please try again.";
-        list.appendChild(li);
-        summary.hidden = false;
-        summary.classList.remove("is-hidden");
-        summary.classList.remove("is-success");
-        summary.focus({ preventScroll: false });
-      }
     });
+
+    async function handleResponse(res) {
+      let payload = null;
+      const text = await res.text();
+      try {
+        payload = text ? JSON.parse(text) : null;
+      } catch (_) {
+        payload = null;
+      }
+
+      const fieldErrors = payload && typeof payload.errors === "object" ? payload.errors : {};
+      const globalMsg =
+        (payload && (payload.message || payload.detail || payload.error)) ||
+        (res.ok ? "Thanks! Your message was sent." : res.statusText);
+
+      setFieldErrors(fieldErrors || {});
+
+      if (res.ok && payload?.ok !== false) {
+        if (successMessage && globalMsg) {
+          successMessage.textContent = globalMsg;
+        }
+        hideAlert(alertClient);
+        hideAlert(alertServer);
+        showAlert(alertSuccess);
+        form.classList.add("is-hidden");
+        form.setAttribute("hidden", "true");
+        return;
+      }
+
+      const messages = [];
+      if (globalMsg) messages.push(globalMsg);
+      Object.entries(fieldErrors || {}).forEach(([field, value]) => {
+        const arr = Array.isArray(value) ? value : value ? [value] : [];
+        arr.forEach((msg) => messages.push(`${field}: ${msg}`));
+      });
+
+      listToUl(listServer, messages);
+      hideAlert(alertClient);
+      showAlert(alertServer);
+    }
+
+    function showError(err) {
+      setFieldErrors({});
+      listToUl(listServer, [err?.message || "Network error. Please try again."]);
+      hideAlert(alertClient);
+      showAlert(alertServer);
+    }
   });
 </script>
 
@@ -345,10 +585,25 @@ const resolvedClass = mergeClasses("form", className);
     width: var(--form-width);
   }
 
+  .form-title {
+    margin: 0;
+    font-size: var(--size-xl);
+    font-weight: var(--weight-semibold);
+  }
+
   .form-body {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+  }
+
+  .form-honeypot {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    height: 0;
+    width: 0;
+    overflow: hidden;
   }
 
   .form-actions {
@@ -357,40 +612,31 @@ const resolvedClass = mergeClasses("form", className);
     gap: var(--space-3);
   }
 
-  .form-error-summary {
-    border: 1px solid color-mix(in srgb, var(--form-error-color) 60%, transparent);
-    background: color-mix(in srgb, var(--form-error-color) 12%, transparent);
-    color: var(--form-error-color);
-    padding: var(--space-4);
-    border-radius: var(--radius-sm);
-  }
-  .form-error-summary.is-success {
-    border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
-    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-    color: var(--color-accent);
-  }
-
-  .form-error-summary .summary-title {
-    margin: 0 0 var(--space-2) 0;
-    font-weight: var(--weight-semibold);
-  }
-
-  .form-error-summary ul {
-    margin: 0;
-    padding-left: var(--space-4);
+  .form-wrapper {
     display: grid;
-    gap: var(--space-1);
+    gap: var(--space-4);
   }
 
-  .in-photo-roll {
-    padding: 1rem 1rem 3rem 1rem;
-    min-width: 100%;
-    min-height: 100%;
-    object-fit: var(--image-object-fit);
-    object-position: var(--image-object-position);
-    aspect-ratio: var(--image-aspect-ratio);
-    scroll-snap-align: start;
-    overflow-y: auto;
-    overflow-x: hidden;
+  .form-alerts {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .form-alert {
+    width: 100%;
+  }
+
+  .form-field-block {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .form-radio-group {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .is-hidden {
+    display: none !important;
   }
 </style>

@@ -97,3 +97,103 @@ Tips:
 
 - Keep the note brief (single sentence); it’s reused for the commit and tag message.
 - If you need a different branch name requirement, tweak `ensureOnBranch` in `scripts/bumpitup.js`.
+
+## Forms integration (Astro + PHP endpoints)
+
+The library exposes a `<Form>` component plus an Astro integration that generates PHP endpoints at build time.
+
+### Quick setup
+
+1) Install the library (as a dependency) and add the integration:
+
+```js
+// astro.config.mjs
+import { defineConfig } from "astro/config";
+import yourwebsquadForms from "yourwebsquad-components/forms-integration";
+
+export default defineConfig({
+  outDir: "build",
+  integrations: [yourwebsquadForms()]
+});
+```
+
+2) Define a `forms` content collection in your project:
+
+```ts
+// src/content/config.ts
+import { defineCollection, z } from "astro:content";
+const forms = defineCollection({
+  type: "data",
+  schema: z.object({
+    id: z.string(),
+    title: z.union([z.string(), z.record(z.string(), z.string())]),
+    endpoint: z.string().optional(),
+    fields: z.array(
+      z.object({
+        name: z.string(),
+        label: z.union([z.string(), z.record(z.string(), z.string())]),
+        type: z.enum(["text","email","textarea","tel","number","checkbox","radio","select","date","hidden"]),
+        required: z.boolean().default(false)
+      })
+    ),
+    email: z.object({
+      to: z.union([z.string().email(), z.array(z.string().email())]),
+      subject: z.union([z.string(), z.record(z.string(), z.string())])
+    })
+  })
+});
+export const collections = { forms };
+```
+
+3) Add form entries in `src/content/forms/*.json`:
+
+```json
+{
+  "id": "contact",
+  "title": { "en": "Contact us" },
+  "fields": [
+    { "name": "name", "label": { "en": "Name" }, "type": "text", "required": true },
+    { "name": "email", "label": { "en": "Email" }, "type": "email", "required": true },
+    { "name": "middle_name", "label": { "en": "Leave blank" }, "type": "hidden" }
+  ],
+  "email": {
+    "to": ["hello@example.com"],
+    "subject": { "en": "New inquiry from ${name}" },
+    "replyToField": "email"
+  },
+  "security": {
+    "honeypot": { "name": "middle_name", "enabled": true },
+    "rateLimit": { "max": 5, "windowSeconds": 60 }
+  }
+}
+```
+
+4) Render in pages:
+
+```astro
+---
+import { Form } from "yourwebsquad-components";
+---
+<Form formId="contact" locale="en" />
+```
+
+During `astro build`, the integration emits `/build/api/<formId>/index.php` with POST-only JSON responses, honeypot, validation, and rate limiting baked in.
+
+### What gets generated
+
+- Files are written to `build/api/<formId>/index.php`
+- Only POST is allowed; other methods return 405
+- Responses: `{ ok: boolean, message: string, errors?: Record<string,string> }`
+- Honeypot: empty success without sending mail when filled
+- Rate limiting: default 5 requests per 60s (configurable per form)
+
+### Client usage tips
+
+- `<Form>` resolves fields from the content entry; render with `formId` (preferred) or pass a preloaded `form` object.
+- The form auto-injects the honeypot from `security.honeypot`.
+- Frontend UX uses alerts: warning for client validation, error for server errors, success replaces the form.
+
+### Deployment
+
+- Ensure your hosting serves the built `build/` directory with PHP enabled.
+- Do not commit the generated `build/api` PHP files; they are created during CI/CD build.

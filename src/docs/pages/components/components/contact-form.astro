@@ -13,23 +13,10 @@ const code = `<ContactForm
 
 const props = [
   { name: "action", type: "string", description: "Form action URL." },
-  { name: "method", type: `"get" | "post"`, default: '"post"', description: "HTTP method." },
   {
     name: "defaultValues",
     type: "{ name?, company?, city?, email?, phone?, preference?, message?, services? }",
     description: "Pre-fill field values (services is string[])."
-  },
-  {
-    name: "errors",
-    type: "Record<string, string | string[]>",
-    default: "{}",
-    description: "Field error map."
-  },
-  {
-    name: "globalErrors",
-    type: "string[]",
-    default: "[]",
-    description: "Non-field errors for summary."
   },
   { name: "heading", type: "string", default: '"Contact us"', description: "Form heading text." },
   {
@@ -54,7 +41,6 @@ const props = [
 
   <Preview title="Preview" code={code}>
     <ContactForm
-      method="post"
       action="https://yourwebsquad.com/api/contact"
       heading="Work with us"
       description="Tell us about your project and how to reach you."

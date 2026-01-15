@@ -13,7 +13,8 @@
     "bumpitup": "node ./scripts/bumpitup.js"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "astro": "^5.16.6",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "chalk": "^5.3.0",
@@ -25,6 +26,7 @@
   "exports": {
     ".": "./src/lib/index.js",
     "./tokens.css": "./src/lib/styles/tokens.css",
-    "./*": "./src/lib/components/*/index.astro"
+    "./*": "./src/lib/components/*/index.astro",
+    "./forms-integration": "./forms-integration.js"
   }
 }
