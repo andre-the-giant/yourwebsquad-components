@@ -3,10 +3,28 @@
   "title": { "en": "Contact us", "fr": "Contactez-nous" },
   "endpoint": "/api/contact/",
   "fields": [
-    { "name": "name", "label": { "en": "Name", "fr": "Nom" }, "type": "text", "required": true, "maxLength": 120 },
+    {
+      "name": "name",
+      "label": { "en": "Name", "fr": "Nom" },
+      "type": "text",
+      "required": true,
+      "maxLength": 120
+    },
     { "name": "email", "label": { "en": "Email" }, "type": "email", "required": true },
-    { "name": "phone", "label": { "en": "Phone" }, "type": "tel", "required": false, "pattern": "^[0-9+()\\-\\s]{6,20}$" },
-    { "name": "company", "label": { "en": "Company" }, "type": "text", "required": false, "maxLength": 120 },
+    {
+      "name": "phone",
+      "label": { "en": "Phone" },
+      "type": "tel",
+      "required": false,
+      "pattern": "^[0-9+()\\-\\s]{6,20}$"
+    },
+    {
+      "name": "company",
+      "label": { "en": "Company" },
+      "type": "text",
+      "required": false,
+      "maxLength": 120
+    },
     {
       "name": "service",
       "label": { "en": "What do you need?" },
@@ -18,7 +36,13 @@
         { "value": "seo", "label": { "en": "SEO & performance" } }
       ]
     },
-    { "name": "message", "label": { "en": "Message" }, "type": "textarea", "required": true, "minLength": 10 },
+    {
+      "name": "message",
+      "label": { "en": "Message" },
+      "type": "textarea",
+      "required": true,
+      "minLength": 10
+    },
     { "name": "middle_name", "label": { "en": "Leave this field empty" }, "type": "hidden" }
   ],
   "email": {

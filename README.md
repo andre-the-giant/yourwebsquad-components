@@ -104,7 +104,7 @@ The library exposes a `<Form>` component plus an Astro integration that generate
 
 ### Quick setup
 
-1) Install the library (as a dependency) and add the integration:
+1. Install the library (as a dependency) and add the integration:
 
 ```js
 // astro.config.mjs
@@ -117,7 +117,7 @@ export default defineConfig({
 });
 ```
 
-2) Define a `forms` content collection in your project:
+2. Define a `forms` content collection in your project:
 
 ```ts
 // src/content/config.ts
@@ -132,7 +132,18 @@ const forms = defineCollection({
       z.object({
         name: z.string(),
         label: z.union([z.string(), z.record(z.string(), z.string())]),
-        type: z.enum(["text","email","textarea","tel","number","checkbox","radio","select","date","hidden"]),
+        type: z.enum([
+          "text",
+          "email",
+          "textarea",
+          "tel",
+          "number",
+          "checkbox",
+          "radio",
+          "select",
+          "date",
+          "hidden"
+        ]),
         required: z.boolean().default(false)
       })
     ),
@@ -145,7 +156,7 @@ const forms = defineCollection({
 export const collections = { forms };
 ```
 
-3) Add form entries in `src/content/forms/*.json`:
+3. Add form entries in `src/content/forms/*.json`:
 
 ```json
 {
@@ -168,12 +179,13 @@ export const collections = { forms };
 }
 ```
 
-4) Render in pages:
+4. Render in pages:
 
 ```astro
 ---
 import { Form } from "yourwebsquad-components";
 ---
+
 <Form formId="contact" locale="en" />
 ```
 

@@ -96,14 +96,18 @@ if (formId || form) {
 }
 
 const formHtmlId =
-  id ?? (normalizedForm?.id ? `form-${normalizedForm.id}` : `form-${Math.random().toString(36).slice(2, 9)}`);
+  id ??
+  (normalizedForm?.id
+    ? `form-${normalizedForm.id}`
+    : `form-${Math.random().toString(36).slice(2, 9)}`);
 const resolvedAction = actionProp ?? normalizedForm?.endpoint;
 const resolvedTitle = normalizedForm ? resolveLocalized(normalizedForm.title, locale) : undefined;
 
 const honeypotConfig = normalizedForm?.security?.honeypot;
 const includeHoneypot = honeypotConfig?.enabled !== false && Boolean(honeypotConfig?.name);
 const honeypotName = (honeypotConfig?.name || "middle_name").trim();
-const honeypotLabel = resolveLocalized(honeypotConfig?.label, locale) || "Please leave this field blank";
+const honeypotLabel =
+  resolveLocalized(honeypotConfig?.label, locale) || "Please leave this field blank";
 const honeypotId = `${formHtmlId}-${honeypotName}`;
 
 const fieldErrorMap = new Map();
@@ -191,169 +195,178 @@ const formFields = normalizedForm?.fields ?? [];
           </div>
         ) : null
       }
-      {formFields.length > 0 ? (
-        formFields.map((field) => {
-          const help = registerField(field.name);
-          const shared = {
-            name: field.name,
-            required: field.required,
-            ariaDescribedBy: [help.helpId, help.errorId].join(" ").trim() || undefined,
-            ariaInvalid: fieldErrorMap.has(field.name) ? true : undefined
-          };
+      {
+        formFields.length > 0 ? (
+          formFields.map((field) => {
+            const help = registerField(field.name);
+            const shared = {
+              name: field.name,
+              required: field.required,
+              ariaDescribedBy: [help.helpId, help.errorId].join(" ").trim() || undefined,
+              ariaInvalid: fieldErrorMap.has(field.name) ? true : undefined
+            };
 
-          const localizedLabel = resolveLocalized(field.label, locale);
-          const localizedPlaceholder = resolveLocalized(field.placeholder, locale);
-          const validationAttrs = {
-            maxLength: field.maxLength,
-            minLength: field.minLength,
-            pattern: field.pattern
-          };
+            const localizedLabel = resolveLocalized(field.label, locale);
+            const localizedPlaceholder = resolveLocalized(field.placeholder, locale);
+            const validationAttrs = {
+              maxLength: field.maxLength,
+              minLength: field.minLength,
+              pattern: field.pattern
+            };
 
-          if (field.type === "text" || field.type === "email" || field.type === "tel" || field.type === "number") {
-            return (
-              <div class="form-field-block">
-                <FormInput
-                  label={localizedLabel}
-                  type={field.type === "text" ? "text" : field.type}
-                  placeholder={localizedPlaceholder}
-                  value={field.defaultValue}
-                  helpId={help.helpId}
-                  errorId={help.errorId}
-                  {...shared}
-                  {...validationAttrs}
-                />
-                <FormHelp id={help.helpId} />
-                <FormError id={help.errorId} data-field-error={field.name}>
-                  {fieldErrorMap.get(field.name)?.join(" ")}
-                </FormError>
-              </div>
-            );
-          }
-
-          if (field.type === "textarea") {
-            return (
-              <div class="form-field-block">
-                <FormTextarea
-                  label={localizedLabel}
-                  placeholder={localizedPlaceholder}
-                  value={field.defaultValue}
-                  helpId={help.helpId}
-                  errorId={help.errorId}
-                  {...shared}
-                  {...validationAttrs}
-                />
-                <FormHelp id={help.helpId} />
-                <FormError id={help.errorId} data-field-error={field.name}>
-                  {fieldErrorMap.get(field.name)?.join(" ")}
-                </FormError>
-              </div>
-            );
-          }
-
-          if (field.type === "select") {
-            return (
-              <div class="form-field-block">
-                <FormSelect
-                  label={localizedLabel}
-                  options={(field.options || []).map((opt) => ({
-                    ...opt,
-                    label: resolveLocalized(opt.label, locale)
-                  }))}
-                  placeholder={localizedPlaceholder}
-                  value={field.defaultValue}
-                  helpId={help.helpId}
-                  errorId={help.errorId}
-                  {...shared}
-                />
-                <FormHelp id={help.helpId} />
-                <FormError id={help.errorId} data-field-error={field.name}>
-                  {fieldErrorMap.get(field.name)?.join(" ")}
-                </FormError>
-              </div>
-            );
-          }
-
-          if (field.type === "checkbox") {
-            return (
-              <div class="form-field-block">
-                <FormCheckbox
-                  label={localizedLabel}
-                  checked={Boolean(field.defaultValue)}
-                  helpId={help.helpId}
-                  errorId={help.errorId}
-                  {...shared}
-                />
-                <FormHelp id={help.helpId} />
-                <FormError id={help.errorId} data-field-error={field.name}>
-                  {fieldErrorMap.get(field.name)?.join(" ")}
-                </FormError>
-              </div>
-            );
-          }
-
-          if (field.type === "radio") {
-            const options = field.options || [];
-            const groupId = nextId(`fieldset-${field.name}`);
-            return (
-              <FormFieldset
-                id={groupId}
-                legend={localizedLabel}
-                required={field.required}
-                helpId={help.helpId}
-                errorId={help.errorId}
-              >
-                <div class="form-radio-group">
-                  {options.map((opt, idx) => {
-                    const optId = `${field.name}-${idx}`;
-                    return (
-                      <FormRadio
-                        id={optId}
-                        name={field.name}
-                        value={opt.value}
-                        label={resolveLocalized(opt.label, locale)}
-                        checked={field.defaultValue === opt.value}
-                        required={field.required}
-                        ariaDescribedBy={[help.helpId, help.errorId].join(" ").trim() || undefined}
-                      />
-                    );
-                  })}
+            if (
+              field.type === "text" ||
+              field.type === "email" ||
+              field.type === "tel" ||
+              field.type === "number"
+            ) {
+              return (
+                <div class="form-field-block">
+                  <FormInput
+                    label={localizedLabel}
+                    type={field.type === "text" ? "text" : field.type}
+                    placeholder={localizedPlaceholder}
+                    value={field.defaultValue}
+                    helpId={help.helpId}
+                    errorId={help.errorId}
+                    {...shared}
+                    {...validationAttrs}
+                  />
+                  <FormHelp id={help.helpId} />
+                  <FormError id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
                 </div>
-                <FormHelp slot="help" id={help.helpId} />
-                <FormError slot="error" id={help.errorId} data-field-error={field.name}>
-                  {fieldErrorMap.get(field.name)?.join(" ")}
-                </FormError>
-              </FormFieldset>
-            );
-          }
+              );
+            }
 
-          if (field.type === "date") {
-            return (
-              <div class="form-field-block">
-                <FormDate
-                  label={localizedLabel}
-                  value={field.defaultValue}
+            if (field.type === "textarea") {
+              return (
+                <div class="form-field-block">
+                  <FormTextarea
+                    label={localizedLabel}
+                    placeholder={localizedPlaceholder}
+                    value={field.defaultValue}
+                    helpId={help.helpId}
+                    errorId={help.errorId}
+                    {...shared}
+                    {...validationAttrs}
+                  />
+                  <FormHelp id={help.helpId} />
+                  <FormError id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
+                </div>
+              );
+            }
+
+            if (field.type === "select") {
+              return (
+                <div class="form-field-block">
+                  <FormSelect
+                    label={localizedLabel}
+                    options={(field.options || []).map((opt) => ({
+                      ...opt,
+                      label: resolveLocalized(opt.label, locale)
+                    }))}
+                    placeholder={localizedPlaceholder}
+                    value={field.defaultValue}
+                    helpId={help.helpId}
+                    errorId={help.errorId}
+                    {...shared}
+                  />
+                  <FormHelp id={help.helpId} />
+                  <FormError id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
+                </div>
+              );
+            }
+
+            if (field.type === "checkbox") {
+              return (
+                <div class="form-field-block">
+                  <FormCheckbox
+                    label={localizedLabel}
+                    checked={Boolean(field.defaultValue)}
+                    helpId={help.helpId}
+                    errorId={help.errorId}
+                    {...shared}
+                  />
+                  <FormHelp id={help.helpId} />
+                  <FormError id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
+                </div>
+              );
+            }
+
+            if (field.type === "radio") {
+              const options = field.options || [];
+              const groupId = nextId(`fieldset-${field.name}`);
+              return (
+                <FormFieldset
+                  id={groupId}
+                  legend={localizedLabel}
+                  required={field.required}
                   helpId={help.helpId}
                   errorId={help.errorId}
-                  {...shared}
-                  {...validationAttrs}
-                />
-                <FormHelp id={help.helpId} />
-                <FormError id={help.errorId} data-field-error={field.name}>
-                  {fieldErrorMap.get(field.name)?.join(" ")}
-                </FormError>
-              </div>
-            );
-          }
+                >
+                  <div class="form-radio-group">
+                    {options.map((opt, idx) => {
+                      const optId = `${field.name}-${idx}`;
+                      return (
+                        <FormRadio
+                          id={optId}
+                          name={field.name}
+                          value={opt.value}
+                          label={resolveLocalized(opt.label, locale)}
+                          checked={field.defaultValue === opt.value}
+                          required={field.required}
+                          ariaDescribedBy={
+                            [help.helpId, help.errorId].join(" ").trim() || undefined
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                  <FormHelp slot="help" id={help.helpId} />
+                  <FormError slot="error" id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
+                </FormFieldset>
+              );
+            }
 
-          if (field.type === "hidden") {
-            return <FormHidden name={field.name} value={field.defaultValue} />;
-          }
+            if (field.type === "date") {
+              return (
+                <div class="form-field-block">
+                  <FormDate
+                    label={localizedLabel}
+                    value={field.defaultValue}
+                    helpId={help.helpId}
+                    errorId={help.errorId}
+                    {...shared}
+                    {...validationAttrs}
+                  />
+                  <FormHelp id={help.helpId} />
+                  <FormError id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
+                </div>
+              );
+            }
 
-          return null;
-        })
-      ) : (
-        <slot />
-      )}
+            if (field.type === "hidden") {
+              return <FormHidden name={field.name} value={field.defaultValue} />;
+            }
+
+            return null;
+          })
+        ) : (
+          <slot />
+        )
+      }
     </div>
 
     <div class="form-actions">

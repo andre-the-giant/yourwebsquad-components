@@ -10,7 +10,18 @@ const fieldSchema = z
   .object({
     name: z.string().regex(/^[a-zA-Z][a-zA-Z0-9_]*$/),
     label: z.union([z.string(), z.record(z.string(), z.string())]),
-    type: z.enum(["text", "email", "textarea", "tel", "number", "checkbox", "radio", "select", "date", "hidden"]),
+    type: z.enum([
+      "text",
+      "email",
+      "textarea",
+      "tel",
+      "number",
+      "checkbox",
+      "radio",
+      "select",
+      "date",
+      "hidden"
+    ]),
     required: z.boolean().default(false),
     placeholder: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
     maxLength: z.number().int().positive().optional(),
@@ -21,11 +32,20 @@ const fieldSchema = z
     options: z.array(optionSchema).optional()
   })
   .superRefine((val, ctx) => {
-    if ((val.type === "select" || val.type === "radio") && (!val.options || val.options.length === 0)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Select and radio fields require options." });
+    if (
+      (val.type === "select" || val.type === "radio") &&
+      (!val.options || val.options.length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select and radio fields require options."
+      });
     }
     if (val.options && !(val.type === "select" || val.type === "radio")) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Options are only allowed for select or radio types." });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Options are only allowed for select or radio types."
+      });
     }
   });
 

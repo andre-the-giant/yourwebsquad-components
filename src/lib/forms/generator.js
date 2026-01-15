@@ -7,7 +7,10 @@ function escapeForPhpString(str) {
 function normalizeEmailConfig(email, fields) {
   const to = Array.isArray(email.to) ? email.to : [email.to];
   const sanitizedTo = to.filter(Boolean);
-  const replyToField = email.replyToField && fields.some((f) => f.name === email.replyToField) ? email.replyToField : null;
+  const replyToField =
+    email.replyToField && fields.some((f) => f.name === email.replyToField)
+      ? email.replyToField
+      : null;
   return {
     to: sanitizedTo,
     from: email.from || null,

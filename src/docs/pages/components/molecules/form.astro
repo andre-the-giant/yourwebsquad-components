@@ -77,11 +77,27 @@ const sampleForm = `{
 }`;
 
 const props = [
-  { name: "formId", type: "string", description: "Id of the form entry from the `forms` content collection." },
-  { name: "form", type: "object", description: "Pre-resolved form object (bypasses content collection lookup)." },
-  { name: "locale", type: "string", description: "Locale key to resolve localized labels/placeholders." },
+  {
+    name: "formId",
+    type: "string",
+    description: "Id of the form entry from the `forms` content collection."
+  },
+  {
+    name: "form",
+    type: "object",
+    description: "Pre-resolved form object (bypasses content collection lookup)."
+  },
+  {
+    name: "locale",
+    type: "string",
+    description: "Locale key to resolve localized labels/placeholders."
+  },
   { name: "id", type: "string", description: "Optional HTML id (auto-generated if omitted)." },
-  { name: "action", type: "string", description: "Override form endpoint (defaults to form.endpoint)." },
+  {
+    name: "action",
+    type: "string",
+    description: "Override form endpoint (defaults to form.endpoint)."
+  },
   { name: "target", type: "string", description: "Form target (e.g., _blank)." },
   { name: "enctype", type: "string", description: "Encoding type." },
   {
@@ -166,7 +182,11 @@ const props = [
 
   <Preview title="Sample form entry" code={sampleForm} lang="json">
     <div class="column">
-      <p>Place JSON files in <code>src/content/forms/</code>. Build will emit <code>/build/api/&lt;id&gt;/index.php</code>.</p>
+      <p>
+        Place JSON files in <code>src/content/forms/</code>. Build will emit <code
+          >/build/api/&lt;id&gt;/index.php</code
+        >.
+      </p>
     </div>
   </Preview>
 

@@ -33,7 +33,10 @@ const fieldSchema = z
   .object({
     name: z
       .string()
-      .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, "Field name must start with a letter and use letters, numbers, or underscores"),
+      .regex(
+        /^[a-zA-Z][a-zA-Z0-9_]*$/,
+        "Field name must start with a letter and use letters, numbers, or underscores"
+      ),
     label: localizedString,
     type: fieldTypeEnum,
     required: z.boolean().default(false),
@@ -46,7 +49,10 @@ const fieldSchema = z
     options: z.array(fieldOptionSchema).optional()
   })
   .superRefine((val, ctx) => {
-    if ((val.type === "select" || val.type === "radio") && (!val.options || val.options.length === 0)) {
+    if (
+      (val.type === "select" || val.type === "radio") &&
+      (!val.options || val.options.length === 0)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Field "${val.name}": options are required for ${val.type} fields`
@@ -104,12 +110,13 @@ const securitySchema = z
     honeypot: honeypotSchema.default({ name: "middle_name", enabled: true }),
     rateLimit: rateLimitSchema.default({ windowSeconds: 60, max: 5 })
   })
-  .default({ honeypot: { name: "middle_name", enabled: true }, rateLimit: { windowSeconds: 60, max: 5 } });
+  .default({
+    honeypot: { name: "middle_name", enabled: true },
+    rateLimit: { windowSeconds: 60, max: 5 }
+  });
 
 const formSchema = z.object({
-  id: z
-    .string()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Form id must be kebab-case"),
+  id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Form id must be kebab-case"),
   title: localizedString,
   endpoint: z.string().optional(),
   fields: z.array(fieldSchema).min(1, "At least one field is required"),
@@ -160,7 +167,8 @@ export function normalizeFormDefinition(raw, opts = {}) {
     names.add(field.name);
   });
 
-  const endpoint = parsed.endpoint && parsed.endpoint.trim() ? parsed.endpoint : DEFAULT_ENDPOINT(parsed.id);
+  const endpoint =
+    parsed.endpoint && parsed.endpoint.trim() ? parsed.endpoint : DEFAULT_ENDPOINT(parsed.id);
   const security = {
     honeypot: {
       ...DEFAULT_SECURITY.honeypot,

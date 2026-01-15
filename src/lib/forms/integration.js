@@ -14,13 +14,17 @@ export default function yourwebsquadForms() {
       "astro:build:start": async ({ logger }) => {
         const entries = await getCollection("forms");
         if (!entries || entries.length === 0) {
-          logger.warn("[forms] No entries found in content collection \"forms\". Skipping PHP generation.");
+          logger.warn(
+            '[forms] No entries found in content collection "forms". Skipping PHP generation.'
+          );
           forms = [];
           return;
         }
 
         forms = normalizeFormsCollection(entries);
-        logger.info(`[forms] Loaded ${forms.length} form${forms.length === 1 ? "" : "s"} from content collection.`);
+        logger.info(
+          `[forms] Loaded ${forms.length} form${forms.length === 1 ? "" : "s"} from content collection.`
+        );
       },
 
       "astro:build:done": async ({ dir, logger }) => {
