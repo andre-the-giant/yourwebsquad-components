@@ -164,8 +164,17 @@ export const collections = { forms };
   "title": { "en": "Contact us", "fr": "Contactez-nous" },
   "fields": [
     { "name": "name", "label": { "en": "Name", "fr": "Nom" }, "type": "text", "required": true },
-    { "name": "email", "label": { "en": "Email", "fr": "Email" }, "type": "email", "required": true },
-    { "name": "middle_name", "label": { "en": "Leave blank", "fr": "Laissez ce champ vide" }, "type": "hidden" }
+    {
+      "name": "email",
+      "label": { "en": "Email", "fr": "Email" },
+      "type": "email",
+      "required": true
+    },
+    {
+      "name": "middle_name",
+      "label": { "en": "Leave blank", "fr": "Laissez ce champ vide" },
+      "type": "hidden"
+    }
   ],
   "email": {
     "to": ["hello@example.com"],
