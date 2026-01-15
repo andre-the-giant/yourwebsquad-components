@@ -27,6 +27,7 @@
     ".": "./src/lib/index.js",
     "./tokens.css": "./src/lib/styles/tokens.css",
     "./*": "./src/lib/components/*/index.astro",
-    "./forms-integration": "./forms-integration.js"
+    "./forms-integration": "./forms-integration.js",
+    "./forms-content-schema": "./forms-content-schema.js"
   }
 }

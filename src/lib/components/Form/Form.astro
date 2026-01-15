@@ -424,9 +424,12 @@ const formFields = normalizedForm?.fields ?? [];
     }
 
     function setFieldErrors(map = {}) {
+      const normalize = (value) =>
+        Array.isArray(value) ? value : value ? [value] : [];
+
       fieldErrorEls.forEach((el) => {
         const field = el.dataset.fieldError;
-        const messages = map[field] || [];
+        const messages = normalize(map[field]);
         el.textContent = messages.join(" ");
         if (messages.length === 0) {
           el.setAttribute("hidden", "true");
@@ -437,7 +440,7 @@ const formFields = normalizedForm?.fields ?? [];
 
       const inputs = form.querySelectorAll("input[name], select[name], textarea[name]");
       inputs.forEach((input) => {
-        const messages = map[input.name] || [];
+        const messages = normalize(map[input.name]);
         if (messages.length) {
           input.setAttribute("aria-invalid", "true");
         } else {

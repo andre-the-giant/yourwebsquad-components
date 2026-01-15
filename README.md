@@ -123,38 +123,14 @@ export default defineConfig({
 
 ```ts
 // src/content/config.ts
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { formCollectionSchema } from "yourwebsquad-components/forms-content-schema";
+
 const forms = defineCollection({
   type: "data",
-  schema: z.object({
-    id: z.string(),
-    title: z.union([z.string(), z.record(z.string(), z.string())]),
-    endpoint: z.string().optional(),
-    fields: z.array(
-      z.object({
-        name: z.string(),
-        label: z.union([z.string(), z.record(z.string(), z.string())]),
-        type: z.enum([
-          "text",
-          "email",
-          "textarea",
-          "tel",
-          "number",
-          "checkbox",
-          "radio",
-          "select",
-          "date",
-          "hidden"
-        ]),
-        required: z.boolean().default(false)
-      })
-    ),
-    email: z.object({
-      to: z.union([z.string().email(), z.array(z.string().email())]),
-      subject: z.union([z.string(), z.record(z.string(), z.string())])
-    })
-  })
+  schema: formCollectionSchema
 });
+
 export const collections = { forms };
 ```
 
