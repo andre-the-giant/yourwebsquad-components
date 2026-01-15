@@ -25,9 +25,7 @@ export default function yourwebsquadForms() {
             entries.push({ id, data });
           }
         } catch (err) {
-          logger.warn(
-            `[forms] No forms directory found at ${formsDir}. Skipping PHP generation.`
-          );
+          logger.warn(`[forms] No forms directory found at ${formsDir}. Skipping PHP generation.`);
           entries = [];
         }
 
@@ -38,7 +36,9 @@ export default function yourwebsquadForms() {
         }
 
         forms = normalizeFormsCollection(entries);
-        logger.info(`[forms] Loaded ${forms.length} form${forms.length === 1 ? "" : "s"} from content files.`);
+        logger.info(
+          `[forms] Loaded ${forms.length} form${forms.length === 1 ? "" : "s"} from content files.`
+        );
       },
 
       "astro:build:done": async ({ dir, logger }) => {
