@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getCollection } from "astro:content";
 import { normalizeFormsCollection } from "./schema.js";
 import { generatePhpEndpoint } from "./generator.js";
 
@@ -12,6 +11,7 @@ export default function yourwebsquadForms() {
     name: "yourwebsquad-forms",
     hooks: {
       "astro:build:start": async ({ logger }) => {
+        const { getCollection } = await import("astro:content");
         const entries = await getCollection("forms");
         if (!entries || entries.length === 0) {
           logger.warn(
