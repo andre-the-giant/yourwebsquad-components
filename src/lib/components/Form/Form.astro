@@ -424,8 +424,7 @@ const formFields = normalizedForm?.fields ?? [];
     }
 
     function setFieldErrors(map = {}) {
-      const normalize = (value) =>
-        Array.isArray(value) ? value : value ? [value] : [];
+      const normalize = (value) => (Array.isArray(value) ? value : value ? [value] : []);
 
       fieldErrorEls.forEach((el) => {
         const field = el.dataset.fieldError;
