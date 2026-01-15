@@ -54,9 +54,7 @@ export default function yourwebsquadForms(options = {}) {
         if (allowedOrigins.length) {
           const htaccessDir = path.join(outDir, "api");
           await fs.mkdir(htaccessDir, { recursive: true });
-          const pattern = allowedOrigins
-            .map((h) => h.replace(/\./g, "\\."))
-            .join("|");
+          const pattern = allowedOrigins.map((h) => h.replace(/\./g, "\\.")).join("|");
           const htaccess = `# Restrict API access to same-origin requests (deny other Origins)
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -72,7 +70,9 @@ export default function yourwebsquadForms(options = {}) {
 </IfModule>
 `;
           await fs.writeFile(path.join(htaccessDir, ".htaccess"), htaccess, "utf-8");
-          logger.info(`[forms] Generated api/.htaccess with allowed origins: ${allowedOrigins.join(", ")}`);
+          logger.info(
+            `[forms] Generated api/.htaccess with allowed origins: ${allowedOrigins.join(", ")}`
+          );
         }
 
         for (const form of forms) {
