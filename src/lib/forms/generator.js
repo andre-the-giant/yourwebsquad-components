@@ -62,10 +62,14 @@ export function buildFormConfig(form) {
   };
 }
 
-export function generatePhpEndpoint(form) {
+export function generatePhpEndpoint(form, { allowedOrigins = [] } = {}) {
   const config = buildFormConfig(form);
   const configJson = JSON.stringify(config);
   const configLiteral = escapeForPhpString(configJson);
+  const allowed = Array.isArray(allowedOrigins) ? allowedOrigins.filter(Boolean) : [];
+  const allowedPhpArray = allowed.length
+    ? "['" + allowed.map((h) => escapeForPhpString(h)).join("','") + "']"
+    : "[]";
 
   return `<?php
 declare(strict_types=1);
@@ -148,6 +152,26 @@ function build_mail_headers(array $config, array $values): string {
     }
     $headers[] = 'Content-Type: text/plain; charset=UTF-8';
     return implode("\\r\\n", $headers);
+}
+
+$allowedHosts = ${allowedPhpArray};
+
+function normalize_host(?string $value): string {
+    $value = trim((string)$value);
+    if ($value === '') return '';
+    $parts = explode(':', $value);
+    return strtolower($parts[0] ?? '');
+}
+
+if (!empty($allowedHosts)) {
+    $host = normalize_host($_SERVER['HTTP_HOST'] ?? '');
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    $originHost = $origin ? normalize_host(parse_url($origin, PHP_URL_HOST) ?: '') : '';
+
+    $allowed = array_map('normalize_host', $allowedHosts);
+    if (($originHost && !in_array($originHost, $allowed, true)) || (!$originHost && $host && !in_array($host, $allowed, true))) {
+        respond(403, ['ok' => false, 'message' => 'Forbidden']);
+    }
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {

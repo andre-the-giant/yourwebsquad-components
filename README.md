@@ -113,7 +113,7 @@ import yourwebsquadForms from "yourwebsquad-components/forms-integration";
 
 export default defineConfig({
   outDir: "build",
-  integrations: [yourwebsquadForms()]
+  integrations: [yourwebsquadForms({ allowOrigins: ["yourwebsquad.com", "playground.yourwebsquad.com"] })]
 });
 ```
 
