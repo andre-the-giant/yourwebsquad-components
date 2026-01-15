@@ -161,15 +161,15 @@ export const collections = { forms };
 ```json
 {
   "id": "contact",
-  "title": { "en": "Contact us" },
+  "title": { "en": "Contact us", "fr": "Contactez-nous" },
   "fields": [
-    { "name": "name", "label": { "en": "Name" }, "type": "text", "required": true },
-    { "name": "email", "label": { "en": "Email" }, "type": "email", "required": true },
-    { "name": "middle_name", "label": { "en": "Leave blank" }, "type": "hidden" }
+    { "name": "name", "label": { "en": "Name", "fr": "Nom" }, "type": "text", "required": true },
+    { "name": "email", "label": { "en": "Email", "fr": "Email" }, "type": "email", "required": true },
+    { "name": "middle_name", "label": { "en": "Leave blank", "fr": "Laissez ce champ vide" }, "type": "hidden" }
   ],
   "email": {
     "to": ["hello@example.com"],
-    "subject": { "en": "New inquiry from ${name}" },
+    "subject": { "en": "New inquiry from ${name}", "fr": "Nouvelle demande de ${name}" },
     "replyToField": "email"
   },
   "security": {
