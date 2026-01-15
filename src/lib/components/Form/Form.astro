@@ -575,7 +575,7 @@ const formFields = normalizedForm?.fields ?? [];
       if (globalMsg) messages.push(globalMsg);
       Object.entries(fieldErrors || {}).forEach(([field, value]) => {
         const arr = Array.isArray(value) ? value : value ? [value] : [];
-        arr.forEach((msg) => messages.push(`${field}: ${msg}`));
+        arr.forEach((msg) => messages.push(msg || field));
       });
 
       listToUl(listServer, messages);

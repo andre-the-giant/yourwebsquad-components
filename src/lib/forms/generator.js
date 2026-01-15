@@ -25,6 +25,7 @@ function inferLabel(field) {
 }
 
 export function buildFormConfig(form) {
+  const defaultTelPattern = "^[0-9+()\\-\\s]{6,20}$";
   const fields = form.fields.map((field) => ({
     name: field.name,
     label: inferLabel(field),
@@ -32,7 +33,7 @@ export function buildFormConfig(form) {
     required: Boolean(field.required),
     maxLength: field.maxLength ?? null,
     minLength: field.minLength ?? null,
-    pattern: field.pattern ?? null,
+    pattern: field.pattern ?? (field.type === "tel" ? defaultTelPattern : null),
     sanitize: field.sanitize || "text",
     options:
       field.type === "select" || field.type === "radio"

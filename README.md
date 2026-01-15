@@ -185,6 +185,7 @@ During `astro build`, the integration emits `/build/api/<formId>/index.php` with
 - Responses: `{ ok: boolean, message: string, errors?: Record<string,string> }`
 - Honeypot: empty success without sending mail when filled
 - Rate limiting: default 5 requests per 60s (configurable per form)
+- Phone fields (`type: "tel"`) get a default server validation pattern `^[0-9+()\\-\\s]{6,20}$` if none is provided.
 
 ### Client usage tips
 
