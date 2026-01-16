@@ -1,0 +1,85 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import ComparisonSlider from "@lib/components/ComparisonSlider/ComparisonSlider.astro";
+import Image from "@lib/components/Image/Image.astro";
+
+const propsTable = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." }
+];
+
+const styleVars = [
+  { name: "--comparison-height", type: "length", default: "24rem", description: "Overall height." },
+  { name: "--comparison-border", type: "border", default: "3px solid #111", description: "Outer border." },
+  { name: "--comparison-before-bg", type: "color", default: "#f5ede0", description: "Left background." },
+  { name: "--comparison-before-color", type: "color", default: "#0f172a", description: "Left text color." },
+  { name: "--comparison-after-bg", type: "color", default: "#0f322a", description: "Right background." },
+  { name: "--comparison-after-color", type: "color", default: "#e6f1ea", description: "Right text color." }
+];
+
+---
+
+<DocLayout
+  title="ComparisonSlider"
+  description="Compare between 2 images or blocks"
+  items={components}
+>
+  <PropsTable props={propsTable} />
+  <PropsTable props={styleVars} title="Style variables" />
+
+  <div class="preview-grid">
+    <Preview title="Default" code={`
+<ComparisonSlider />`}>
+      <ComparisonSlider />
+    </Preview>
+
+    <Preview title="Custom" code={`
+<ComparisonSlider style="--comparison-height: 18rem; --comparison-before-bg: #fef3c7; --comparison-after-bg: #083524;">
+  <div slot="before">Before</div>
+  <div slot="after">After</div>
+</ComparisonSlider>`}>
+      <ComparisonSlider style="--comparison-height: 18rem; --comparison-before-bg: #fef3c7; --comparison-after-bg: #083524;">
+        <div slot="before">Before</div>
+        <div slot="after">After</div>
+      </ComparisonSlider>
+    </Preview>
+
+    <Preview title="Images" code={`
+
+      <ComparisonSlider style="--comparison-height: 600px;">
+        <Image
+          slot="before"
+          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=60"
+          alt="Calm forest before"
+        />
+        <Image
+          slot="after"
+          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=60"
+          alt="Forest after rainfall"
+        />
+      </ComparisonSlider>`}>
+      <ComparisonSlider style="--comparison-height: 600px;">
+        <Image
+          slot="before"
+          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=60"
+          alt="Calm forest before"
+        />
+        <Image
+          slot="after"
+          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=60"
+          alt="Forest after rainfall"
+        />
+      </ComparisonSlider>
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+</style>

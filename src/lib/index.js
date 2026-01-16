@@ -17,3 +17,4 @@ export { default as LocaleSwitch } from "./components/LocaleSwitch/index.astro";
 export { default as PhotoRoll } from "./components/PhotoRoll/PhotoRoll.astro";
 export { default as Map } from "./components/Map/Map.astro";
 export { default as Accordion } from "./components/Accordion/Accordion.astro";
+export { default as ComparisonSlider } from "./components/ComparisonSlider/ComparisonSlider.astro";

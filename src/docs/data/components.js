@@ -136,5 +136,11 @@ export const components = [
     href: "/components/molecules/accordion",
     description: "a button that collapse blocks and shit",
     group: "molecules"
+  },
+  {
+    name: "ComparisonSlider",
+    href: "/components/molecules/comparisonslider",
+    description: "Compare between 2 images or blocks",
+    group: "molecules"
   }
 ];
