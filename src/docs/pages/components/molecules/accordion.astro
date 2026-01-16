@@ -1,0 +1,360 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Accordion from "@lib/components/Accordion/Accordion.astro";
+
+const propsTable = [
+  {
+    name: "id",
+    type: "string",
+    description: "Optional id for the wrapper (mostly for styling)."
+  },
+  {
+    name: "class",
+    type: "string",
+    description: "Additional class names for the wrapper."
+  },
+  {
+    name: "style",
+    type: "string",
+    description: "Inline styles; merged with style vars."
+  },
+  {
+    name: "scope",
+    type: "string",
+    default: "document",
+    description: "CSS selector to limit where triggers/targets are bound."
+  },
+  {
+    name: "defaultOpen",
+    type: "string | string[]",
+    description: "Accordion ids to open on init (in addition to data-accordion-open)."
+  },
+  {
+    name: "animate",
+    type: "boolean",
+    default: "true",
+    description: "Disable to remove transitions and open/close instantly."
+  },
+  {
+    name: "transition",
+    type: "string",
+    default: '"180ms ease"',
+    description: "CSS transition value for height/opacity."
+  },
+  {
+    name: "slot",
+    type: "default",
+    description: "Place any markup that uses data-accordion / data-accordion-target."
+  }
+];
+
+const dataAttributes = [
+  {
+    name: "data-accordion",
+    type: "string",
+    description: "Set on the trigger; must match a target id."
+  },
+  {
+    name: "data-accordion-target",
+    type: "string",
+    description: "Set on the collapsible panel; must match a trigger id."
+  },
+  {
+    name: "data-accordion-group",
+    type: "string",
+    description: "Optional group name; only one panel in a group stays open."
+  },
+  {
+    name: "data-accordion-open",
+    type: '"true"',
+    description: "Mark a trigger/panel to start open."
+  }
+];
+
+const styleVars = [
+  { name: "--accordion-bg", type: "color", default: "transparent", description: "Wrapper background." },
+  { name: "--accordion-border", type: "border", default: "0", description: "Wrapper border." },
+  { name: "--accordion-radius", type: "radius", default: "0", description: "Wrapper radius." },
+  { name: "--accordion-shadow", type: "shadow", default: "none", description: "Wrapper shadow." },
+  {
+    name: "--accordion-trigger-padding",
+    type: "length",
+    default: "0",
+    description: "Trigger padding."
+  },
+  {
+    name: "--accordion-trigger-gap",
+    type: "length",
+    default: "0.5rem",
+    description: "Gap between trigger label and icon."
+  },
+  {
+    name: "--accordion-trigger-color",
+    type: "color",
+    default: "inherit",
+    description: "Trigger text color."
+  },
+  {
+    name: "--accordion-trigger-bg",
+    type: "color",
+    default: "transparent",
+    description: "Trigger background."
+  },
+  {
+    name: "--accordion-trigger-font",
+    type: "font",
+    default: "inherit",
+    description: "Trigger font stack."
+  },
+  {
+    name: "--accordion-icon-size",
+    type: "length",
+    default: "1rem",
+    description: "Icon size when using data-accordion-icon."
+  },
+  {
+    name: "--accordion-icon-color",
+    type: "color",
+    default: "currentColor",
+    description: "Icon color."
+  },
+  {
+    name: "--accordion-icon-rotate",
+    type: "angle",
+    default: "90deg",
+    description: "Rotation applied to icons on open."
+  },
+  {
+    name: "--accordion-panel-padding",
+    type: "length",
+    default: "0",
+    description: "Panel padding when open."
+  },
+  {
+    name: "--accordion-panel-bg",
+    type: "color",
+    default: "transparent",
+    description: "Panel background."
+  },
+  {
+    name: "--accordion-transition",
+    type: "transition",
+    default: '"180ms ease"',
+    description: "Transition for open/close (height/opacity/padding)."
+  }
+];
+
+
+const previewCodeGrouped = `<Accordion>
+  <div class="accordion-demo">
+    <button data-accordion="one" data-accordion-group="faq">
+      What is this?
+      <span aria-hidden="true" data-accordion-icon>›</span>
+    </button>
+    <div data-accordion-target="one" data-accordion-group="faq">
+      <p>A minimal accordion controlled by data attributes.</p>
+    </div>
+
+    <button data-accordion="two" data-accordion-group="faq">
+      Can I keep multiple open?
+      <span aria-hidden="true" data-accordion-icon>›</span>
+    </button>
+    <div data-accordion-target="two" data-accordion-group="faq">
+      <p>Group names enforce single-open within that group.</p>
+    </div>
+  </div>
+</Accordion>`;
+---
+
+<DocLayout
+  title="Accordion"
+  description="a button that collapse blocks and shit"
+  items={components}
+>
+  <p>
+    Accordion is a behavior-only controller powered by data attributes. The minimum: add
+    <code>data-accordion="id"</code> to a trigger and <code>data-accordion-target="id"</code> to a
+    panel, wrap them in <code>&lt;Accordion /&gt;</code>, and it will collapse the panel by default
+    with a small open/close animation. Groups enforce single-open, and
+    <code>data-accordion-open="true"</code> or the <code>defaultOpen</code> prop set the initial
+    state. All base styles live in CSS to avoid layout shift.
+  </p>
+
+  <PropsTable props={propsTable} accordionGroup="settings" />
+  <PropsTable props={styleVars} title="Style Variables" accordionGroup="settings" />
+  <PropsTable props={dataAttributes} title="Data attributes" accordionGroup="settings" />
+
+  <div class="preview-grid">
+    <Preview title="Bare minimum" code={`<Accordion>
+  <button data-accordion="bare">Toggle me</button>
+  <div data-accordion-target="bare">
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur finibus porta dolor.</p>
+  </div>
+</Accordion>`}>
+      <Accordion>
+        <button data-accordion="bare">Toggle me</button>
+        <div data-accordion-target="bare">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur finibus porta dolor.
+          </p>
+        </div>
+      </Accordion>
+    </Preview>
+
+    <Preview title="Grouped single-open" code={`
+  <Accordion>
+    <div class="accordion-demo">
+      <button data-accordion="one" data-accordion-group="faq">
+        What is this?
+        <span aria-hidden="true" data-accordion-icon>›</span>
+      </button>
+      <div data-accordion-target="one" data-accordion-group="faq">
+        <p>A minimal accordion controlled by data attributes.</p>
+      </div>
+
+      <button data-accordion="two" data-accordion-group="faq">
+        Can I keep multiple open?
+        <span aria-hidden="true" data-accordion-icon>›</span>
+      </button>
+      <div data-accordion-target="two" data-accordion-group="faq">
+        <p>Group names enforce single-open within that group.</p>
+      </div>
+    </div>
+  </Accordion>`}>
+      <Accordion>
+        <div class="accordion-demo">
+          <button data-accordion="one" data-accordion-group="faq">
+            What is this?
+            <span aria-hidden="true" data-accordion-icon>›</span>
+          </button>
+          <div data-accordion-target="one" data-accordion-group="faq">
+            <p>A minimal accordion controlled by data attributes.</p>
+          </div>
+
+          <button data-accordion="two" data-accordion-group="faq">
+            Can I keep multiple open?
+            <span aria-hidden="true" data-accordion-icon>›</span>
+          </button>
+          <div data-accordion-target="two" data-accordion-group="faq">
+            <p>Group names enforce single-open within that group.</p>
+          </div>
+        </div>
+      </Accordion>
+    </Preview>
+
+    <Preview
+      title="Trigger here, target elsewhere"
+      code={`
+<Accordion>
+  <button data-accordion="remote">Open footer details</button>
+</Accordion>`}
+    >
+      <Accordion>
+        <button data-accordion="remote">Open target</button>
+      </Accordion>
+    </Preview>
+    <Preview title="Target somewhere else" code={`
+  <div data-accordion-target="remote" class="accordion-remote">
+    <p>This panel sits outside the Accordion wrapper.</p>
+  </div>
+`} >
+<div data-accordion-target="remote" class="accordion-remote">
+  <p>This panel sits outside the Accordion wrapper.</p>
+</div>
+</Preview>
+    <Preview title="Styled pattern" code={`<Accordion class="accordion-styled">
+  <div class="accordion-styled__item">
+    <button data-accordion="styled-1">
+      Styled trigger
+      <span data-accordion-icon aria-hidden="true">›</span>
+    </button>
+    <div data-accordion-target="styled-1">
+      <p>Panel with padding, border, and icon rotation.</p>
+    </div>
+  </div>
+</Accordion>`}>
+      <Accordion class="accordion-styled">
+        <div class="accordion-styled__item">
+          <button data-accordion="styled-1">
+            Styled trigger
+            <span data-accordion-icon aria-hidden="true">›</span>
+          </button>
+          <div data-accordion-target="styled-1">
+            <p>Panel with padding, border, and icon rotation.</p>
+          </div>
+        </div>
+      </Accordion>
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .accordion-demo {
+    display: grid;
+    gap: var(--space-2);
+    border: 1px solid var(--color-border);
+    padding: var(--space-3);
+    background: var(--color-surface);
+  }
+
+  .accordion-demo button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-accent-muted) 35%, var(--color-surface) 65%);
+    font-size: var(--size-md);
+  }
+
+  .accordion-demo [data-accordion-target] {
+    padding: 0 var(--space-3);
+    color: var(--color-muted);
+  }
+
+  .accordion-demo [data-accordion-icon] {
+    font-size: 1.2rem;
+  }
+
+  .accordion-remote {
+    margin-top: var(--space-2);
+    padding: var(--space-2);
+    border: 1px dashed var(--color-border);
+    background: color-mix(in srgb, var(--color-accent-muted) 25%, var(--color-surface) 75%);
+  }
+
+  .accordion-styled {
+    --accordion-bg: var(--color-surface);
+    --accordion-border: 1px solid var(--color-border);
+    --accordion-radius: var(--radius-sm);
+    --accordion-panel-padding: var(--space-2) var(--space-3);
+    --accordion-trigger-padding: var(--space-2) var(--space-3);
+    --accordion-icon-rotate: 90deg;
+  }
+
+  .accordion-styled__item {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .accordion-styled__item:last-child {
+    border-bottom: 0;
+  }
+
+  .accordion-styled [data-accordion] {
+    width: 100%;
+    justify-content: space-between;
+    font-weight: var(--weight-semibold);
+  }
+
+  .accordion-styled [data-accordion-target] {
+    color: var(--color-muted);
+  }
+</style>

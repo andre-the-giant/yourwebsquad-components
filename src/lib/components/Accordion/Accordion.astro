@@ -1,0 +1,309 @@
+---
+/*
+Props:
+- id?: string
+- class?: string
+- style?: string
+- scope?: string — CSS selector to limit where binding applies (default: document)
+- defaultOpen?: string | string[] — ids to open on init
+- animate?: boolean — default true; disables transitions when false
+- transition?: string — CSS transition value (default "180ms ease")
+
+Data attributes (behavior only; styling optional):
+- Trigger: data-accordion="id" (button recommended; other elements get role="button")
+- Panel: data-accordion-target="id"
+- Group (single-open): data-accordion-group="group-name" on trigger/panel
+- Default open: data-accordion-open="true" on trigger/panel, or use defaultOpen prop
+*/
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  scope: { type: "string" },
+  defaultOpen: { type: ["string", "array"] },
+  animate: { type: "boolean" },
+  transition: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  scope,
+  defaultOpen,
+  animate = true,
+  transition = "180ms ease",
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Accordion" });
+
+const resolvedId = id ?? "accordion-" + Math.random().toString(36).slice(2, 9);
+const normalizeDefaultOpen = (value) => {
+  if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.length);
+  return typeof value === "string" && value.length ? [value] : [];
+};
+const defaultOpenList = normalizeDefaultOpen(defaultOpen);
+
+const styleVars = {
+  "--accordion-bg": "transparent",
+  "--accordion-border": "0",
+  "--accordion-radius": "0",
+  "--accordion-shadow": "none",
+  "--accordion-trigger-padding": "0",
+  "--accordion-trigger-gap": "0.5rem",
+  "--accordion-trigger-color": "inherit",
+  "--accordion-trigger-bg": "transparent",
+  "--accordion-trigger-font": "inherit",
+  "--accordion-icon-size": "1rem",
+  "--accordion-icon-color": "currentColor",
+  "--accordion-icon-rotate": "90deg",
+  "--accordion-panel-padding": "0",
+  "--accordion-panel-bg": "transparent",
+  "--accordion-transition": transition
+};
+
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("accordion", className);
+const config = {
+  scopeSelector: scope ?? null,
+  defaultOpen: defaultOpenList,
+  animate,
+  transition,
+  openClass: "is-open"
+};
+---
+
+<section
+  id={resolvedId}
+  class={resolvedClass}
+  data-accordion-root
+  style={resolvedStyle || undefined}
+  {...rest}
+>
+  <slot />
+</section>
+
+<script is:inline define:vars={{ config }}>
+  (() => {
+    const { scopeSelector, defaultOpen, animate, transition, openClass } = config;
+
+    const onReady = (fn) => {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", fn, { once: true });
+      } else {
+        fn();
+      }
+    };
+
+    onReady(() => {
+      const scopeEl = scopeSelector ? document.querySelector(scopeSelector) : document;
+      if (!scopeEl) return;
+
+      const triggers = Array.from(scopeEl.querySelectorAll("[data-accordion]")).filter(
+        (el) => el instanceof HTMLElement
+      );
+      if (!triggers.length) return;
+      const targets = Array.from(scopeEl.querySelectorAll("[data-accordion-target]")).filter(
+        (el) => el instanceof HTMLElement
+      );
+
+      const defaultOpenIds = new Set(
+        (defaultOpen || []).filter((id) => typeof id === "string" && id.length)
+      );
+      const state = new Map();
+
+      const targetListFor = (id) =>
+        targets.filter((target) => target.dataset.accordionTarget === id);
+      const groupFor = (id) => {
+        const trig = triggers.find((el) => el.dataset.accordion === id);
+        const target = targetListFor(id)[0];
+        return trig?.dataset.accordionGroup || target?.dataset.accordionGroup || null;
+      };
+
+      const randomId = () => Math.random().toString(36).slice(2, 9);
+      const ensureTargetId = (target, id) => {
+        if (!target.id) target.id = `accordion-panel-${id}-${randomId()}`;
+        return target.id;
+      };
+
+      // Collect ids and defaults
+      triggers.forEach((trigger) => {
+        const id = trigger.dataset.accordion;
+        if (!id) return;
+        if (trigger.dataset.accordionOpen === "true") defaultOpenIds.add(id);
+        if (!state.has(id)) state.set(id, false);
+      });
+      targets.forEach((target) => {
+        const id = target.dataset.accordionTarget;
+        if (!id) return;
+        if (target.dataset.accordionOpen === "true") defaultOpenIds.add(id);
+        if (!state.has(id)) state.set(id, false);
+      });
+      defaultOpenIds.forEach((id) => {
+        if (state.has(id)) state.set(id, true);
+      });
+
+      const setPanelHeight = (panel) => {
+        const height = panel.scrollHeight;
+        panel.style.setProperty("--accordion-target-height", `${height}px`);
+      };
+
+      const applyToTargets = (id, isOpen) => {
+        const relatedTargets = targetListFor(id);
+        relatedTargets.forEach((target) => {
+          setPanelHeight(target);
+          target.dataset.accordionState = isOpen ? "open" : "closed";
+          target.setAttribute("aria-hidden", isOpen ? "false" : "true");
+          target.classList.toggle(openClass, isOpen);
+          target.style.setProperty("--accordion-transition", animate ? transition : "0s");
+        });
+        return relatedTargets;
+      };
+
+      const applyToTriggers = (id, isOpen) => {
+        const relatedTargets = targetListFor(id);
+        const firstTargetId = relatedTargets[0] ? ensureTargetId(relatedTargets[0], id) : undefined;
+        triggers
+          .filter((trigger) => trigger.dataset.accordion === id)
+          .forEach((trigger) => {
+            trigger.dataset.accordionState = isOpen ? "open" : "closed";
+            trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            if (firstTargetId) trigger.setAttribute("aria-controls", firstTargetId);
+            if (trigger.tagName !== "BUTTON" && trigger.getAttribute("role") !== "button") {
+              trigger.setAttribute("role", "button");
+              if (!trigger.hasAttribute("tabindex")) trigger.setAttribute("tabindex", "0");
+            }
+            trigger.classList.toggle(openClass, isOpen);
+            trigger.style.setProperty("--accordion-transition", animate ? transition : "0s");
+          });
+      };
+
+      const setState = (id, isOpen) => {
+        state.set(id, isOpen);
+        applyToTargets(id, isOpen);
+        applyToTriggers(id, isOpen);
+      };
+
+      const closeGroup = (groupName, exceptId) => {
+        state.forEach((_, otherId) => {
+          if (otherId === exceptId) return;
+          const trigMatches = triggers.some(
+            (trigger) =>
+              trigger.dataset.accordion === otherId && trigger.dataset.accordionGroup === groupName
+          );
+          const targetMatches = targets.some(
+            (target) =>
+              target.dataset.accordionTarget === otherId &&
+              target.dataset.accordionGroup === groupName
+          );
+          if ((trigMatches || targetMatches) && state.get(otherId)) setState(otherId, false);
+        });
+      };
+
+      const toggle = (id) => {
+        const current = state.get(id) ?? false;
+        const next = !current;
+        const group = groupFor(id);
+        if (next && group) closeGroup(group, id);
+        setState(id, next);
+      };
+
+      // Initialize
+      state.forEach((isOpen, id) => setState(id, isOpen));
+
+      // Keep heights in sync when content changes
+      const resizeObserver =
+        typeof ResizeObserver !== "undefined"
+          ? new ResizeObserver((entries) => {
+              entries.forEach((entry) => {
+                const target = entry.target;
+                if (target instanceof HTMLElement && target.dataset.accordionTarget) {
+                  setPanelHeight(target);
+                }
+              });
+            })
+          : null;
+      targets.forEach((target) => resizeObserver?.observe(target));
+
+      triggers.forEach((trigger) => {
+        if (trigger.dataset.accordionBound === "true") return;
+        const id = trigger.dataset.accordion;
+        if (!id) return;
+        trigger.dataset.accordionBound = "true";
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          toggle(id);
+        });
+        trigger.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          toggle(id);
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  :global([data-accordion]) {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--accordion-trigger-gap, 0.5rem);
+    padding: var(--accordion-trigger-padding, 0);
+    background: var(--accordion-trigger-bg, transparent);
+    color: var(--accordion-trigger-color, inherit);
+    font: var(--accordion-trigger-font, inherit);
+  }
+
+  :global([data-accordion-target]) {
+    --accordion-transition: var(--accordion-transition, 180ms ease);
+    --accordion-target-height: 0px;
+
+    display: block;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0;
+    transition:
+      max-height var(--accordion-transition),
+      opacity var(--accordion-transition),
+      padding var(--accordion-transition);
+    background: var(--accordion-panel-bg, transparent);
+  }
+
+  :global([data-accordion-target][data-accordion-state="open"]) {
+    max-height: var(--accordion-target-height, 9999px);
+    opacity: 1;
+    padding: var(--accordion-panel-padding, 0);
+  }
+
+  .accordion {
+    background: var(--accordion-bg);
+    border: var(--accordion-border);
+    border-radius: var(--accordion-radius);
+    box-shadow: var(--accordion-shadow);
+  }
+
+  .accordion :global([data-accordion]) {
+    width: 100%;
+    justify-content: space-between;
+    font-family: var(--accordion-trigger-font);
+  }
+
+  .accordion :global([data-accordion-icon]) {
+    width: var(--accordion-icon-size);
+    height: var(--accordion-icon-size);
+    color: var(--accordion-icon-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--accordion-transition, 180ms ease);
+  }
+
+  .accordion :global([data-accordion][data-accordion-state="open"]) [data-accordion-icon] {
+    transform: rotate(var(--accordion-icon-rotate));
+  }
+</style>

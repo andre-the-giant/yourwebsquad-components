@@ -130,5 +130,11 @@ export const components = [
     href: "/components/components/map",
     description: "Display a google map centered on a google business",
     group: "components"
+  },
+  {
+    name: "Accordion",
+    href: "/components/molecules/accordion",
+    description: "a button that collapse blocks and shit",
+    group: "molecules"
   }
 ];
