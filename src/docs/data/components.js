@@ -75,19 +75,13 @@ export const components = [
     name: "Form",
     href: "/components/form",
     description: "Form wrapper that manages submit behavior and errors.",
-    group: "molecules"
+    group: "components"
   },
   {
     name: "Image",
     href: "/components/image",
     description: "Image wrapper using Astro:asset with defaults",
     group: "atoms"
-  },
-  {
-    name: "ContactForm",
-    href: "/components/contact-form",
-    description: "Full contact form",
-    group: "components"
   },
   {
     name: "Alert",

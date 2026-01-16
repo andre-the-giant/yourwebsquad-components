@@ -6,7 +6,6 @@ import { components } from "@docs/data/components.js";
 import PhotoRoll from "@lib/components/PhotoRoll/PhotoRoll.astro";
 import Image from "@lib/components/Image/Image.astro";
 import Hero from "@lib/components/Hero/Hero.astro";
-import ContactForm from "@lib/components/ContactForm/ContactForm.astro";
 
 const propsTable = [
   { name: "id", type: "string", description: "Optional id for the root element." },
@@ -269,11 +268,6 @@ Add class in-photo-roll
       class="in-photo-roll"
       />
   ))}
-  <ContactForm
-    heading = "Yes! It works with forms !" 
-    description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
-    class="in-photo-roll"
-    />
 </PhotoRoll>`}
     >
       <PhotoRoll style="--photoroll-zoom-active:1;">
@@ -289,11 +283,6 @@ Add class in-photo-roll
               />
             ))
         }
-        <ContactForm
-          heading="Yes! It works with forms !"
-          description="I can't think of a case where we would want to hide a form inside that shit but who the fuck am I to judge? You want it you get it."
-          class="in-photo-roll"
-        />
       </PhotoRoll>
     </Preview>
   </div>
