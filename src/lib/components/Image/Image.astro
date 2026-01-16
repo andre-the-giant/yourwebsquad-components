@@ -28,7 +28,10 @@ function moduleToAsset(mod) {
 }
 
 function normalizeTarget(target = "") {
-  return target.replace(/^\//, "").replace(/^src\/images\//, "").replace(/^images\//, "");
+  return target
+    .replace(/^\//, "")
+    .replace(/^src\/images\//, "")
+    .replace(/^images\//, "");
 }
 
 function findLocalAsset(target = "") {
