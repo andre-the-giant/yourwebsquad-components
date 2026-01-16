@@ -16,7 +16,12 @@ const schema = {
   style: { type: "string" }
 };
 
-const { id, class: className, style, ...rest } = validateProps(schema, Astro.props, {
+const {
+  id,
+  class: className,
+  style,
+  ...rest
+} = validateProps(schema, Astro.props, {
   component: "ComparisonSlider"
 });
 

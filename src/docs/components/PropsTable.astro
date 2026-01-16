@@ -18,30 +18,29 @@ const {
   accordionOpen = false
 } = validateProps(schema, Astro.props, { component: "PropsTable" });
 
-const propstableId =
-  (accordionId
-    ? `propstable-${accordionId}`
-    : `propstable-${Math.random().toString(36).slice(2, 9)}`);
+const propstableId = accordionId
+  ? `propstable-${accordionId}`
+  : `propstable-${Math.random().toString(36).slice(2, 9)}`;
 ---
 
-
-
-<Accordion defaultOpen="props-preview" class="props" style="--accordion-trigger-font:var(--font-display)">
-  <div 
+<Accordion
+  defaultOpen="props-preview"
+  class="props"
+  style="--accordion-trigger-font:var(--font-display)"
+>
+  <div
     class="props-table__title title"
     data-accordion={propstableId}
     data-accordion-group={accordionGroup}
   >
-      {title}
+    {title}
   </div>
-  <div 
+  <div
     class="props-table__wrap"
     data-accordion-target={propstableId}
     data-accordion-group={accordionGroup}
   >
-    <table
-      class="props__table"
-    >
+    <table class="props__table">
       <thead>
         <tr>
           <th>prop</th>

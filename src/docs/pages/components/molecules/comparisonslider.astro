@@ -13,13 +13,37 @@ const propsTable = [
 
 const styleVars = [
   { name: "--comparison-height", type: "length", default: "24rem", description: "Overall height." },
-  { name: "--comparison-border", type: "border", default: "3px solid #111", description: "Outer border." },
-  { name: "--comparison-before-bg", type: "color", default: "#f5ede0", description: "Left background." },
-  { name: "--comparison-before-color", type: "color", default: "#0f172a", description: "Left text color." },
-  { name: "--comparison-after-bg", type: "color", default: "#0f322a", description: "Right background." },
-  { name: "--comparison-after-color", type: "color", default: "#e6f1ea", description: "Right text color." }
+  {
+    name: "--comparison-border",
+    type: "border",
+    default: "3px solid #111",
+    description: "Outer border."
+  },
+  {
+    name: "--comparison-before-bg",
+    type: "color",
+    default: "#f5ede0",
+    description: "Left background."
+  },
+  {
+    name: "--comparison-before-color",
+    type: "color",
+    default: "#0f172a",
+    description: "Left text color."
+  },
+  {
+    name: "--comparison-after-bg",
+    type: "color",
+    default: "#0f322a",
+    description: "Right background."
+  },
+  {
+    name: "--comparison-after-color",
+    type: "color",
+    default: "#e6f1ea",
+    description: "Right text color."
+  }
 ];
-
 ---
 
 <DocLayout
@@ -31,23 +55,33 @@ const styleVars = [
   <PropsTable props={styleVars} title="Style variables" />
 
   <div class="preview-grid">
-    <Preview title="Default" code={`
-<ComparisonSlider />`}>
+    <Preview
+      title="Default"
+      code={`
+<ComparisonSlider />`}
+    >
       <ComparisonSlider />
     </Preview>
 
-    <Preview title="Custom" code={`
+    <Preview
+      title="Custom"
+      code={`
 <ComparisonSlider style="--comparison-height: 18rem; --comparison-before-bg: #fef3c7; --comparison-after-bg: #083524;">
   <div slot="before">Before</div>
   <div slot="after">After</div>
-</ComparisonSlider>`}>
-      <ComparisonSlider style="--comparison-height: 18rem; --comparison-before-bg: #fef3c7; --comparison-after-bg: #083524;">
+</ComparisonSlider>`}
+    >
+      <ComparisonSlider
+        style="--comparison-height: 18rem; --comparison-before-bg: #fef3c7; --comparison-after-bg: #083524;"
+      >
         <div slot="before">Before</div>
         <div slot="after">After</div>
       </ComparisonSlider>
     </Preview>
 
-    <Preview title="Images" code={`
+    <Preview
+      title="Images"
+      code={`
 
       <ComparisonSlider style="--comparison-height: 600px;">
         <Image
@@ -60,7 +94,8 @@ const styleVars = [
           src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=60"
           alt="Forest after rainfall"
         />
-      </ComparisonSlider>`}>
+      </ComparisonSlider>`}
+    >
       <ComparisonSlider style="--comparison-height: 600px;">
         <Image
           slot="before"

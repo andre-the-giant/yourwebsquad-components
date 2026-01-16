@@ -75,7 +75,12 @@ const dataAttributes = [
 ];
 
 const styleVars = [
-  { name: "--accordion-bg", type: "color", default: "transparent", description: "Wrapper background." },
+  {
+    name: "--accordion-bg",
+    type: "color",
+    default: "transparent",
+    description: "Wrapper background."
+  },
   { name: "--accordion-border", type: "border", default: "0", description: "Wrapper border." },
   { name: "--accordion-radius", type: "radius", default: "0", description: "Wrapper radius." },
   { name: "--accordion-shadow", type: "shadow", default: "none", description: "Wrapper shadow." },
@@ -147,7 +152,6 @@ const styleVars = [
   }
 ];
 
-
 const previewCodeGrouped = `<Accordion>
   <div class="accordion-demo">
     <button data-accordion="one" data-accordion-group="faq">
@@ -176,11 +180,11 @@ const previewCodeGrouped = `<Accordion>
 >
   <p>
     Accordion is a behavior-only controller powered by data attributes. The minimum: add
-    <code>data-accordion="id"</code> to a trigger and <code>data-accordion-target="id"</code> to a
-    panel, wrap them in <code>&lt;Accordion /&gt;</code>, and it will collapse the panel by default
-    with a small open/close animation. Groups enforce single-open, and
-    <code>data-accordion-open="true"</code> or the <code>defaultOpen</code> prop set the initial
-    state. All base styles live in CSS to avoid layout shift.
+    <code>data-accordion="id"</code> to a trigger and <code>data-accordion-target="id"</code> to a panel,
+    wrap them in <code>&lt;Accordion /&gt;</code>, and it will collapse the panel by default with a
+    small open/close animation. Groups enforce single-open, and
+    <code>data-accordion-open="true"</code> or the <code>defaultOpen</code> prop set the initial state.
+    All base styles live in CSS to avoid layout shift.
   </p>
 
   <PropsTable props={propsTable} accordionGroup="settings" />
@@ -188,12 +192,15 @@ const previewCodeGrouped = `<Accordion>
   <PropsTable props={dataAttributes} title="Data attributes" accordionGroup="settings" />
 
   <div class="preview-grid">
-    <Preview title="Bare minimum" code={`<Accordion>
+    <Preview
+      title="Bare minimum"
+      code={`<Accordion>
   <button data-accordion="bare">Toggle me</button>
   <div data-accordion-target="bare">
     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur finibus porta dolor.</p>
   </div>
-</Accordion>`}>
+</Accordion>`}
+    >
       <Accordion>
         <button data-accordion="bare">Toggle me</button>
         <div data-accordion-target="bare">
@@ -204,7 +211,9 @@ const previewCodeGrouped = `<Accordion>
       </Accordion>
     </Preview>
 
-    <Preview title="Grouped single-open" code={`
+    <Preview
+      title="Grouped single-open"
+      code={`
   <Accordion>
     <div class="accordion-demo">
       <button data-accordion="one" data-accordion-group="faq">
@@ -223,7 +232,8 @@ const previewCodeGrouped = `<Accordion>
         <p>Group names enforce single-open within that group.</p>
       </div>
     </div>
-  </Accordion>`}>
+  </Accordion>`}
+    >
       <Accordion>
         <div class="accordion-demo">
           <button data-accordion="one" data-accordion-group="faq">
@@ -256,16 +266,21 @@ const previewCodeGrouped = `<Accordion>
         <button data-accordion="remote">Open target</button>
       </Accordion>
     </Preview>
-    <Preview title="Target somewhere else" code={`
+    <Preview
+      title="Target somewhere else"
+      code={`
   <div data-accordion-target="remote" class="accordion-remote">
     <p>This panel sits outside the Accordion wrapper.</p>
   </div>
-`} >
-<div data-accordion-target="remote" class="accordion-remote">
-  <p>This panel sits outside the Accordion wrapper.</p>
-</div>
-</Preview>
-    <Preview title="Styled pattern" code={`<Accordion class="accordion-styled">
+`}
+    >
+      <div data-accordion-target="remote" class="accordion-remote">
+        <p>This panel sits outside the Accordion wrapper.</p>
+      </div>
+    </Preview>
+    <Preview
+      title="Styled pattern"
+      code={`<Accordion class="accordion-styled">
   <div class="accordion-styled__item">
     <button data-accordion="styled-1">
       Styled trigger
@@ -275,7 +290,8 @@ const previewCodeGrouped = `<Accordion>
       <p>Panel with padding, border, and icon rotation.</p>
     </div>
   </div>
-</Accordion>`}>
+</Accordion>`}
+    >
       <Accordion class="accordion-styled">
         <div class="accordion-styled__item">
           <button data-accordion="styled-1">
