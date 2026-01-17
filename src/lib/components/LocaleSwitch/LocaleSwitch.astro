@@ -13,6 +13,7 @@
  * - id?: string
  * - class?: string — extra class for wrapper
  * - style?: string
+ * - variant?: "solid" | "outline" | "ghost" 
  *
  * Notes: current locale renders as outline and disables href; missing urls fall back to "#".
  */
@@ -24,6 +25,7 @@ const schema = {
   id: { type: "string" },
   class: { type: "string" },
   style: { type: "string" },
+  variant: { type: "string" },
   currentLocale: { type: "string" },
   locales: { type: "array" },
   urls: { type: "object" },
@@ -38,6 +40,7 @@ const {
   currentLocale,
   locales = [],
   urls,
+  variant = "solid",
   labels = {},
   ariaLabel = "Language"
 } = validateProps(schema, Astro.props, { component: "LocaleSwitch" });
@@ -67,7 +70,7 @@ const resolvedClass = mergeClasses("localeSwitch", className);
           <li class="localeSwitch__item">
             <Link
               size="xs"
-              variant="outline"
+              variant={variant}
               href={!isCurrent ? getHref(code) : null}
               aria-current={isCurrent ? "page" : undefined}
               label={getLabel(code)}
