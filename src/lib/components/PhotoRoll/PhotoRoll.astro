@@ -744,15 +744,15 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
     transform: translateX(-50%);
     bottom: var(--photoroll-bullets-offset);
     display: inline-flex;
+    flex-wrap: wrap;
     gap: var(--photoroll-bullet-gap);
     z-index: var(--photoroll-control-z);
     padding: 0.3rem 0.6rem;
-    background: rgba(10, 12, 16, 0.55);
-    border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.14);
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(6px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+    max-width:calc(100% - var(--photoroll-control-size)*4);
   }
 
   [data-role="bullets"] [data-role="bullet"] {
