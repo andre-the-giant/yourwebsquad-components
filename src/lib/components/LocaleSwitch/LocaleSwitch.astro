@@ -67,10 +67,11 @@ const resolvedClass = mergeClasses("localeSwitch", className);
           <li class="localeSwitch__item">
             <Link
               size="xs"
-              variant={`${isCurrent ? "outline" : "solid"}`}
+              variant="outline"
               href={!isCurrent ? getHref(code) : null}
               aria-current={isCurrent ? "page" : undefined}
               label={getLabel(code)}
+              disabled={`${isCurrent ? "true" : "false"}`}
             />
           </li>
         );
