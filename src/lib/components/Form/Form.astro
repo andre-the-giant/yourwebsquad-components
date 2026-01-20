@@ -31,11 +31,15 @@ Props:
 - submitVariant?: "solid" | "outline" | "ghost"
 - submitSize?: "sm" | "md" | "lg"
 - submitDisabled?: boolean
+- submitClass?: string
+- submitStyle?: string
 - showReset?: boolean
 - resetLabel?: string             // default "Reset"
 - resetVariant?: "solid" | "outline" | "ghost"
 - resetSize?: "sm" | "md" | "lg"
 - resetDisabled?: boolean
+- resetClass?: string
+- resetStyle?: string
 - validateOnSubmit?: boolean
 - class?: string
 - style?: string
@@ -57,11 +61,15 @@ const schema = {
   submitVariant: { type: "string" },
   submitSize: { type: "string" },
   submitDisabled: { type: "boolean" },
+  submitClass: { type: "string" },
+  submitStyle: { type: "string" },
   showReset: { type: "boolean" },
   resetLabel: { type: "string" },
   resetVariant: { type: "string" },
   resetSize: { type: "string" },
   resetDisabled: { type: "boolean" },
+  resetClass: { type: "string" },
+  resetStyle: { type: "string" },
   validateOnSubmit: { type: "boolean" }
 };
 
@@ -81,11 +89,15 @@ const {
   submitVariant = "solid",
   submitSize = "md",
   submitDisabled = false,
+  submitClass,
+  submitStyle,
   showReset = true,
   resetLabel = "Reset",
   resetVariant = "outline",
   resetSize = "md",
   resetDisabled = false,
+  resetClass,
+  resetStyle,
   validateOnSubmit = true,
   ...rest
 } = validateProps(schema, Astro.props, { component: "Form" });
@@ -373,7 +385,14 @@ const formFields = normalizedForm?.fields ?? [];
       {
         showReset ? (
           <slot name="reset">
-            <Button type="reset" variant={resetVariant} size={resetSize} disabled={resetDisabled}>
+            <Button
+              type="reset"
+              variant={resetVariant}
+              size={resetSize}
+              disabled={resetDisabled}
+              class={resetClass}
+              style={resetStyle}
+            >
               {resetLabel}
             </Button>
           </slot>
@@ -381,7 +400,14 @@ const formFields = normalizedForm?.fields ?? [];
       }
 
       <slot name="submit">
-        <Button type="submit" variant={submitVariant} size={submitSize} disabled={submitDisabled}>
+        <Button
+          type="submit"
+          variant={submitVariant}
+          size={submitSize}
+          disabled={submitDisabled}
+          class={submitClass}
+          style={submitStyle}
+        >
           {submitLabel}
         </Button>
       </slot>

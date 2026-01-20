@@ -4,6 +4,9 @@ import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import Form from "@lib/components/Form/Form.astro";
+import FormInput from "@lib/components/Form-Input/index.astro";
+import FormSelect from "@lib/components/Form-Select/index.astro";
+import FormTextarea from "@lib/components/Form-Textarea/index.astro";
 
 const basicCode = `<Form formId="contact" locale="en" />`;
 
@@ -14,6 +17,19 @@ export default defineConfig({
   outDir: "build",
   integrations: [yourwebsquadForms()]
 });`;
+
+const stylingSnippet = `<Form
+  formId="contact"
+  style="
+    --form-input-border: 1px solid #0d6ea8;
+    --form-input-padding: 0.85rem 1rem;
+    --button-solid-bg: #0ea5e9;
+    --button-solid-border: #0ea5e9;
+    --button-ghost-fg: #0ea5e9;
+  "
+  submitStyle="--button-solid-shadow: 0 10px 20px color-mix(in srgb, #0ea5e9 35%, transparent);"
+  resetStyle="--button-outline-fg: #0ea5e9; --button-outline-border: #0ea5e9;"
+/>`;
 
 const contentSnippet = `// src/content/config.ts
 import { defineCollection, z } from "astro:content";
@@ -131,6 +147,16 @@ const props = [
     default: "false",
     description: "Disable submit button."
   },
+  {
+    name: "submitClass",
+    type: "string",
+    description: "Additional class for the default submit button."
+  },
+  {
+    name: "submitStyle",
+    type: "string",
+    description: "Inline style for the default submit button (CSS vars supported)."
+  },
   { name: "showReset", type: "boolean", default: "true", description: "Render reset button." },
   { name: "resetLabel", type: "string", default: '"Reset"', description: "Reset button label." },
   {
@@ -151,7 +177,22 @@ const props = [
     default: "false",
     description: "Disable reset button."
   },
-  { name: "class", type: "string", description: "Additional className for form." }
+  {
+    name: "resetClass",
+    type: "string",
+    description: "Additional class for the default reset button."
+  },
+  {
+    name: "resetStyle",
+    type: "string",
+    description: "Inline style for the default reset button (CSS vars supported)."
+  },
+  { name: "class", type: "string", description: "Additional className for form." },
+  {
+    name: "style",
+    type: "string",
+    description: "Inline styles (CSS variables cascade to inputs/buttons)."
+  }
 ];
 ---
 
@@ -183,10 +224,41 @@ const props = [
   <Preview title="Sample form entry" code={sampleForm} lang="json">
     <div class="column">
       <p>
-        Place JSON files in <code>src/content/forms/</code>. Build will emit <code
-          >/build/api/&lt;id&gt;/index.php</code
-        >.
+        Place JSON files in <code>src/content/forms/</code>. Build will emit <code>/build/api/&lt;id&gt;/index.php</code>.
       </p>
+    </div>
+  </Preview>
+
+  <Preview title="Styling with CSS variables" code={stylingSnippet}>
+    <div class="column">
+      <p>
+        Set CSS variables on <code>&lt;Form&gt;</code> (or a parent class) to cascade into inputs and
+        the built-in buttons. Use <code>submitStyle</code>/<code>resetStyle</code> when you want to
+        target only the default actions without affecting other buttons inside the form.
+      </p>
+    </div>
+  </Preview>
+
+  <Preview title="Styled live example" code={stylingSnippet}>
+    <div class="column">
+      <Form
+        style="--form-input-border: 1px solid #0d6ea8; --form-input-padding: 0.85rem 1rem; --button-solid-bg: #0ea5e9; --button-solid-border: #0ea5e9; --button-ghost-fg: #0ea5e9;"
+        submitStyle="--button-solid-shadow: 0 10px 20px color-mix(in srgb, #0ea5e9 35%, transparent);"
+        resetStyle="--button-outline-fg: #0ea5e9; --button-outline-border: #0ea5e9;"
+      >
+        <FormInput label="Name" placeholder="Ada Lovelace" required />
+        <FormSelect
+          label="Project type"
+          required
+          options={[
+            { label: "Website", value: "website" },
+            { label: "SEO", value: "seo" },
+            { label: "Brand", value: "brand" }
+          ]}
+          placeholder="Choose one"
+        />
+        <FormTextarea label="Message" placeholder="Tell us about your project" required />
+      </Form>
     </div>
   </Preview>
 

@@ -59,6 +59,25 @@
   --form-input-focus: var(--color-focus);
   --form-help-color: var(--color-muted);
   --form-error-color: #c92a2a;
+
+  /* Button tokens */
+  --button-font: var(--font-display);
+  --button-solid-bg: var(--color-accent);
+  --button-solid-fg: var(--color-accent-contrast);
+  --button-solid-border: var(--color-accent);
+  --button-solid-shadow: 0 12px 25px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  --button-outline-bg: transparent;
+  --button-outline-fg: var(--color-accent);
+  --button-outline-border: var(--color-accent);
+  --button-outline-hover-bg: var(--color-accent-muted);
+  --button-outline-hover-fg: var(--color-accent);
+  --button-ghost-bg: transparent;
+  --button-ghost-fg: var(--color-fg);
+  --button-ghost-border: transparent;
+  --button-ghost-hover-bg: var(--color-accent-muted);
+  --button-ghost-hover-fg: var(--color-accent);
+  --button-focus: var(--color-focus);
+  --button-disabled-opacity: 0.6;
 }
 
 [data-theme="dark"] {
