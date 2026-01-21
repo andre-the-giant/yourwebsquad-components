@@ -16,6 +16,8 @@ const schema = {
   style: { type: "string" },
   orientation: { type: "string" },
   images: { type: "array" },
+  imageSizes: { type: "string" },
+  imageWidths: { type: "array" },
   showNextButton: { type: "boolean" },
   nextIcon: { type: "string" },
   nextIconSize: { type: "string" },
@@ -33,6 +35,8 @@ const {
   style,
   orientation,
   images,
+  imageSizes,
+  imageWidths,
   showNextButton = false,
   nextIcon = "arrow-right",
   nextIconSize,
@@ -106,7 +110,13 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
       hasImages ? (
         resolvedImages.map((photo) => (
           <div class="imageWrap">
-            <Image src={photo.url} alt={photo.description} class="in-photo-roll" />
+            <Image
+              src={photo.url}
+              alt={photo.description}
+              class="in-photo-roll"
+              sizes={imageSizes}
+              widths={imageWidths}
+            />
           </div>
         ))
       ) : (

@@ -24,6 +24,17 @@ const propsTable = [
       "Provide images directly; when set, slots are ignored and the array renders images."
   },
   {
+    name: "imageSizes",
+    type: "string",
+    description:
+      "Optional sizes attribute forwarded to the internal Image when using the images prop."
+  },
+  {
+    name: "imageWidths",
+    type: "number[]",
+    description: "Optional widths array forwarded to the internal Image when using the images prop."
+  },
+  {
     name: "showNextButton",
     type: "boolean",
     default: "false",
