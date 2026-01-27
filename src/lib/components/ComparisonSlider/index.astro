@@ -4,5 +4,6 @@ const props = Astro.props;
 ---
 
 <ComparisonSlider {...props}>
-  <slot />
+  <slot name="before" slot="before" />
+  <slot name="after" slot="after" />
 </ComparisonSlider>
