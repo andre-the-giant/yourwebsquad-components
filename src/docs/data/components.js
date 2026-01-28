@@ -136,5 +136,11 @@ export const components = [
     href: "/components/molecules/comparisonslider",
     description: "Compare between 2 images or blocks",
     group: "molecules"
+  },
+  {
+    name: "GoogleReviews",
+    href: "/components/components/googlereviews",
+    description: "Add Google reviews on a page.",
+    group: "components"
   }
 ];

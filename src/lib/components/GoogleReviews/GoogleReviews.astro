@@ -1,0 +1,629 @@
+---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const nonEmptyString = (label) => (value) =>
+  typeof value === "string" && value.trim().length > 0 || `${label} must be a non-empty string`;
+
+const clampNumber = (min, max) => (value) =>
+  typeof value === "number" && !Number.isNaN(value) && value >= min && value <= max
+    || `must be between ${min} and ${max}`;
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  placeId: { type: "string", required: true, validate: nonEmptyString("placeId") },
+  apiKey: { type: "string", required: true, validate: nonEmptyString("apiKey") },
+  locale: { type: "string" },
+  sort: {
+    type: "string",
+    validate: (value) => ["newest", "most_relevant", "both"].includes(value) || "invalid sort value"
+  },
+  maxReviews: { type: "number", validate: clampNumber(1, 20) },
+  title: { type: "string" },
+  writeReviewLabel: { type: "string" },
+  moreReviewsLabel: { type: "string" },
+  readMoreLabel: { type: "string" },
+  truncateLines: { type: "number", validate: clampNumber(1, 12) },
+  showSchema: { type: "boolean" },
+  strict: { type: "boolean" },
+  translate: { type: "boolean" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  placeId,
+  apiKey,
+  locale,
+  sort,
+  maxReviews,
+  title,
+  writeReviewLabel,
+  moreReviewsLabel,
+  readMoreLabel,
+  truncateLines,
+  showSchema,
+  strict,
+  translate,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "GoogleReviews" });
+
+const resolvedId = id ?? "googlereviews-" + Math.random().toString(36).slice(2, 9);
+const resolvedLocale = typeof locale === "string" && locale.trim() ? locale.trim() : "en";
+const resolvedSort = ["newest", "most_relevant", "both"].includes(sort) ? sort : "newest";
+const clamp = (num, min, max, fallback) => {
+  if (typeof num !== "number" || Number.isNaN(num)) return fallback;
+  return Math.min(Math.max(num, min), max);
+};
+const resolvedMaxReviews = clamp(maxReviews, 1, 20, 10);
+const resolvedTruncateLines = clamp(truncateLines, 1, 12, 4);
+const defaultLabels = {
+  en: {
+    title: "Google Reviews",
+    write: "Review us on Google",
+    more: "See all reviews",
+    readMore: "Read more"
+  },
+  fr: {
+    title: "Avis Google",
+    write: "Laisser un avis sur Google",
+    more: "Voir tous les avis",
+    readMore: "Lire la suite"
+  }
+};
+const localeKey = resolvedLocale.slice(0, 2).toLowerCase();
+const localeLabels = defaultLabels[localeKey] ?? defaultLabels.en;
+const resolvedTitle =
+  typeof title === "string" && title.trim() ? title.trim() : localeLabels.title;
+const resolvedWriteReviewLabel =
+  typeof writeReviewLabel === "string" && writeReviewLabel.trim()
+    ? writeReviewLabel.trim()
+    : localeLabels.write;
+const resolvedMoreReviewsLabel =
+  typeof moreReviewsLabel === "string" && moreReviewsLabel.trim()
+    ? moreReviewsLabel.trim()
+    : localeLabels.more;
+const resolvedReadMoreLabel =
+  typeof readMoreLabel === "string" && readMoreLabel.trim()
+    ? readMoreLabel.trim()
+    : localeLabels.readMore;
+const isSchemaEnabled = showSchema !== false;
+const isStrict = strict !== false;
+const shouldTranslate = translate !== false;
+
+const encodedPlaceId = encodeURIComponent(placeId);
+const reviewLink = `https://search.google.com/local/writereview?placeid=${encodedPlaceId}`;
+const moreReviewsLink = `https://www.google.com/maps/search/?api=1&query_place_id=${encodedPlaceId}`;
+
+const palette = ["#f44336", "#4285f4", "#0f9d58", "#f4b400", "#8e44ad", "#2c3e50"];
+const getAvatarColor = (name = "") => {
+  const score = [...name].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return palette[Math.abs(score) % palette.length];
+};
+const getInitials = (name = "G") =>
+  name
+    .split(/\\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+const mapReview = (review) => ({
+  author_name:
+    review?.author_name ??
+    review?.authorName ??
+    review?.authorAttribution?.displayName ??
+    "Google user",
+  rating: review?.rating ?? review?.starRating ?? 0,
+  text:
+    review?.text ??
+    review?.originalText?.text ??
+    review?.original_text?.text ??
+    "",
+  relative_time_description:
+    review?.relative_time_description ??
+    review?.relativePublishTimeDescription ??
+    "Recent",
+  author_url: review?.author_url ?? review?.authorUrl ?? review?.authorAttribution?.uri,
+  profile_photo_url:
+    review?.profile_photo_url ??
+    review?.profilePhotoUrl ??
+    review?.authorAttribution?.photoUri
+});
+
+let fetchedReviews = [];
+let rating = null;
+let totalReviews = null;
+
+const fetchReviews = async () => {
+  const sorts = resolvedSort === "both" ? ["most_relevant", "newest"] : [resolvedSort];
+  const seen = new Map();
+
+  const fetchBatch = async (sort) => {
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
+      placeId
+    )}&fields=rating,user_ratings_total,reviews&reviews_sort=${sort}${
+      shouldTranslate ? "" : "&reviews_no_translations=true"
+    }&key=${encodeURIComponent(apiKey)}&language=${encodeURIComponent(resolvedLocale)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Google Places request failed with status ${response.status}`);
+    }
+    const payload = await response.json();
+    return payload?.result ?? null;
+  };
+
+  for (const s of sorts) {
+    const result = await fetchBatch(s);
+    if (!result) continue;
+    if (rating === null && typeof result.rating === "number") rating = result.rating;
+    if (totalReviews === null && typeof result.user_ratings_total === "number") {
+      totalReviews = result.user_ratings_total;
+    }
+    if (Array.isArray(result.reviews)) {
+      result.reviews.forEach((raw) => {
+        const review = mapReview(raw);
+        const key = review.author_url ?? `${review.author_name}:${review.text?.slice(0, 60)}`;
+        if (!seen.has(key)) {
+          seen.set(key, true);
+          fetchedReviews.push(review);
+        }
+      });
+    }
+  }
+};
+
+try {
+  await fetchReviews();
+} catch (error) {
+  if (isStrict) {
+    throw error;
+  } else {
+    console.warn(`GoogleReviews fetch error: ${error?.message ?? error}`);
+  }
+}
+
+const reviews = fetchedReviews.slice(0, resolvedMaxReviews);
+const averageRating =
+  rating ??
+  (reviews.length
+    ? Math.round(
+        (reviews.reduce((sum, review) => sum + (review?.rating ?? 0), 0) / reviews.length) * 10
+      ) / 10
+    : null);
+const total = totalReviews ?? reviews.length;
+const summaryStars = Math.round(averageRating ?? 0);
+
+if (isStrict && (!reviews.length || averageRating === null)) {
+  throw new Error("GoogleReviews: No reviews available (strict mode). Consider disabling 'strict'.");
+}
+
+const structuredReviews = reviews
+  .slice(0, 6)
+  .map((review, index) => {
+    const ratingValue = typeof review?.rating === "number" ? review.rating : null;
+    const body =
+      typeof review?.text === "string" && review.text.trim().length ? review.text.trim() : null;
+    if (!ratingValue && !body) return null;
+    return {
+      "@type": "Review",
+      name: `Customer review ${index + 1}`,
+      reviewBody: body ?? undefined,
+      reviewRating: ratingValue
+        ? {
+            "@type": "Rating",
+            ratingValue,
+            bestRating: 5,
+            worstRating: 1
+          }
+        : undefined,
+      author: {
+        "@type": "Person",
+        name: review?.author_name ?? "Google user"
+      },
+      publisher: { "@type": "Organization", name: "Google" },
+      url: review?.author_url ?? undefined
+    };
+  })
+  .filter(Boolean);
+
+const reviewsJsonLd =
+  isSchemaEnabled && typeof averageRating === "number" && !Number.isNaN(averageRating)
+    ? JSON.stringify(
+        {
+          "@context": "https://schema.org",
+          "@type": "AggregateRating",
+          itemReviewed: {
+            "@type": "LocalBusiness",
+            name: resolvedTitle
+          },
+          ratingValue: averageRating,
+          reviewCount: total,
+          review: structuredReviews.length ? structuredReviews : undefined
+        }
+      ).replace(/</g, "\\u003c")
+    : null;
+
+const styleVars = {
+  "--googlereviews-bg": "var(--color-surface, #f6f7fb)",
+  "--googlereviews-radius": "16px",
+  "--googlereviews-padding": "1.5rem",
+  "--googlereviews-shadow": "0 8px 20px rgba(0, 0, 0, 0.05)",
+  "--googlereviews-max-width": "100%",
+  "--googlereviews-title-color": "#3e3e3e",
+  "--googlereviews-score-color": "#111",
+  "--googlereviews-count-color": "#5f6368",
+  "--googlereviews-star-color": "#f4b400",
+  "--googlereviews-star-muted": "#d9d9d9",
+  "--googlereviews-button-bg": "#4285f4",
+  "--googlereviews-button-color": "#fff",
+  "--googlereviews-button-radius": "999px",
+  "--googlereviews-button-shadow": "0 8px 16px rgba(66, 133, 244, 0.35)",
+  "--googlereviews-card-bg": "#fff",
+  "--googlereviews-card-radius": "12px",
+  "--googlereviews-card-shadow": "0 10px 20px rgba(0, 0, 0, 0.08)",
+  "--googlereviews-card-width": "clamp(240px, 28vw, 320px)",
+  "--googlereviews-card-gap": "1rem",
+  "--googlereviews-avatar-size": "38px",
+  "--googlereviews-avatar-font": "var(--font-header, inherit)",
+  "--googlereviews-text-color": "#3e3e3e",
+  "--googlereviews-link-color": "#4285f4"
+};
+
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("googlereviews", className);
+---
+
+{(!reviews.length || averageRating === null) && !isStrict ? null : (
+  <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+    <header class="reviews-header">
+      <div class="brand">
+        <div class="google-mark" aria-label="Google Reviews">
+          <span class="g">G</span>
+          <span class="o1">o</span>
+          <span class="o2">o</span>
+          <span class="g">g</span>
+          <span class="l">l</span>
+          <span class="e">e</span>
+        </div>
+        <span class="title">{resolvedTitle}</span>
+      </div>
+      <div class="score" aria-label={`Average rating ${averageRating?.toFixed?.(1) ?? ""}`}>
+        <div class="rating">
+          <span class="rating-value">{averageRating?.toFixed?.(1) ?? "—"}</span>
+          <span class="stars" aria-label={`${summaryStars} out of 5 stars`}>
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <svg
+                class={idx < summaryStars ? "filled" : ""}
+                viewBox="0 0 20 20"
+                role="presentation"
+                aria-hidden="true"
+              >
+                <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
+              </svg>
+            ))}
+          </span>
+          <span class="count">({total})</span>
+        </div>
+      </div>
+      <a class="button review-button" href={reviewLink} target="_blank" rel="noopener noreferrer">
+        {resolvedWriteReviewLabel}
+      </a>
+    </header>
+
+    <div class="carousel">
+      <ul class="track" data-reviews-track>
+        {reviews.map((review, index) => {
+          const bg = getAvatarColor(review?.author_name ?? "G");
+          const initials = getInitials(review?.author_name ?? "G");
+          return (
+            <li class="review" data-index={index}>
+              <div class="reviewer">
+                <div class="avatar" style={`--avatar-color:${bg};`}>
+                  {review?.profile_photo_url ? (
+                    <img
+                      src={review.profile_photo_url}
+                      alt={`Avatar of ${review.author_name}`}
+                      loading="lazy"
+                      referrerpolicy="no-referrer"
+                    />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
+                <div class="meta">
+                  <div class="name">{review?.author_name ?? "Google user"}</div>
+                  <div class="time">{review?.relative_time_description ?? "Recent"}</div>
+                </div>
+              </div>
+              <div class="stars" aria-label={`${review?.rating ?? 0} out of 5 stars`}>
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <svg
+                    class={idx < Math.round(review?.rating ?? 0) ? "filled" : ""}
+                    viewBox="0 0 20 20"
+                    role="presentation"
+                    aria-hidden="true"
+                  >
+                    <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
+                  </svg>
+                ))}
+              </div>
+              <p class="reviewcontent" style={`--line-clamp: ${resolvedTruncateLines};`}>
+                {review?.text}
+              </p>
+              {review?.author_url && (
+                <a
+                  class="read-more"
+                  href={review.author_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {resolvedReadMoreLabel}{" "}
+                  <div class="sr-only">about {review?.author_name ?? "This Google user"}</div>
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+
+    <div class="more-reviews">
+      <a class="read-more" href={moreReviewsLink} target="_blank" rel="noopener noreferrer">
+        {resolvedMoreReviewsLabel}
+      </a>
+    </div>
+  </section>
+)}
+
+{reviewsJsonLd && <script type="application/ld+json" is:inline set:html={reviewsJsonLd} />}
+
+<style>
+  .googlereviews {
+    display: block;
+    width: min(100%, var(--googlereviews-max-width));
+    box-sizing: border-box;
+    background: var(--googlereviews-bg);
+    border-radius: var(--googlereviews-radius);
+    padding: var(--googlereviews-padding);
+    box-shadow: var(--googlereviews-shadow);
+    max-width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .reviews-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--googlereviews-title-color);
+  }
+
+  .google-mark {
+    display: inline-flex;
+    gap: 0.05rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+
+  .google-mark .g,
+  .google-mark .o1,
+  .google-mark .o2,
+  .google-mark .l,
+  .google-mark .e {
+    font-family: var(--googlereviews-avatar-font, inherit);
+  }
+
+  .google-mark .g { color: #4285f4; }
+  .google-mark .o1 { color: #ea4335; }
+  .google-mark .o2 { color: #fbbc05; }
+  .google-mark .l { color: #34a853; }
+  .google-mark .e { color: #4285f4; }
+
+  .title {
+    color: var(--googlereviews-title-color);
+  }
+
+  .score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  .rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+    color: var(--googlereviews-score-color);
+  }
+
+  .rating-value {
+    font-size: 1.35rem;
+  }
+
+  .stars {
+    display: inline-flex;
+    gap: 0.2rem;
+  }
+
+  .stars svg {
+    width: 15px;
+    height: 15px;
+    fill: var(--googlereviews-star-muted);
+  }
+
+  .stars svg.filled {
+    fill: var(--googlereviews-star-color);
+  }
+
+  .count {
+    font-size: 0.9rem;
+    color: var(--googlereviews-count-color);
+  }
+
+  .button.review-button {
+    justify-self: end;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    background: var(--googlereviews-button-bg);
+    color: var(--googlereviews-button-color);
+    padding: 0.65rem 1.2rem;
+    border-radius: var(--googlereviews-button-radius);
+    box-shadow: var(--googlereviews-button-shadow);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    border: none;
+    font-weight: 700;
+  }
+
+  .button.review-button:hover {
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    padding-top: 0.25rem;
+  }
+
+  .track {
+    display: flex;
+    gap: var(--googlereviews-card-gap);
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+    padding: 0.25rem 0 0.75rem;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0.25rem;
+    list-style: none;
+    margin: 0;
+  }
+
+  .review {
+    flex: 0 0 var(--googlereviews-card-width);
+    min-width: var(--googlereviews-card-width);
+    background: var(--googlereviews-card-bg);
+    border-radius: var(--googlereviews-card-radius);
+    padding: 1rem;
+    box-shadow: var(--googlereviews-card-shadow);
+    min-height: 220px;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0.65rem;
+    width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .reviewer {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .avatar {
+    width: var(--googlereviews-avatar-size);
+    height: var(--googlereviews-avatar-size);
+    border-radius: 50%;
+    background: var(--avatar-color, #d0d6f9);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    text-transform: uppercase;
+    overflow: hidden;
+    font-family: var(--googlereviews-avatar-font, inherit);
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .name {
+    font-weight: 700;
+    color: #111;
+    font-size: 0.95rem;
+  }
+
+  .time {
+    color: #5f6368;
+    font-size: 0.85rem;
+  }
+
+  .review .stars {
+    justify-content: flex-start;
+  }
+
+  .reviewcontent {
+    margin: 0;
+    color: var(--googlereviews-text-color);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: var(--line-clamp, 4);
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .read-more {
+    font-weight: 700;
+    color: var(--googlereviews-link-color);
+    text-decoration: none;
+  }
+
+  .more-reviews {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0.25rem 0 0.1rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  @media (width > 900px) {
+    .reviews-header {
+      grid-template-columns: 1fr auto auto;
+    }
+
+    .button.review-button {
+      justify-self: flex-start;
+    }
+  }
+</style>
