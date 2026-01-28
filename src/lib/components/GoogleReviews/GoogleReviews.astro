@@ -28,7 +28,8 @@ const schema = {
   truncateLines: { type: "number", validate: clampNumber(1, 12) },
   showSchema: { type: "boolean" },
   strict: { type: "boolean" },
-  translate: { type: "boolean" }
+  translate: { type: "boolean" },
+  schema: { type: ["object", "array"] }
 };
 
 const {
@@ -48,6 +49,7 @@ const {
   showSchema,
   strict,
   translate,
+  schema: schemaOverride,
   ...rest
 } = validateProps(schema, Astro.props, { component: "GoogleReviews" });
 
@@ -224,19 +226,25 @@ const structuredReviews = reviews
   })
   .filter(Boolean);
 
+const baseBusiness = {
+  "@type": "LocalBusiness",
+  name: resolvedTitle,
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: averageRating,
+    reviewCount: total
+  },
+  review: structuredReviews.length ? structuredReviews : undefined
+};
+
+const finalSchema =
+  (typeof schemaOverride === "object" && schemaOverride !== null) || Array.isArray(schemaOverride)
+    ? schemaOverride
+    : { "@context": "https://schema.org", ...baseBusiness };
+
 const reviewsJsonLd =
   isSchemaEnabled && typeof averageRating === "number" && !Number.isNaN(averageRating)
-    ? JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "AggregateRating",
-        itemReviewed: {
-          "@type": "LocalBusiness",
-          name: resolvedTitle
-        },
-        ratingValue: averageRating,
-        reviewCount: total,
-        review: structuredReviews.length ? structuredReviews : undefined
-      }).replace(/</g, "\\u003c")
+    ? JSON.stringify(finalSchema).replace(/</g, "\\u003c")
     : null;
 
 const styleVars = {

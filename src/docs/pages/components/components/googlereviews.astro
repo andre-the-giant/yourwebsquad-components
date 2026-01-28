@@ -71,6 +71,12 @@ const props = [
     type: "boolean",
     default: "true",
     description: "Request translated reviews in the specified locale (set false to keep originals)."
+  },
+  {
+    name: "schema",
+    type: "object | array",
+    default: "—",
+    description: "Provide full JSON-LD (object or array) to output as-is, bypassing auto-generation."
   }
 ];
 
@@ -140,6 +146,7 @@ const exampleCode = `<GoogleReviews
   locale=\"fr\"
   readMoreLabel=\"Lire la suite\"
   translate={false}
+  schema={[{ \"@context\": \"https://schema.org\", \"@type\": \"TattooParlor\", \"name\": \"Calvanostra\", \"url\": \"https://calvanostra.com\", \"telephone\": \"+33231000000\", \"address\": { \"@type\": \"PostalAddress\", \"streetAddress\": \"Rue du 11 Novembre\", \"addressLocality\": \"Caen\", \"postalCode\": \"14000\", \"addressCountry\": \"France\" } }]}
 />`;
 ---
 
@@ -164,6 +171,22 @@ const exampleCode = `<GoogleReviews
       translate={false}
       style="--googlereviews-card-width: 280px;"
       strict={false}
+      schema={[
+        {
+          "@context": "https://schema.org",
+          "@type": "TattooParlor",
+          name: "Calvanostra",
+          url: "https://calvanostra.com",
+          telephone: "+33231000000",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "Rue du 11 Novembre",
+            addressLocality: "Caen",
+            postalCode: "14000",
+            addressCountry: "France"
+          }
+        }
+      ]}
     />
 
     <p style="margin: 1.5rem 0 0.5rem; font-weight: 600;">
