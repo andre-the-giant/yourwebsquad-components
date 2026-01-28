@@ -237,10 +237,41 @@ const baseBusiness = {
   review: structuredReviews.length ? structuredReviews : undefined
 };
 
-const finalSchema =
-  (typeof schemaOverride === "object" && schemaOverride !== null) || Array.isArray(schemaOverride)
-    ? schemaOverride
-    : { "@context": "https://schema.org", ...baseBusiness };
+const pickBusinessSchema = (schemaInput) => {
+  if (!schemaInput) return null;
+  if (Array.isArray(schemaInput)) {
+    return schemaInput.find((item) => item && typeof item === "object") ?? null;
+  }
+  return typeof schemaInput === "object" ? schemaInput : null;
+};
+
+const mergeBusiness = (provided, fallback) => {
+  if (!provided) return fallback;
+  const providedType = provided["@type"] ?? fallback["@type"];
+  const providedContext = provided["@context"] ?? "https://schema.org";
+  return {
+    "@context": providedContext,
+    "@type": providedType,
+    name: provided.name ?? fallback.name,
+    url: provided.url ?? fallback.url,
+    telephone: provided.telephone ?? fallback.telephone,
+    priceRange: provided.priceRange ?? fallback.priceRange,
+    address: provided.address ?? fallback.address,
+    sameAs: provided.sameAs ?? fallback.sameAs,
+    image: provided.image ?? fallback.image,
+    geo: provided.geo ?? fallback.geo,
+    openingHours: provided.openingHours ?? fallback.openingHours,
+    "@id":
+      provided["@id"] ??
+      (provided.url ? `${provided.url}#localbusiness` : fallback["@id"] ?? undefined),
+    aggregateRating: fallback.aggregateRating,
+    review: fallback.review
+  };
+};
+
+const providedSchema = pickBusinessSchema(schemaOverride);
+const mergedBusiness = mergeBusiness(providedSchema, baseBusiness);
+const finalSchema = { "@context": mergedBusiness["@context"] ?? "https://schema.org", ...mergedBusiness };
 
 const reviewsJsonLd =
   isSchemaEnabled && typeof averageRating === "number" && !Number.isNaN(averageRating)
