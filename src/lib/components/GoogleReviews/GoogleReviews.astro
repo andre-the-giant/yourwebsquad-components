@@ -263,7 +263,7 @@ const mergeBusiness = (provided, fallback) => {
     openingHours: provided.openingHours ?? fallback.openingHours,
     "@id":
       provided["@id"] ??
-      (provided.url ? `${provided.url}#localbusiness` : fallback["@id"] ?? undefined),
+      (provided.url ? `${provided.url}#localbusiness` : (fallback["@id"] ?? undefined)),
     aggregateRating: fallback.aggregateRating,
     review: fallback.review
   };
@@ -271,7 +271,10 @@ const mergeBusiness = (provided, fallback) => {
 
 const providedSchema = pickBusinessSchema(schemaOverride);
 const mergedBusiness = mergeBusiness(providedSchema, baseBusiness);
-const finalSchema = { "@context": mergedBusiness["@context"] ?? "https://schema.org", ...mergedBusiness };
+const finalSchema = {
+  "@context": mergedBusiness["@context"] ?? "https://schema.org",
+  ...mergedBusiness
+};
 
 const reviewsJsonLd =
   isSchemaEnabled && typeof averageRating === "number" && !Number.isNaN(averageRating)
