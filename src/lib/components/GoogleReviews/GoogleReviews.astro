@@ -3,11 +3,11 @@ import { validateProps } from "../../utils/props.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
 const nonEmptyString = (label) => (value) =>
-  typeof value === "string" && value.trim().length > 0 || `${label} must be a non-empty string`;
+  (typeof value === "string" && value.trim().length > 0) || `${label} must be a non-empty string`;
 
 const clampNumber = (min, max) => (value) =>
-  typeof value === "number" && !Number.isNaN(value) && value >= min && value <= max
-    || `must be between ${min} and ${max}`;
+  (typeof value === "number" && !Number.isNaN(value) && value >= min && value <= max) ||
+  `must be between ${min} and ${max}`;
 
 const schema = {
   id: { type: "string" },
@@ -76,8 +76,7 @@ const defaultLabels = {
 };
 const localeKey = resolvedLocale.slice(0, 2).toLowerCase();
 const localeLabels = defaultLabels[localeKey] ?? defaultLabels.en;
-const resolvedTitle =
-  typeof title === "string" && title.trim() ? title.trim() : localeLabels.title;
+const resolvedTitle = typeof title === "string" && title.trim() ? title.trim() : localeLabels.title;
 const resolvedWriteReviewLabel =
   typeof writeReviewLabel === "string" && writeReviewLabel.trim()
     ? writeReviewLabel.trim()
@@ -119,20 +118,12 @@ const mapReview = (review) => ({
     review?.authorAttribution?.displayName ??
     "Google user",
   rating: review?.rating ?? review?.starRating ?? 0,
-  text:
-    review?.text ??
-    review?.originalText?.text ??
-    review?.original_text?.text ??
-    "",
+  text: review?.text ?? review?.originalText?.text ?? review?.original_text?.text ?? "",
   relative_time_description:
-    review?.relative_time_description ??
-    review?.relativePublishTimeDescription ??
-    "Recent",
+    review?.relative_time_description ?? review?.relativePublishTimeDescription ?? "Recent",
   author_url: review?.author_url ?? review?.authorUrl ?? review?.authorAttribution?.uri,
   profile_photo_url:
-    review?.profile_photo_url ??
-    review?.profilePhotoUrl ??
-    review?.authorAttribution?.photoUri
+    review?.profile_photo_url ?? review?.profilePhotoUrl ?? review?.authorAttribution?.photoUri
 });
 
 let fetchedReviews = [];
@@ -199,7 +190,9 @@ const total = totalReviews ?? reviews.length;
 const summaryStars = Math.round(averageRating ?? 0);
 
 if (isStrict && (!reviews.length || averageRating === null)) {
-  throw new Error("GoogleReviews: No reviews available (strict mode). Consider disabling 'strict'.");
+  throw new Error(
+    "GoogleReviews: No reviews available (strict mode). Consider disabling 'strict'."
+  );
 }
 
 const structuredReviews = reviews
@@ -233,19 +226,17 @@ const structuredReviews = reviews
 
 const reviewsJsonLd =
   isSchemaEnabled && typeof averageRating === "number" && !Number.isNaN(averageRating)
-    ? JSON.stringify(
-        {
-          "@context": "https://schema.org",
-          "@type": "AggregateRating",
-          itemReviewed: {
-            "@type": "LocalBusiness",
-            name: resolvedTitle
-          },
-          ratingValue: averageRating,
-          reviewCount: total,
-          review: structuredReviews.length ? structuredReviews : undefined
-        }
-      ).replace(/</g, "\\u003c")
+    ? JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "AggregateRating",
+        itemReviewed: {
+          "@type": "LocalBusiness",
+          name: resolvedTitle
+        },
+        ratingValue: averageRating,
+        reviewCount: total,
+        review: structuredReviews.length ? structuredReviews : undefined
+      }).replace(/</g, "\\u003c")
     : null;
 
 const styleVars = {
@@ -278,107 +269,109 @@ const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("googlereviews", className);
 ---
 
-{(!reviews.length || averageRating === null) && !isStrict ? null : (
-  <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
-    <header class="reviews-header">
-      <div class="brand">
-        <div class="google-mark" aria-label="Google Reviews">
-          <span class="g">G</span>
-          <span class="o1">o</span>
-          <span class="o2">o</span>
-          <span class="g">g</span>
-          <span class="l">l</span>
-          <span class="e">e</span>
+{
+  (!reviews.length || averageRating === null) && !isStrict ? null : (
+    <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+      <header class="reviews-header">
+        <div class="brand">
+          <div class="google-mark" aria-label="Google Reviews">
+            <span class="g">G</span>
+            <span class="o1">o</span>
+            <span class="o2">o</span>
+            <span class="g">g</span>
+            <span class="l">l</span>
+            <span class="e">e</span>
+          </div>
+          <span class="title">{resolvedTitle}</span>
         </div>
-        <span class="title">{resolvedTitle}</span>
-      </div>
-      <div class="score" aria-label={`Average rating ${averageRating?.toFixed?.(1) ?? ""}`}>
-        <div class="rating">
-          <span class="rating-value">{averageRating?.toFixed?.(1) ?? "—"}</span>
-          <span class="stars" aria-label={`${summaryStars} out of 5 stars`}>
-            {Array.from({ length: 5 }).map((_, idx) => (
-              <svg
-                class={idx < summaryStars ? "filled" : ""}
-                viewBox="0 0 20 20"
-                role="presentation"
-                aria-hidden="true"
-              >
-                <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
-              </svg>
-            ))}
-          </span>
-          <span class="count">({total})</span>
-        </div>
-      </div>
-      <a class="button review-button" href={reviewLink} target="_blank" rel="noopener noreferrer">
-        {resolvedWriteReviewLabel}
-      </a>
-    </header>
-
-    <div class="carousel">
-      <ul class="track" data-reviews-track>
-        {reviews.map((review, index) => {
-          const bg = getAvatarColor(review?.author_name ?? "G");
-          const initials = getInitials(review?.author_name ?? "G");
-          return (
-            <li class="review" data-index={index}>
-              <div class="reviewer">
-                <div class="avatar" style={`--avatar-color:${bg};`}>
-                  {review?.profile_photo_url ? (
-                    <img
-                      src={review.profile_photo_url}
-                      alt={`Avatar of ${review.author_name}`}
-                      loading="lazy"
-                      referrerpolicy="no-referrer"
-                    />
-                  ) : (
-                    <span>{initials}</span>
-                  )}
-                </div>
-                <div class="meta">
-                  <div class="name">{review?.author_name ?? "Google user"}</div>
-                  <div class="time">{review?.relative_time_description ?? "Recent"}</div>
-                </div>
-              </div>
-              <div class="stars" aria-label={`${review?.rating ?? 0} out of 5 stars`}>
-                {Array.from({ length: 5 }).map((_, idx) => (
-                  <svg
-                    class={idx < Math.round(review?.rating ?? 0) ? "filled" : ""}
-                    viewBox="0 0 20 20"
-                    role="presentation"
-                    aria-hidden="true"
-                  >
-                    <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
-                  </svg>
-                ))}
-              </div>
-              <p class="reviewcontent" style={`--line-clamp: ${resolvedTruncateLines};`}>
-                {review?.text}
-              </p>
-              {review?.author_url && (
-                <a
-                  class="read-more"
-                  href={review.author_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+        <div class="score" aria-label={`Average rating ${averageRating?.toFixed?.(1) ?? ""}`}>
+          <div class="rating">
+            <span class="rating-value">{averageRating?.toFixed?.(1) ?? "—"}</span>
+            <span class="stars" aria-label={`${summaryStars} out of 5 stars`}>
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <svg
+                  class={idx < summaryStars ? "filled" : ""}
+                  viewBox="0 0 20 20"
+                  role="presentation"
+                  aria-hidden="true"
                 >
-                  {resolvedReadMoreLabel}{" "}
-                  <div class="sr-only">about {review?.author_name ?? "This Google user"}</div>
-                </a>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+                  <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
+                </svg>
+              ))}
+            </span>
+            <span class="count">({total})</span>
+          </div>
+        </div>
+        <a class="button review-button" href={reviewLink} target="_blank" rel="noopener noreferrer">
+          {resolvedWriteReviewLabel}
+        </a>
+      </header>
 
-    <div class="more-reviews">
-      <a class="read-more" href={moreReviewsLink} target="_blank" rel="noopener noreferrer">
-        {resolvedMoreReviewsLabel}
-      </a>
-    </div>
-  </section>
-)}
+      <div class="carousel">
+        <ul class="track" data-reviews-track>
+          {reviews.map((review, index) => {
+            const bg = getAvatarColor(review?.author_name ?? "G");
+            const initials = getInitials(review?.author_name ?? "G");
+            return (
+              <li class="review" data-index={index}>
+                <div class="reviewer">
+                  <div class="avatar" style={`--avatar-color:${bg};`}>
+                    {review?.profile_photo_url ? (
+                      <img
+                        src={review.profile_photo_url}
+                        alt={`Avatar of ${review.author_name}`}
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
+                  </div>
+                  <div class="meta">
+                    <div class="name">{review?.author_name ?? "Google user"}</div>
+                    <div class="time">{review?.relative_time_description ?? "Recent"}</div>
+                  </div>
+                </div>
+                <div class="stars" aria-label={`${review?.rating ?? 0} out of 5 stars`}>
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <svg
+                      class={idx < Math.round(review?.rating ?? 0) ? "filled" : ""}
+                      viewBox="0 0 20 20"
+                      role="presentation"
+                      aria-hidden="true"
+                    >
+                      <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
+                    </svg>
+                  ))}
+                </div>
+                <p class="reviewcontent" style={`--line-clamp: ${resolvedTruncateLines};`}>
+                  {review?.text}
+                </p>
+                {review?.author_url && (
+                  <a
+                    class="read-more"
+                    href={review.author_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {resolvedReadMoreLabel}{" "}
+                    <div class="sr-only">about {review?.author_name ?? "This Google user"}</div>
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div class="more-reviews">
+        <a class="read-more" href={moreReviewsLink} target="_blank" rel="noopener noreferrer">
+          {resolvedMoreReviewsLabel}
+        </a>
+      </div>
+    </section>
+  )
+}
 
 {reviewsJsonLd && <script type="application/ld+json" is:inline set:html={reviewsJsonLd} />}
 
@@ -428,11 +421,21 @@ const resolvedClass = mergeClasses("googlereviews", className);
     font-family: var(--googlereviews-avatar-font, inherit);
   }
 
-  .google-mark .g { color: #4285f4; }
-  .google-mark .o1 { color: #ea4335; }
-  .google-mark .o2 { color: #fbbc05; }
-  .google-mark .l { color: #34a853; }
-  .google-mark .e { color: #4285f4; }
+  .google-mark .g {
+    color: #4285f4;
+  }
+  .google-mark .o1 {
+    color: #ea4335;
+  }
+  .google-mark .o2 {
+    color: #fbbc05;
+  }
+  .google-mark .l {
+    color: #34a853;
+  }
+  .google-mark .e {
+    color: #4285f4;
+  }
 
   .title {
     color: var(--googlereviews-title-color);

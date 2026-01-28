@@ -10,7 +10,12 @@ const props = [
   { name: "class", type: "string", description: "Additional class names." },
   { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   { name: "placeId", type: "string", required: true, description: "Google Place ID (required)." },
-  { name: "apiKey", type: "string", required: true, description: "Google Places API key (required)." },
+  {
+    name: "apiKey",
+    type: "string",
+    required: true,
+    description: "Google Places API key (required)."
+  },
   { name: "locale", type: "string", default: '"en"', description: "Locale for API results." },
   {
     name: "sort",
@@ -74,23 +79,55 @@ const styleVars = [
   { name: "--googlereviews-bg", default: "#f6f7fb", description: "Container background." },
   { name: "--googlereviews-radius", default: "16px", description: "Container corner radius." },
   { name: "--googlereviews-padding", default: "1.5rem", description: "Container padding." },
-  { name: "--googlereviews-shadow", default: "0 8px 20px rgba(0,0,0,0.05)", description: "Container shadow." },
+  {
+    name: "--googlereviews-shadow",
+    default: "0 8px 20px rgba(0,0,0,0.05)",
+    description: "Container shadow."
+  },
   { name: "--googlereviews-title-color", default: "#3e3e3e", description: "Header text color." },
   { name: "--googlereviews-score-color", default: "#111", description: "Score number color." },
   { name: "--googlereviews-count-color", default: "#5f6368", description: "Review count color." },
   { name: "--googlereviews-star-color", default: "#f4b400", description: "Filled star color." },
   { name: "--googlereviews-star-muted", default: "#d9d9d9", description: "Empty star color." },
-  { name: "--googlereviews-button-bg", default: "#4285f4", description: "Primary button background." },
-  { name: "--googlereviews-button-color", default: "#fff", description: "Primary button text color." },
-  { name: "--googlereviews-button-radius", default: "999px", description: "Primary button radius." },
-  { name: "--googlereviews-button-shadow", default: "0 8px 16px rgba(66,133,244,0.35)", description: "Primary button shadow." },
+  {
+    name: "--googlereviews-button-bg",
+    default: "#4285f4",
+    description: "Primary button background."
+  },
+  {
+    name: "--googlereviews-button-color",
+    default: "#fff",
+    description: "Primary button text color."
+  },
+  {
+    name: "--googlereviews-button-radius",
+    default: "999px",
+    description: "Primary button radius."
+  },
+  {
+    name: "--googlereviews-button-shadow",
+    default: "0 8px 16px rgba(66,133,244,0.35)",
+    description: "Primary button shadow."
+  },
   { name: "--googlereviews-card-bg", default: "#fff", description: "Review card background." },
   { name: "--googlereviews-card-radius", default: "12px", description: "Review card radius." },
-  { name: "--googlereviews-card-shadow", default: "0 10px 20px rgba(0,0,0,0.08)", description: "Review card shadow." },
-  { name: "--googlereviews-card-width", default: "clamp(240px, 28vw, 320px)", description: "Card width in carousel." },
+  {
+    name: "--googlereviews-card-shadow",
+    default: "0 10px 20px rgba(0,0,0,0.08)",
+    description: "Review card shadow."
+  },
+  {
+    name: "--googlereviews-card-width",
+    default: "clamp(240px, 28vw, 320px)",
+    description: "Card width in carousel."
+  },
   { name: "--googlereviews-card-gap", default: "1rem", description: "Gap between cards." },
   { name: "--googlereviews-avatar-size", default: "38px", description: "Avatar size." },
-  { name: "--googlereviews-avatar-font", default: "var(--font-header, inherit)", description: "Avatar/mark font." },
+  {
+    name: "--googlereviews-avatar-font",
+    default: "var(--font-header, inherit)",
+    description: "Avatar/mark font."
+  },
   { name: "--googlereviews-text-color", default: "#3e3e3e", description: "Review text color." },
   { name: "--googlereviews-link-color", default: "#4285f4", description: "Link color." }
 ];
@@ -106,12 +143,18 @@ const exampleCode = `<GoogleReviews
 />`;
 ---
 
-<DocLayout title="GoogleReviews" description="Embed Google ratings and reviews with write-review CTA and JSON-LD." items={components}>
+<DocLayout
+  title="GoogleReviews"
+  description="Embed Google ratings and reviews with write-review CTA and JSON-LD."
+  items={components}
+>
   <PropsTable props={props} />
   <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Preview" code={exampleCode}>
-    <p style="margin: 0 0 0.5rem; font-weight: 600;">Original language (translate=false, locale=fr)</p>
+    <p style="margin: 0 0 0.5rem; font-weight: 600;">
+      Original language (translate=false, locale=fr)
+    </p>
     <GoogleReviews
       placeId="ChIJeVsU9JlCCkgRwL0Auxd3lio"
       apiKey="AIzaSyCFIDO40Oe8F2KWDXVLxjnid--6521E43E"
@@ -123,7 +166,9 @@ const exampleCode = `<GoogleReviews
       strict={false}
     />
 
-    <p style="margin: 1.5rem 0 0.5rem; font-weight: 600;">Translated to English (translate=true, locale=en)</p>
+    <p style="margin: 1.5rem 0 0.5rem; font-weight: 600;">
+      Translated to English (translate=true, locale=en)
+    </p>
     <GoogleReviews
       placeId="ChIJeVsU9JlCCkgRwL0Auxd3lio"
       apiKey="AIzaSyCFIDO40Oe8F2KWDXVLxjnid--6521E43E"
