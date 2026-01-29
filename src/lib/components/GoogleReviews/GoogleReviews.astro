@@ -292,7 +292,7 @@ const styleVars = {
   "--googlereviews-count-color": "#5f6368",
   "--googlereviews-star-color": "#f4b400",
   "--googlereviews-star-muted": "#d9d9d9",
-  "--googlereviews-button-bg": "#4285f4",
+  "--googlereviews-button-bg": "#0b57d0",
   "--googlereviews-button-color": "#fff",
   "--googlereviews-button-radius": "999px",
   "--googlereviews-button-shadow": "0 8px 16px rgba(66, 133, 244, 0.35)",
@@ -304,32 +304,34 @@ const styleVars = {
   "--googlereviews-avatar-size": "38px",
   "--googlereviews-avatar-font": "var(--font-header, inherit)",
   "--googlereviews-text-color": "#3e3e3e",
-  "--googlereviews-link-color": "#4285f4"
+  "--googlereviews-link-color": "#0b57d0",
+  "--googlereviews-focus-color": "#0b57d0"
 };
 
 const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("googlereviews", className);
+const titleId = `${resolvedId}-title`;
 ---
 
 {
   (!reviews.length || averageRating === null) && !isStrict ? null : (
-    <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+    <section
+      id={resolvedId}
+      class={resolvedClass}
+      style={resolvedStyle || undefined}
+      aria-labelledby={titleId}
+      {...rest}
+    >
       <header class="reviews-header">
         <div class="brand">
-          <div class="google-mark" aria-label="Google Reviews">
-            <span class="g">G</span>
-            <span class="o1">o</span>
-            <span class="o2">o</span>
-            <span class="g">g</span>
-            <span class="l">l</span>
-            <span class="e">e</span>
-          </div>
-          <span class="title">{resolvedTitle}</span>
+          <h2 id={titleId} class="title">{resolvedTitle}</h2>
         </div>
-        <div class="score" aria-label={`Average rating ${averageRating?.toFixed?.(1) ?? ""}`}>
+        <div class="score">
           <div class="rating">
-            <span class="rating-value">{averageRating?.toFixed?.(1) ?? "—"}</span>
-            <span class="stars" aria-label={`${summaryStars} out of 5 stars`}>
+            <span class="rating-value" aria-hidden="true">
+              {averageRating?.toFixed?.(1) ?? "—"}
+            </span>
+            <span class="stars" aria-hidden="true">
               {Array.from({ length: 5 }).map((_, idx) => (
                 <svg
                   class={idx < summaryStars ? "filled" : ""}
@@ -340,6 +342,9 @@ const resolvedClass = mergeClasses("googlereviews", className);
                   <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
                 </svg>
               ))}
+            </span>
+            <span class="sr-only">
+              Average rating {averageRating?.toFixed?.(1) ?? "—"} out of 5 based on {total} reviews
             </span>
             <span class="count">({total})</span>
           </div>
@@ -374,7 +379,7 @@ const resolvedClass = mergeClasses("googlereviews", className);
                     <div class="time">{review?.relative_time_description ?? "Recent"}</div>
                   </div>
                 </div>
-                <div class="stars" aria-label={`${review?.rating ?? 0} out of 5 stars`}>
+                <div class="stars" aria-hidden="true">
                   {Array.from({ length: 5 }).map((_, idx) => (
                     <svg
                       class={idx < Math.round(review?.rating ?? 0) ? "filled" : ""}
@@ -386,6 +391,7 @@ const resolvedClass = mergeClasses("googlereviews", className);
                     </svg>
                   ))}
                 </div>
+                <div class="sr-only">Rated {review?.rating ?? 0} out of 5 stars</div>
                 <p class="reviewcontent" style={`--line-clamp: ${resolvedTruncateLines};`}>
                   {review?.text}
                 </p>
@@ -448,39 +454,11 @@ const resolvedClass = mergeClasses("googlereviews", className);
     color: var(--googlereviews-title-color);
   }
 
-  .google-mark {
-    display: inline-flex;
-    gap: 0.05rem;
-    font-weight: 700;
-    font-size: 1.15rem;
-  }
-
-  .google-mark .g,
-  .google-mark .o1,
-  .google-mark .o2,
-  .google-mark .l,
-  .google-mark .e {
-    font-family: var(--googlereviews-avatar-font, inherit);
-  }
-
-  .google-mark .g {
-    color: #4285f4;
-  }
-  .google-mark .o1 {
-    color: #ea4335;
-  }
-  .google-mark .o2 {
-    color: #fbbc05;
-  }
-  .google-mark .l {
-    color: #34a853;
-  }
-  .google-mark .e {
-    color: #4285f4;
-  }
-
   .title {
     color: var(--googlereviews-title-color);
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
   }
 
   .score {
@@ -542,6 +520,13 @@ const resolvedClass = mergeClasses("googlereviews", className);
   .button.review-button:hover {
     color: #fff;
     transform: translateY(-1px);
+  }
+
+  .button.review-button:focus-visible,
+  .read-more:focus-visible {
+    outline: 2px solid var(--googlereviews-focus-color);
+    outline-offset: 2px;
+    box-shadow: none;
   }
 
   .carousel {
