@@ -15,7 +15,12 @@ const code = `
     `;
 
 const props = [
-  { name: "label", type: "string", default: '"Read more"', description: "Link text." },
+  {
+    name: "label",
+    type: "string",
+    default: '"Read more"',
+    description: "Link text (used when no slot content is provided)."
+  },
   { name: "href", type: "string", description: "Destination URL." },
   { name: "target", type: "string", description: "Target attribute (e.g., _blank)." },
   {
@@ -41,6 +46,12 @@ const props = [
     type: "boolean",
     default: "false",
     description: "Disables link styling/aria."
+  },
+  {
+    name: "screenreader",
+    type: "string",
+    description:
+      "Visually hidden text announced after the label/slot and used for external icon aria."
   }
 ];
 ---

@@ -15,6 +15,7 @@ Props:
 - id?: string
 - class?: string
 - style?: string
+- screenreader?: string
 Notes:
 - rel defaults to "noreferrer" when target is "_blank".
 */
@@ -28,7 +29,8 @@ const schema = {
   rel: { type: "string" },
   variant: { type: "string" },
   size: { type: "string" },
-  disabled: { type: "boolean" }
+  disabled: { type: "boolean" },
+  screenreader: { type: "string" }
 };
 
 const {
@@ -42,6 +44,7 @@ const {
   variant = "ghost",
   size = "md",
   disabled = false,
+  screenreader,
   ...rest
 } = validateProps(schema, Astro.props, { component: "Link" });
 const resolvedId = id ?? "link-" + Math.random().toString(36).slice(2, 9);
@@ -51,6 +54,7 @@ const resolvedTarget = target;
 const resolvedRel = rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
 const isExternal = resolvedHref && /^(https?:)?\/\//.test(resolvedHref);
 const resolvedStyle = makeStyleVars({}, style);
+const accessibleLabel = screenreader ?? resolvedLabel;
 ---
 
 <Button
@@ -62,16 +66,17 @@ const resolvedStyle = makeStyleVars({}, style);
   disabled={disabled}
   variant={variant}
   size={size}
+  screenreader={screenreader}
   style={resolvedStyle || undefined}
   {...rest}
 >
-  <span>{resolvedLabel}</span>
+  <span><slot>{resolvedLabel}</slot></span>
   {
     isExternal && (
       <Icon
         content={{ name: "external" }}
         size={size === "sm" ? "sm" : "md"}
-        label={`${resolvedLabel} (opens in new tab)`}
+        label={accessibleLabel ? `${accessibleLabel} (opens in new tab)` : undefined}
       />
     )
   }

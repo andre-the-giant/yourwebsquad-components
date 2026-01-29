@@ -15,7 +15,12 @@ const props = [
   { name: "id", type: "string", description: "Optional id for the root element." },
   { name: "class", type: "string", description: "Additional class names." },
   { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
-  { name: "label", type: "string", default: '"Button"', description: "Button text." },
+  {
+    name: "label",
+    type: "string",
+    default: '"Button"',
+    description: "Button text (used when no slot content is provided)."
+  },
   { name: "href", type: "string", description: "When set renders an anchor." },
   { name: "target", type: "string", description: "Link target (e.g., _blank)." },
   {
@@ -42,7 +47,12 @@ const props = [
     default: '"button"',
     description: "Native button type."
   },
-  { name: "disabled", type: "boolean", default: "false", description: "Disables button/anchor." }
+  { name: "disabled", type: "boolean", default: "false", description: "Disables button/anchor." },
+  {
+    name: "screenreader",
+    type: "string",
+    description: "Visually hidden text announced after the label/slot."
+  }
 ];
 
 const styleVars = [
