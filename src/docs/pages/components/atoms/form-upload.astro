@@ -1,0 +1,241 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import FormUpload from "@lib/components/Form-Upload/Form-Upload.astro";
+
+const basicCode = `<FormUpload label="Upload image" name="photo" browseLabel="Choose image" accept="image/*" required />`;
+const statesCode = `<FormUpload label="Single image" name="heroImage" accept="image/*" maxFileSizeMb={3} />\n<FormUpload label="Gallery images" name="gallery" accept="image/*" multiple maxFiles={4} maxFileSizeMb={5} />`;
+const cssVarCode = `<FormUpload label="Custom upload input" style="--form-input-padding: 0.85rem 1rem; --form-input-border: 1px solid #0d6ea8; --form-upload-button-bg: #0d6ea8; --form-upload-button-fg: #fff;" />`;
+
+const props = [
+  { name: "id", type: "string", description: "Input id; auto-generated if missing." },
+  { name: "class", type: "string", description: "Wrapper class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "name", type: "string", description: "Field name (auto-appends [] when multiple)." },
+  { name: "label", type: "string", description: "Label text." },
+  {
+    name: "accept",
+    type: "string",
+    default: '"image/*"',
+    description: "Accepted MIME types/extensions (native file input accept)."
+  },
+  {
+    name: "multiple",
+    type: "boolean",
+    default: "false",
+    description: "Allow selecting multiple files."
+  },
+  {
+    name: "maxFiles",
+    type: "number",
+    description: "Client-side max file count validation hint."
+  },
+  {
+    name: "maxFileSizeMb",
+    type: "number",
+    description: "Client-side max per-file size validation in MB."
+  },
+  {
+    name: "imagesOnly",
+    type: "boolean",
+    default: "true",
+    description: "Security default. Rejects non-image files and dangerous script-like types."
+  },
+  {
+    name: "showPreview",
+    type: "boolean",
+    default: "true",
+    description: "Show selected image thumbnails."
+  },
+  {
+    name: "previewLimit",
+    type: "number",
+    default: "4",
+    description: "Maximum number of thumbnails to render."
+  },
+  {
+    name: "noFileText",
+    type: "string",
+    default: '"No file selected"',
+    description: "Summary text shown when no file is selected."
+  },
+  {
+    name: "browseLabel",
+    type: "string",
+    default: '"Browse"',
+    description: "Label for the uploader trigger button (useful for i18n)."
+  },
+  {
+    name: "removeLabel",
+    type: "string",
+    default: '"Remove"',
+    description: "Label for each thumbnail remove button (useful for i18n)."
+  },
+  { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
+  {
+    name: "required",
+    type: "boolean",
+    default: "false",
+    description: "Mark required; adds asterisk."
+  },
+  { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
+  { name: "ariaDescribedBy", type: "string", description: "IDs to include in aria-describedby." },
+  { name: "helpId", type: "string", description: "Help text id to append to aria-describedby." },
+  { name: "errorId", type: "string", description: "Error text id to append to aria-describedby." },
+  {
+    name: "ariaInvalid",
+    type: "boolean",
+    default: "false",
+    description: 'Sets aria-invalid="true".'
+  },
+  { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
+];
+
+const styleVars = [
+  {
+    name: "--form-width",
+    type: "CSS variable",
+    default: "100%",
+    description: "Width of the field wrapper."
+  },
+  {
+    name: "--form-field-gap",
+    type: "CSS variable",
+    default: "var(--space-2)",
+    description: "Vertical spacing inside the field."
+  },
+  {
+    name: "--form-label-font-size",
+    type: "CSS variable",
+    default: "var(--size-sm)",
+    description: "Label font size."
+  },
+  {
+    name: "--form-input-padding",
+    type: "CSS variable",
+    default: "0.5rem 0.75rem",
+    description: "File input padding."
+  },
+  {
+    name: "--form-input-border",
+    type: "CSS variable",
+    default: "1px solid var(--color-border)",
+    description: "File input border."
+  },
+  {
+    name: "--form-input-border-radius",
+    type: "CSS variable",
+    default: "0",
+    description: "File input border radius."
+  },
+  {
+    name: "--form-input-bg",
+    type: "CSS variable",
+    default: "var(--color-surface)",
+    description: "File input background."
+  },
+  {
+    name: "--form-input-focus",
+    type: "CSS variable",
+    default: "var(--color-focus)",
+    description: "Focus outline color."
+  },
+  {
+    name: "--form-upload-button-padding",
+    type: "CSS variable",
+    default: "0.45rem 0.75rem",
+    description: "Browse/remove button padding."
+  },
+  {
+    name: "--form-upload-button-border",
+    type: "CSS variable",
+    default: "1px solid var(--color-fg)",
+    description: "Browse/remove button border."
+  },
+  {
+    name: "--form-upload-button-radius",
+    type: "CSS variable",
+    default: "0",
+    description: "Browse/remove button border radius."
+  },
+  {
+    name: "--form-upload-button-bg",
+    type: "CSS variable",
+    default: "var(--color-fg)",
+    description: "Browse/remove button background."
+  },
+  {
+    name: "--form-upload-button-fg",
+    type: "CSS variable",
+    default: "var(--color-bg)",
+    description: "Browse/remove button text color."
+  },
+  {
+    name: "--form-upload-button-weight",
+    type: "CSS variable",
+    default: "var(--weight-semibold)",
+    description: "Browse/remove button font weight."
+  },
+  {
+    name: "--form-upload-thumb-ratio",
+    type: "CSS variable",
+    default: "1 / 1",
+    description: "Aspect ratio for preview thumbnails."
+  }
+];
+---
+
+<DocLayout
+  title="Form-Upload"
+  description="File upload input with label and validation hints."
+  items={components}
+>
+  <PropsTable props={props} />
+  <PropsTable title="CSS Variables" props={styleVars} />
+
+  <Preview title="Basic" code={basicCode}>
+    <div class="row">
+      <FormUpload
+        label="Upload image"
+        name="photo"
+        browseLabel="Choose image"
+        accept="image/*"
+        required
+      />
+    </div>
+  </Preview>
+
+  <Preview title="States" code={statesCode}>
+    <div class="row">
+      <FormUpload label="Single image" name="heroImage" accept="image/*" maxFileSizeMb={3} />
+      <FormUpload
+        label="Gallery images"
+        name="gallery"
+        accept="image/*"
+        multiple
+        maxFiles={4}
+        maxFileSizeMb={5}
+      />
+    </div>
+  </Preview>
+
+  <Preview title="CSS variables" code={cssVarCode}>
+    <div class="row">
+      <FormUpload
+        label="Custom upload input"
+        style="--form-input-padding: 0.85rem 1rem; --form-input-border: 1px solid #0d6ea8; --form-upload-button-bg: #0d6ea8; --form-upload-button-fg: #fff;"
+      />
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+  }
+</style>

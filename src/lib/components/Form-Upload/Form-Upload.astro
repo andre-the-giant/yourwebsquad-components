@@ -1,0 +1,683 @@
+---
+/*
+Props:
+- id?: string
+- name?: string
+- label?: string
+- accept?: string
+- multiple?: boolean
+- maxFiles?: number
+- maxFileSizeMb?: number
+- imagesOnly?: boolean
+- showPreview?: boolean
+- previewLimit?: number
+- noFileText?: string
+- browseLabel?: string
+- removeLabel?: string
+- disabled?: boolean
+- required?: boolean
+- ariaLabel?: string
+- ariaDescribedBy?: string
+- ariaInvalid?: boolean
+- helpId?: string
+- errorId?: string
+- ariaControls?: string
+- class?: string
+- style?: string
+Notes:
+- component auto-generates an id when none is provided
+- when multiple=true, [] is appended to name automatically unless already provided
+- by default imagesOnly=true and dangerous extensions are rejected client-side
+- CSS vars:
+  --form-width, --form-field-gap, --form-label-font-size,
+  --form-input-padding, --form-input-border, --form-input-border-radius,
+  --form-input-bg, --form-input-focus,
+  --form-upload-button-padding, --form-upload-button-border, --form-upload-button-radius,
+  --form-upload-button-bg, --form-upload-button-fg, --form-upload-button-weight,
+  --form-upload-thumb-ratio
+*/
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import FormLabel from "../Form-Label/Form-Label.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  name: { type: "string" },
+  label: { type: "string" },
+  accept: { type: "string" },
+  multiple: { type: "boolean" },
+  maxFiles: { type: ["number", "string"] },
+  maxFileSizeMb: { type: ["number", "string"] },
+  imagesOnly: { type: "boolean" },
+  showPreview: { type: "boolean" },
+  previewLimit: { type: ["number", "string"] },
+  noFileText: { type: "string" },
+  browseLabel: { type: "string" },
+  removeLabel: { type: "string" },
+  disabled: { type: "boolean" },
+  required: { type: "boolean" },
+  ariaLabel: { type: "string" },
+  ariaDescribedBy: { type: "string" },
+  ariaInvalid: { type: "boolean" },
+  helpId: { type: "string" },
+  errorId: { type: "string" },
+  ariaControls: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  name,
+  label,
+  accept = "image/*",
+  multiple = false,
+  maxFiles,
+  maxFileSizeMb,
+  imagesOnly = true,
+  showPreview = true,
+  previewLimit = 4,
+  noFileText = "No file selected",
+  browseLabel = "Browse",
+  removeLabel = "Remove",
+  disabled = false,
+  required = false,
+  ariaLabel,
+  ariaDescribedBy,
+  ariaInvalid = false,
+  helpId,
+  errorId,
+  ariaControls,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Form-Upload" });
+
+const resolvedLabel = label;
+const resolvedId = id ?? `form-upload-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedName = multiple && name && !name.endsWith("[]") ? `${name}[]` : name;
+const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+
+const styleVars = {};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("form-field", className);
+---
+
+<div
+  class={resolvedClass}
+  style={resolvedStyle || undefined}
+  data-form-upload-root
+  data-upload-no-file-text={noFileText}
+  data-upload-remove-label={removeLabel}
+>
+  {
+    resolvedLabel ? (
+      <FormLabel
+        forId={resolvedId}
+        label={resolvedLabel}
+        required={required}
+        descriptionId={describedIds}
+      />
+    ) : null
+  }
+
+  <div class="form-upload-control">
+    <button type="button" class="form-upload-trigger" data-upload-trigger disabled={disabled}>
+      {browseLabel}
+    </button>
+    <input
+      class="form-upload"
+      id={resolvedId}
+      name={resolvedName}
+      type="file"
+      accept={accept}
+      multiple={multiple}
+      disabled={disabled}
+      required={required}
+      aria-label={ariaLabel}
+      aria-describedby={describedIds || undefined}
+      aria-invalid={ariaInvalid ? "true" : undefined}
+      aria-controls={ariaControls || undefined}
+      data-form-upload-input
+      data-images-only={imagesOnly ? "true" : "false"}
+      data-show-preview={showPreview ? "true" : "false"}
+      data-preview-limit={previewLimit ?? undefined}
+      data-max-files={maxFiles ?? undefined}
+      data-max-file-size-mb={maxFileSizeMb ?? undefined}
+      {...rest}
+    />
+  </div>
+
+  <p class="form-upload-summary" data-upload-summary aria-live="polite">{noFileText}</p>
+  <div class="form-upload-preview is-hidden" data-upload-preview hidden aria-live="polite"></div>
+</div>
+
+<script is:inline>
+  (() => {
+    const key = "__ywsFormUploadEnhancer";
+
+    if (!window[key]) {
+      const objectUrlsByInput = new WeakMap();
+      const selectedFilesByInput = new WeakMap();
+
+      const blockedExtensions = new Set([
+        ".php",
+        ".phtml",
+        ".php3",
+        ".php4",
+        ".php5",
+        ".phar",
+        ".pl",
+        ".py",
+        ".rb",
+        ".cgi",
+        ".asp",
+        ".aspx",
+        ".jsp",
+        ".js",
+        ".mjs",
+        ".cjs",
+        ".sh",
+        ".bash",
+        ".zsh",
+        ".ps1",
+        ".bat",
+        ".cmd",
+        ".com",
+        ".exe",
+        ".msi",
+        ".dll",
+        ".so",
+        ".dylib",
+        ".jar",
+        ".vbs",
+        ".wsf",
+        ".hta",
+        ".html",
+        ".htm",
+        ".xhtml",
+        ".shtml",
+        ".css",
+        ".scss",
+        ".sass",
+        ".less",
+        ".xml",
+        ".svg"
+      ]);
+
+      const imageExtensions = new Set([
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp",
+        ".gif",
+        ".bmp",
+        ".tiff",
+        ".tif",
+        ".avif",
+        ".heif",
+        ".heic"
+      ]);
+
+      const dangerousMimePatterns = [
+        /^text\//i,
+        /^application\/(javascript|x-javascript|ecmascript|x-httpd-php|x-php|x-sh|x-msdownload|x-dosexec|x-executable|x-bat|x-csh)/i,
+        /^application\/html/i,
+        /^image\/svg\+xml/i
+      ];
+
+      const dataTransferSupported = (() => {
+        try {
+          return typeof DataTransfer !== "undefined" && Boolean(new DataTransfer());
+        } catch (_) {
+          return false;
+        }
+      })();
+
+      const getExtension = (name) => {
+        const dot = String(name || "")
+          .toLowerCase()
+          .lastIndexOf(".");
+        return dot >= 0 ? String(name).toLowerCase().slice(dot) : "";
+      };
+
+      const isDangerousMime = (type) => {
+        const mime = String(type || "")
+          .trim()
+          .toLowerCase();
+        if (!mime) return false;
+        return dangerousMimePatterns.some((pattern) => pattern.test(mime));
+      };
+
+      const isImageByTypeOrExtension = (file) => {
+        const mime = String(file.type || "").toLowerCase();
+        if (mime.startsWith("image/") && mime !== "image/svg+xml") {
+          return true;
+        }
+
+        const ext = getExtension(file.name);
+        return imageExtensions.has(ext);
+      };
+
+      const revokeObjectUrls = (input) => {
+        const urls = objectUrlsByInput.get(input) || [];
+        urls.forEach((url) => URL.revokeObjectURL(url));
+        objectUrlsByInput.set(input, []);
+      };
+
+      const getFiles = (input) => selectedFilesByInput.get(input) || Array.from(input.files || []);
+
+      const syncStateFromInput = (input) => {
+        selectedFilesByInput.set(input, Array.from(input.files || []));
+      };
+
+      const buildFileList = (files) => {
+        if (!dataTransferSupported) return null;
+        const dt = new DataTransfer();
+        files.forEach((file) => dt.items.add(file));
+        return dt.files;
+      };
+
+      const applyFilesToInput = (input, files) => {
+        selectedFilesByInput.set(input, files);
+
+        const rebuilt = buildFileList(files);
+        if (rebuilt) {
+          input.files = rebuilt;
+          return true;
+        }
+
+        if (files.length === 0) {
+          input.value = "";
+          return true;
+        }
+
+        return false;
+      };
+
+      const enforceSelectionLimits = (input) => {
+        const current = getFiles(input);
+        let limit = Number(input.dataset.maxFiles || "");
+        if (!Number.isFinite(limit) || limit < 1) {
+          limit = input.multiple ? Infinity : 1;
+        }
+
+        if (!input.multiple) {
+          limit = 1;
+        }
+
+        if (current.length <= limit) {
+          return current;
+        }
+
+        const next = current.slice(0, limit);
+        const applied = applyFilesToInput(input, next);
+        if (!applied) {
+          // Fallback for browsers that cannot rebuild FileList with a subset.
+          // Clearing avoids keeping an oversized/invalid selection.
+          input.value = "";
+          selectedFilesByInput.set(input, []);
+          return [];
+        }
+        return next;
+      };
+
+      const validateInputFiles = (input, files) => {
+        if (!(input instanceof HTMLInputElement) || input.type !== "file") return "";
+
+        if (!input.multiple && files.length > 1) {
+          return "Only one file is allowed.";
+        }
+
+        const maxFiles = Number(input.dataset.maxFiles || "");
+        const maxFileSizeMb = Number(input.dataset.maxFileSizeMb || "");
+        const imagesOnly = input.dataset.imagesOnly !== "false";
+
+        if (Number.isFinite(maxFiles) && maxFiles > 0 && files.length > maxFiles) {
+          return `Please select at most ${maxFiles} file${maxFiles > 1 ? "s" : ""}.`;
+        }
+
+        if (Number.isFinite(maxFileSizeMb) && maxFileSizeMb > 0) {
+          const maxBytes = maxFileSizeMb * 1024 * 1024;
+          const tooLarge = files.find((file) => file.size > maxBytes);
+          if (tooLarge) {
+            return `Each file must be ${maxFileSizeMb}MB or smaller.`;
+          }
+        }
+
+        const blocked = files.find((file) => blockedExtensions.has(getExtension(file.name)));
+        if (blocked) {
+          return `Blocked file type: ${blocked.name}`;
+        }
+
+        const dangerousMime = files.find((file) => isDangerousMime(file.type));
+        if (dangerousMime) {
+          return `Blocked file content type: ${dangerousMime.name}`;
+        }
+
+        if (imagesOnly) {
+          const nonImage = files.find((file) => !isImageByTypeOrExtension(file));
+          if (nonImage) {
+            return "Only image files are allowed.";
+          }
+        }
+
+        return "";
+      };
+
+      const updateSummary = (root, files) => {
+        const summary = root.querySelector("[data-upload-summary]");
+        if (!(summary instanceof HTMLElement)) return;
+
+        const noFileText = root.dataset.uploadNoFileText || "No file selected";
+
+        if (files.length === 0) {
+          summary.textContent = noFileText;
+          summary.removeAttribute("title");
+          return;
+        }
+
+        if (files.length === 1) {
+          summary.textContent = files[0].name;
+          summary.setAttribute("title", files[0].name);
+          return;
+        }
+
+        summary.textContent = `${files.length} files selected`;
+        summary.removeAttribute("title");
+      };
+
+      const updatePreview = (root, input, files, sync) => {
+        const preview = root.querySelector("[data-upload-preview]");
+        if (!(preview instanceof HTMLElement)) return;
+        const removeLabel = root.dataset.uploadRemoveLabel || "Remove";
+
+        revokeObjectUrls(input);
+        preview.innerHTML = "";
+
+        const showPreview = input.dataset.showPreview !== "false";
+        if (!showPreview) {
+          preview.classList.add("is-hidden");
+          preview.setAttribute("hidden", "true");
+          return;
+        }
+
+        const previewable = files.filter((file) => isImageByTypeOrExtension(file));
+
+        if (!previewable.length) {
+          preview.classList.add("is-hidden");
+          preview.setAttribute("hidden", "true");
+          return;
+        }
+
+        const previewLimit = Number(input.dataset.previewLimit || "") || 4;
+        const objectUrls = [];
+
+        previewable.slice(0, previewLimit).forEach((file) => {
+          const url = URL.createObjectURL(file);
+          objectUrls.push(url);
+
+          const figure = document.createElement("figure");
+          figure.className = "form-upload-thumb";
+
+          const media = document.createElement("div");
+          media.className = "form-upload-thumb__media";
+
+          const img = document.createElement("img");
+          img.className = "form-upload-thumb__img";
+          img.src = url;
+          img.alt = file.name;
+          img.loading = "lazy";
+
+          const caption = document.createElement("figcaption");
+          caption.className = "form-upload-thumb__caption";
+          caption.textContent = file.name;
+
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "form-upload-trigger form-upload-thumb__remove";
+          remove.textContent = removeLabel;
+          remove.disabled = input.disabled;
+          remove.setAttribute("aria-label", `${removeLabel} ${file.name}`);
+          remove.addEventListener("click", () => {
+            const current = getFiles(input);
+            const idx = current.findIndex(
+              (candidate) =>
+                candidate.name === file.name &&
+                candidate.size === file.size &&
+                candidate.lastModified === file.lastModified
+            );
+
+            if (idx < 0) return;
+
+            const next = current.filter((_, i) => i !== idx);
+            const applied = applyFilesToInput(input, next);
+            if (!applied) {
+              input.value = "";
+              selectedFilesByInput.set(input, []);
+            }
+            sync();
+          });
+
+          const meta = document.createElement("div");
+          meta.className = "form-upload-thumb__meta";
+          meta.appendChild(caption);
+          meta.appendChild(remove);
+
+          media.appendChild(img);
+          figure.appendChild(media);
+          figure.appendChild(meta);
+          preview.appendChild(figure);
+        });
+
+        objectUrlsByInput.set(input, objectUrls);
+        preview.classList.remove("is-hidden");
+        preview.removeAttribute("hidden");
+      };
+
+      const bindRoot = (root) => {
+        if (!(root instanceof HTMLElement)) return;
+        if (root.dataset.uploadBound === "true") return;
+
+        const input = root.querySelector("[data-form-upload-input]");
+        if (!(input instanceof HTMLInputElement) || input.type !== "file") return;
+        const trigger = root.querySelector("[data-upload-trigger]");
+        if (trigger instanceof HTMLButtonElement) {
+          trigger.disabled = input.disabled;
+          trigger.addEventListener("click", () => {
+            if (input.disabled) return;
+            input.click();
+          });
+        }
+
+        root.dataset.uploadBound = "true";
+
+        const sync = () => {
+          const files = getFiles(input);
+          input.setCustomValidity(validateInputFiles(input, files));
+          updateSummary(root, files);
+          updatePreview(root, input, files, sync);
+        };
+
+        input.addEventListener("change", () => {
+          syncStateFromInput(input);
+          enforceSelectionLimits(input);
+          sync();
+        });
+
+        input.addEventListener("invalid", () => {
+          input.setCustomValidity(validateInputFiles(input, getFiles(input)));
+        });
+
+        const form = input.closest("form");
+        if (form) {
+          form.addEventListener("reset", () => {
+            setTimeout(() => {
+              syncStateFromInput(input);
+              input.setCustomValidity("");
+              sync();
+            }, 0);
+          });
+        }
+
+        syncStateFromInput(input);
+        enforceSelectionLimits(input);
+        sync();
+      };
+
+      window[key] = { bindRoot };
+    }
+
+    document.querySelectorAll("[data-form-upload-root]").forEach((root) => {
+      window[key].bindRoot(root);
+    });
+  })();
+</script>
+
+<style>
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-field-gap);
+    width: var(--form-width);
+  }
+
+  .form-label {
+    font-size: var(--form-label-font-size);
+    color: var(--color-fg-muted);
+  }
+
+  .form-upload {
+    padding: var(--form-input-padding);
+    border: var(--form-input-border);
+    border-radius: var(--form-input-border-radius);
+    font-size: var(--size-md);
+    font-family: var(--font-body);
+    color: var(--color-fg);
+    background: var(--form-input-bg);
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+
+  .form-upload-control {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .form-upload-trigger,
+  :global(.form-upload-thumb__remove) {
+    padding: var(--form-upload-button-padding, 0.45rem 0.75rem);
+    border: var(--form-upload-button-border, 1px solid var(--color-fg));
+    border-radius: var(--form-upload-button-radius, 0);
+    background: var(--form-upload-button-bg, var(--color-fg));
+    color: var(--form-upload-button-fg, var(--color-bg));
+    font: inherit;
+    font-weight: var(--form-upload-button-weight, var(--weight-semibold));
+    cursor: pointer;
+    transition: filter 120ms ease;
+  }
+
+  .form-upload-trigger:hover,
+  :global(.form-upload-thumb__remove:hover) {
+    filter: brightness(0.9);
+  }
+
+  .form-upload-trigger:disabled,
+  :global(.form-upload-thumb__remove:disabled) {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-upload:focus,
+  .form-upload-trigger:focus,
+  :global(.form-upload-thumb__remove:focus) {
+    outline: 2px solid var(--form-input-focus);
+    outline-offset: 2px;
+  }
+
+  /* Keep the native file button hidden since we use a customizable trigger button. */
+  .form-upload::file-selector-button {
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    opacity: 0;
+  }
+
+  .form-upload::-webkit-file-upload-button {
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    opacity: 0;
+  }
+
+  .form-upload:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-upload-summary {
+    margin: 0;
+    font-size: var(--size-sm);
+    color: var(--color-muted);
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .form-upload-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 300px));
+    gap: var(--space-2);
+  }
+
+  .form-upload-preview :global(.form-upload-thumb) {
+    margin: 0;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .form-upload-preview :global(.form-upload-thumb__media) {
+    width: 100%;
+    aspect-ratio: var(--form-upload-thumb-ratio, 4/3);
+    overflow: hidden;
+  }
+
+  .form-upload-preview :global(.form-upload-thumb__img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .form-upload-preview :global(.form-upload-thumb__meta) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.35rem 0.45rem;
+  }
+
+  .form-upload-preview :global(.form-upload-thumb__caption) {
+    font-size: var(--size-xs);
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .form-upload-preview :global(.form-upload-thumb__remove) {
+    white-space: nowrap;
+  }
+
+  .is-hidden {
+    display: none !important;
+  }
+</style>

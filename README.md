@@ -152,6 +152,19 @@ export const collections = { forms };
       "name": "middle_name",
       "label": { "en": "Leave blank", "fr": "Laissez ce champ vide" },
       "type": "hidden"
+    },
+    {
+      "name": "reference_images",
+      "label": { "en": "Reference images", "fr": "Images de référence" },
+      "type": "upload",
+      "accept": "image/*",
+      "imagesOnly": true,
+      "multiple": true,
+      "maxFiles": 3,
+      "maxFileSizeMb": 5,
+      "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" },
+      "browseLabel": { "en": "Choose images", "fr": "Choisir des images" },
+      "removeLabel": { "en": "Remove", "fr": "Retirer" }
     }
   ],
   "email": {
@@ -186,6 +199,8 @@ During `astro build`, the integration emits `/build/api/<formId>/index.php` with
 - Honeypot: empty success without sending mail when filled
 - Rate limiting: default 5 requests per 60s (configurable per form)
 - Phone fields (`type: "tel"`) get a default server validation pattern `^[0-9+()\\-\\s]{6,20}$` if none is provided.
+- Upload fields (`type: "upload"`) default to `imagesOnly: true`, reject dangerous/script-like file extensions and MIME types, and attach validated uploads to the outgoing email.
+- Upload UI text is localizable via `noFileText`, `browseLabel`, and `removeLabel`.
 
 ### Client usage tips
 

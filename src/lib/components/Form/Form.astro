@@ -9,6 +9,7 @@ import FormCheckbox from "../Form-Checkbox/index.astro";
 import FormRadio from "../Form-Radio/index.astro";
 import FormDate from "../Form-Date/index.astro";
 import FormHidden from "../Form-Hidden/index.astro";
+import FormUpload from "../Form-Upload/index.astro";
 import FormFieldset from "../Form-Fieldset/index.astro";
 import FormError from "../Form-Error/index.astro";
 import FormHelp from "../Form-Help/index.astro";
@@ -138,6 +139,8 @@ function registerField(name) {
 }
 
 const formFields = normalizedForm?.fields ?? [];
+const hasUploadField = formFields.some((field) => field.type === "upload");
+const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : undefined);
 ---
 
 <div class="form-wrapper" data-form-wrapper>
@@ -184,7 +187,7 @@ const formFields = normalizedForm?.fields ?? [];
     action={resolvedAction}
     method="post"
     target={target}
-    enctype={enctype}
+    enctype={resolvedEnctype}
     novalidate={novalidate ? true : undefined}
     data-validate={validateOnSubmit ? "true" : "false"}
     data-prevent-enter={preventEnterSubmit ? "true" : undefined}
@@ -220,6 +223,9 @@ const formFields = normalizedForm?.fields ?? [];
 
             const localizedLabel = resolveLocalized(field.label, locale);
             const localizedPlaceholder = resolveLocalized(field.placeholder, locale);
+            const localizedNoFileText = resolveLocalized(field.noFileText, locale);
+            const localizedBrowseLabel = resolveLocalized(field.browseLabel, locale);
+            const localizedRemoveLabel = resolveLocalized(field.removeLabel, locale);
             const validationAttrs = {
               maxLength: field.maxLength,
               minLength: field.minLength,
@@ -373,6 +379,31 @@ const formFields = normalizedForm?.fields ?? [];
               return <FormHidden name={field.name} value={field.defaultValue} />;
             }
 
+            if (field.type === "upload") {
+              return (
+                <div class="form-field-block">
+                  <FormUpload
+                    label={localizedLabel}
+                    accept={field.accept || "image/*"}
+                    imagesOnly={field.imagesOnly !== false}
+                    multiple={Boolean(field.multiple)}
+                    maxFiles={field.maxFiles}
+                    maxFileSizeMb={field.maxFileSizeMb}
+                    noFileText={localizedNoFileText}
+                    browseLabel={localizedBrowseLabel}
+                    removeLabel={localizedRemoveLabel}
+                    helpId={help.helpId}
+                    errorId={help.errorId}
+                    {...shared}
+                  />
+                  <FormHelp id={help.helpId} />
+                  <FormError id={help.errorId} data-field-error={field.name}>
+                    {fieldErrorMap.get(field.name)?.join(" ")}
+                  </FormError>
+                </div>
+              );
+            }
+
             return null;
           })
         ) : (
@@ -451,10 +482,25 @@ const formFields = normalizedForm?.fields ?? [];
 
     function setFieldErrors(map = {}) {
       const normalize = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+      const normalizeFieldName = (name) =>
+        typeof name === "string" ? name.replace(/\[\]$/, "") : name;
+
+      function messagesForField(name) {
+        const direct = map[name];
+        if (direct !== undefined) return normalize(direct);
+        const normalized = normalizeFieldName(name);
+        if (normalized !== undefined && map[normalized] !== undefined) {
+          return normalize(map[normalized]);
+        }
+        if (normalized !== undefined && map[`${normalized}[]`] !== undefined) {
+          return normalize(map[`${normalized}[]`]);
+        }
+        return [];
+      }
 
       fieldErrorEls.forEach((el) => {
         const field = el.dataset.fieldError;
-        const messages = normalize(map[field]);
+        const messages = messagesForField(field);
         el.textContent = messages.join(" ");
         if (messages.length === 0) {
           el.setAttribute("hidden", "true");
@@ -465,13 +511,154 @@ const formFields = normalizedForm?.fields ?? [];
 
       const inputs = form.querySelectorAll("input[name], select[name], textarea[name]");
       inputs.forEach((input) => {
-        const messages = normalize(map[input.name]);
+        const messages = messagesForField(input.name);
         if (messages.length) {
           input.setAttribute("aria-invalid", "true");
         } else {
           input.removeAttribute("aria-invalid");
         }
       });
+    }
+
+    function getFieldLabel(el) {
+      const id = el.id;
+      const cleanName = el.getAttribute("name")?.replace(/\[\]$/, "");
+      return (
+        (id ? form.querySelector(`label[for="${id}"]`)?.textContent?.trim() : "") ||
+        el.getAttribute("aria-label") ||
+        cleanName ||
+        id ||
+        "This field"
+      );
+    }
+
+    const blockedExtensions = new Set([
+      ".php",
+      ".phtml",
+      ".php3",
+      ".php4",
+      ".php5",
+      ".phar",
+      ".pl",
+      ".py",
+      ".rb",
+      ".cgi",
+      ".asp",
+      ".aspx",
+      ".jsp",
+      ".js",
+      ".mjs",
+      ".cjs",
+      ".sh",
+      ".bash",
+      ".zsh",
+      ".ps1",
+      ".bat",
+      ".cmd",
+      ".com",
+      ".exe",
+      ".msi",
+      ".dll",
+      ".so",
+      ".dylib",
+      ".jar",
+      ".vbs",
+      ".wsf",
+      ".hta",
+      ".html",
+      ".htm",
+      ".xhtml",
+      ".shtml",
+      ".css",
+      ".scss",
+      ".sass",
+      ".less",
+      ".xml",
+      ".svg"
+    ]);
+
+    const imageExtensions = new Set([
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".gif",
+      ".bmp",
+      ".tiff",
+      ".tif",
+      ".avif",
+      ".heif",
+      ".heic"
+    ]);
+
+    function getExtension(name) {
+      const value = String(name || "").toLowerCase();
+      const dot = value.lastIndexOf(".");
+      return dot >= 0 ? value.slice(dot) : "";
+    }
+
+    function isDangerousMime(type) {
+      const mime = String(type || "")
+        .trim()
+        .toLowerCase();
+      if (!mime) return false;
+      return (
+        /^text\//i.test(mime) ||
+        /^application\/(javascript|x-javascript|ecmascript|x-httpd-php|x-php|x-sh|x-msdownload|x-dosexec|x-executable|x-bat|x-csh)/i.test(
+          mime
+        ) ||
+        /^application\/html/i.test(mime) ||
+        /^image\/svg\+xml/i.test(mime)
+      );
+    }
+
+    function isImageFile(file) {
+      const mime = String(file?.type || "").toLowerCase();
+      if (mime.startsWith("image/") && mime !== "image/svg+xml") return true;
+      const ext = getExtension(file?.name || "");
+      return imageExtensions.has(ext);
+    }
+
+    function validateFileInput(input) {
+      if (!(input instanceof HTMLInputElement) || input.type !== "file") return "";
+      const files = Array.from(input.files || []);
+      if (!input.multiple && files.length > 1) {
+        return "Only one file is allowed.";
+      }
+      const maxFiles = Number(input.dataset.maxFiles || "");
+      const maxFileSizeMb = Number(input.dataset.maxFileSizeMb || "");
+      const imagesOnly = input.dataset.imagesOnly !== "false";
+
+      if (Number.isFinite(maxFiles) && maxFiles > 0 && files.length > maxFiles) {
+        return `Please select at most ${maxFiles} file${maxFiles > 1 ? "s" : ""}.`;
+      }
+
+      if (Number.isFinite(maxFileSizeMb) && maxFileSizeMb > 0) {
+        const maxBytes = maxFileSizeMb * 1024 * 1024;
+        const tooLarge = files.find((file) => file.size > maxBytes);
+        if (tooLarge) {
+          return `Each file must be ${maxFileSizeMb}MB or smaller.`;
+        }
+      }
+
+      const blocked = files.find((file) => blockedExtensions.has(getExtension(file.name)));
+      if (blocked) {
+        return `Blocked file type: ${blocked.name}`;
+      }
+
+      const dangerousMime = files.find((file) => isDangerousMime(file.type));
+      if (dangerousMime) {
+        return `Blocked file content type: ${dangerousMime.name}`;
+      }
+
+      if (imagesOnly) {
+        const nonImage = files.find((file) => !isImageFile(file));
+        if (nonImage) {
+          return "Only image files are allowed.";
+        }
+      }
+
+      return "";
     }
 
     function listToUl(listEl, messages) {
@@ -508,6 +695,12 @@ const formFields = normalizedForm?.fields ?? [];
     form.addEventListener("submit", async (event) => {
       if (!shouldValidate) return;
 
+      const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+      fileInputs.forEach((input) => {
+        const msg = validateFileInput(input);
+        input.setCustomValidity(msg);
+      });
+
       const invalidFields = Array.from(form.querySelectorAll("input, select, textarea")).filter(
         (el) => !el.checkValidity()
       );
@@ -516,14 +709,9 @@ const formFields = normalizedForm?.fields ?? [];
         event.preventDefault();
         setFieldErrors({});
         const messages = invalidFields.map((el) => {
-          const id = el.id;
-          const label =
-            (id ? form.querySelector(`label[for="${id}"]`)?.textContent?.trim() : "") ||
-            el.getAttribute("aria-label") ||
-            el.getAttribute("name") ||
-            id ||
-            "This field";
-          return `${label} is required or invalid.`;
+          const label = getFieldLabel(el);
+          const issue = el.validationMessage?.trim() || "is required or invalid.";
+          return `${label}: ${issue}`;
         });
         hideAlert(alertServer);
         listToUl(listClient, messages);
@@ -554,8 +742,16 @@ const formFields = normalizedForm?.fields ?? [];
         }
 
         if (enctype === "application/json") {
-          opts.headers["Content-Type"] = "application/json";
-          opts.body = JSON.stringify(Object.fromEntries(formData));
+          const hasFiles = Array.from(formData.values()).some(
+            (value) => value instanceof File && value.size > 0
+          );
+
+          if (!hasFiles) {
+            opts.headers["Content-Type"] = "application/json";
+            opts.body = JSON.stringify(Object.fromEntries(formData));
+          } else {
+            opts.body = formData;
+          }
         } else {
           opts.body = formData;
         }

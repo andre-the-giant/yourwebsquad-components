@@ -10,6 +10,7 @@ export { default as FormHelp } from "./components/Form-Help/index.astro";
 export { default as FormError } from "./components/Form-Error/index.astro";
 export { default as FormDate } from "./components/Form-Date/index.astro";
 export { default as FormHidden } from "./components/Form-Hidden/index.astro";
+export { default as FormUpload } from "./components/Form-Upload/index.astro";
 export { default as Form } from "./components/Form/index.astro";
 export { default as FormFieldset } from "./components/Form-Fieldset/index.astro";
 export { default as LocaleSwitch } from "./components/LocaleSwitch/index.astro";

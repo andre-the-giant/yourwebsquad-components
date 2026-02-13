@@ -24,7 +24,8 @@ const fieldTypeEnum = z.enum([
   "radio",
   "select",
   "date",
-  "hidden"
+  "hidden",
+  "upload"
 ]);
 
 const sanitizeEnum = z.enum(["none", "text", "email", "tel", "number"]);
@@ -46,9 +47,27 @@ const fieldSchema = z
     pattern: z.string().optional(),
     defaultValue: z.union([z.string(), z.number(), z.boolean()]).optional(),
     sanitize: sanitizeEnum.optional(),
-    options: z.array(fieldOptionSchema).optional()
+    options: z.array(fieldOptionSchema).optional(),
+    accept: z.string().optional(),
+    imagesOnly: z.boolean().optional(),
+    multiple: z.boolean().optional(),
+    maxFiles: z.number().int().positive().optional(),
+    maxFileSizeMb: z.number().positive().optional(),
+    noFileText: localizedOptional.optional(),
+    browseLabel: localizedOptional.optional(),
+    removeLabel: localizedOptional.optional()
   })
   .superRefine((val, ctx) => {
+    const hasUploadOptions =
+      val.accept !== undefined ||
+      val.imagesOnly !== undefined ||
+      val.multiple !== undefined ||
+      val.maxFiles !== undefined ||
+      val.maxFileSizeMb !== undefined ||
+      val.noFileText !== undefined ||
+      val.browseLabel !== undefined ||
+      val.removeLabel !== undefined;
+
     if (
       (val.type === "select" || val.type === "radio") &&
       (!val.options || val.options.length === 0)
@@ -63,6 +82,27 @@ const fieldSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Field "${val.name}": options are only allowed for select or radio fields`
+      });
+    }
+
+    if (val.type !== "upload" && hasUploadOptions) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Field "${val.name}": accept, imagesOnly, multiple, maxFiles, maxFileSizeMb, noFileText, browseLabel, and removeLabel are only valid for upload fields`
+      });
+    }
+
+    if (val.type === "upload" && val.sanitize && val.sanitize !== "none") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Field "${val.name}": sanitize must be "none" for upload fields`
+      });
+    }
+
+    if (val.type === "upload" && val.maxFiles && val.maxFiles > 1 && !val.multiple) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Field "${val.name}": maxFiles > 1 requires multiple: true`
       });
     }
 
@@ -139,6 +179,8 @@ function inferSanitize(type, explicit) {
       return "tel";
     case "number":
       return "number";
+    case "upload":
+      return "none";
     default:
       return "text";
   }

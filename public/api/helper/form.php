@@ -110,18 +110,68 @@ function rate_limit(string $key, int $limit = 5, int $windowSeconds = 900): bool
     return $data['count'] <= $limit;
 }
 
-function send_mail(string $to, string $subject, string $body, string $replyTo, string $fromDomain): bool
+function send_mail(
+    string $to,
+    string $subject,
+    string $body,
+    string $replyTo,
+    string $fromDomain,
+    array $attachments = []
+): bool
 {
     $safeReply = filter_var($replyTo, FILTER_SANITIZE_EMAIL) ?: $replyTo;
     $headers = [
         'From' => "noreply@{$fromDomain}",
         'Reply-To' => $safeReply,
-        'Content-Type' => 'text/plain; charset=UTF-8',
+        'MIME-Version' => '1.0',
     ];
+
+    if (empty($attachments)) {
+        $headers['Content-Type'] = 'text/plain; charset=UTF-8';
+        $headerString = '';
+        foreach ($headers as $key => $value) {
+            $headerString .= $key . ': ' . $value . "\r\n";
+        }
+        return @mail($to, $subject, $body, $headerString);
+    }
+
+    try {
+        $boundary = '=_Part_' . bin2hex(random_bytes(12));
+    } catch (Throwable $e) {
+        $boundary = '=_Part_' . sha1(uniqid((string)mt_rand(), true));
+    }
+
+    $headers['Content-Type'] = 'multipart/mixed; boundary="' . $boundary . '"';
+    $message = '--' . $boundary . "\r\n";
+    $message .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    $message .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+    $message .= $body . "\r\n\r\n";
+
+    foreach ($attachments as $attachment) {
+        $tmpName = (string)($attachment['tmp_name'] ?? '');
+        $content = $tmpName !== '' ? @file_get_contents($tmpName) : false;
+        if ($content === false) {
+            continue;
+        }
+
+        $filename = basename((string)($attachment['name'] ?? 'upload.bin'));
+        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+        $filename = $filename !== '' ? $filename : 'upload.bin';
+        $mime = (string)($attachment['mime'] ?? 'application/octet-stream');
+
+        $message .= '--' . $boundary . "\r\n";
+        $message .= 'Content-Type: ' . $mime . '; name="' . $filename . "\"\r\n";
+        $message .= 'Content-Disposition: attachment; filename="' . $filename . "\"\r\n";
+        $message .= "Content-Transfer-Encoding: base64\r\n\r\n";
+        $message .= chunk_split(base64_encode($content)) . "\r\n";
+    }
+
+    $message .= '--' . $boundary . '--';
+
     $headerString = '';
     foreach ($headers as $key => $value) {
         $headerString .= $key . ': ' . $value . "\r\n";
     }
 
-    return @mail($to, $subject, $body, $headerString);
+    return @mail($to, $subject, $message, $headerString);
 }

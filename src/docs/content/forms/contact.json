@@ -37,6 +37,20 @@
       ]
     },
     {
+      "name": "reference_images",
+      "label": { "en": "Reference images" },
+      "type": "upload",
+      "required": false,
+      "accept": "image/*",
+      "imagesOnly": true,
+      "multiple": true,
+      "maxFiles": 3,
+      "maxFileSizeMb": 5,
+      "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" },
+      "browseLabel": { "en": "Choose images", "fr": "Choisir des images" },
+      "removeLabel": { "en": "Remove", "fr": "Retirer" }
+    },
+    {
       "name": "message",
       "label": { "en": "Message" },
       "type": "textarea",

@@ -7,6 +7,7 @@ import Form from "@lib/components/Form/Form.astro";
 import FormInput from "@lib/components/Form-Input/index.astro";
 import FormSelect from "@lib/components/Form-Select/index.astro";
 import FormTextarea from "@lib/components/Form-Textarea/index.astro";
+import FormUpload from "@lib/components/Form-Upload/index.astro";
 
 const basicCode = `<Form formId="contact" locale="en" />`;
 
@@ -49,8 +50,16 @@ const forms = defineCollection({
       z.object({
         name: z.string(),
         label: z.union([z.string(), z.record(z.string(), z.string())]),
-        type: z.enum(["text","email","textarea","tel","number","checkbox","radio","select","date","hidden"]),
+        type: z.enum(["text","email","textarea","tel","number","checkbox","radio","select","date","hidden","upload"]),
         required: z.boolean().default(false),
+        accept: z.string().optional(),
+        imagesOnly: z.boolean().optional(),
+        multiple: z.boolean().optional(),
+        maxFiles: z.number().int().positive().optional(),
+        maxFileSizeMb: z.number().positive().optional(),
+        noFileText: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+        browseLabel: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+        removeLabel: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
         options: z.array(option).optional()
       })
     ),
@@ -77,6 +86,7 @@ const sampleForm = `{
         { "value": "seo", "label": { "en": "SEO" } }
       ]
     },
+    { "name": "reference_images", "label": { "en": "Reference images", "fr": "Images de référence" }, "type": "upload", "required": false, "accept": "image/*", "imagesOnly": true, "multiple": true, "maxFiles": 3, "maxFileSizeMb": 5, "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" }, "browseLabel": { "en": "Choose images", "fr": "Choisir des images" }, "removeLabel": { "en": "Remove", "fr": "Retirer" } },
     { "name": "message", "label": { "en": "Message" }, "type": "textarea", "required": true },
     { "name": "middle_name", "label": { "en": "Leave blank" }, "type": "hidden" }
   ],
@@ -115,7 +125,11 @@ const props = [
     description: "Override form endpoint (defaults to form.endpoint)."
   },
   { name: "target", type: "string", description: "Form target (e.g., _blank)." },
-  { name: "enctype", type: "string", description: "Encoding type." },
+  {
+    name: "enctype",
+    type: "string",
+    description: "Encoding type. Auto-defaults to multipart/form-data when upload fields exist."
+  },
   {
     name: "novalidate",
     type: "boolean",
@@ -198,7 +212,7 @@ const props = [
 
 <DocLayout
   title="Form"
-  description="Schema-driven form wrapper that renders fields from the forms content collection, prevents Enter submits by default, and includes Send and Reset buttons."
+  description="Schema-driven form wrapper that renders fields from the forms content collection, supports file uploads, prevents Enter submits by default, and includes Send and Reset buttons."
   items={components}
 >
   <PropsTable props={props} />
@@ -260,6 +274,14 @@ const props = [
           placeholder="Choose one"
         />
         <FormTextarea label="Message" placeholder="Tell us about your project" required />
+        <FormUpload
+          label="Reference images"
+          name="images"
+          accept="image/*"
+          multiple
+          maxFiles={3}
+          maxFileSizeMb={5}
+        />
       </Form>
     </div>
   </Preview>

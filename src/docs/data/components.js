@@ -24,6 +24,12 @@ export const components = [
     group: "atoms"
   },
   {
+    name: "Form-Upload",
+    href: "/components/atoms/form-upload",
+    description: "Image/file upload input with label and limits.",
+    group: "atoms"
+  },
+  {
     name: "Form-Select",
     href: "/components/atoms/form-select",
     description: "Single-select dropdown with label and states.",

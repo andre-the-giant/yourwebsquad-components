@@ -20,7 +20,8 @@ const fieldSchema = z
       "radio",
       "select",
       "date",
-      "hidden"
+      "hidden",
+      "upload"
     ]),
     required: z.boolean().default(false),
     placeholder: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
@@ -29,9 +30,27 @@ const fieldSchema = z
     pattern: z.string().optional(),
     defaultValue: z.union([z.string(), z.number(), z.boolean()]).optional(),
     sanitize: z.enum(["none", "text", "email", "tel", "number"]).optional(),
-    options: z.array(optionSchema).optional()
+    options: z.array(optionSchema).optional(),
+    accept: z.string().optional(),
+    imagesOnly: z.boolean().optional(),
+    multiple: z.boolean().optional(),
+    maxFiles: z.number().int().positive().optional(),
+    maxFileSizeMb: z.number().positive().optional(),
+    noFileText: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+    browseLabel: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+    removeLabel: z.union([z.string(), z.record(z.string(), z.string())]).optional()
   })
   .superRefine((val, ctx) => {
+    const hasUploadOptions =
+      val.accept !== undefined ||
+      val.imagesOnly !== undefined ||
+      val.multiple !== undefined ||
+      val.maxFiles !== undefined ||
+      val.maxFileSizeMb !== undefined ||
+      val.noFileText !== undefined ||
+      val.browseLabel !== undefined ||
+      val.removeLabel !== undefined;
+
     if (
       (val.type === "select" || val.type === "radio") &&
       (!val.options || val.options.length === 0)
@@ -45,6 +64,28 @@ const fieldSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Options are only allowed for select or radio types."
+      });
+    }
+
+    if (val.type !== "upload" && hasUploadOptions) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "accept, imagesOnly, multiple, maxFiles, maxFileSizeMb, noFileText, browseLabel, and removeLabel are only allowed for upload type."
+      });
+    }
+
+    if (val.type === "upload" && val.sanitize && val.sanitize !== "none") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Upload fields require sanitize: none (or omit sanitize)."
+      });
+    }
+
+    if (val.type === "upload" && val.maxFiles && val.maxFiles > 1 && !val.multiple) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "maxFiles > 1 requires multiple: true for upload fields."
       });
     }
   });
