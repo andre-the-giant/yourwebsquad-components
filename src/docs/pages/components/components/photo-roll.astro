@@ -143,9 +143,72 @@ const styleVars = [
 
 const defaultCode = "<PhotoRoll />";
 const customCode = '<PhotoRoll id="photo-roll-sample" />';
-const photoroll = await fetch("https://boringapi.com/api/v1/photos");
-const data = await photoroll.json();
-const imagesArray = data.photos.map(({ url, description }) => ({ url, description }));
+
+const fallbackPhotos = [
+  {
+    url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1600&q=70",
+    description: "Snowy mountain range at sunrise",
+    title: "Mountain sunrise"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=70",
+    description: "Waterfall flowing through a forest",
+    title: "Forest waterfall"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=70",
+    description: "Blue lake with mountain reflections",
+    title: "Mirror lake"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=70",
+    description: "Cabin in snowy woods at dusk",
+    title: "Winter cabin"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=70",
+    description: "Green valley under dramatic clouds",
+    title: "Green valley"
+  },
+  {
+    url: "https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=1600&q=70",
+    description: "Coastal cliffs with ocean waves",
+    title: "Coastal cliffs"
+  }
+];
+
+function normalizePhotos(raw = []) {
+  return raw
+    .filter((photo) => photo && typeof photo.url === "string" && photo.url.trim() !== "")
+    .map((photo, idx) => ({
+      url: photo.url,
+      description: photo.description || `Photo ${idx + 1}`,
+      title: photo.title || `Slide ${idx + 1}`
+    }));
+}
+
+async function loadPhotos() {
+  try {
+    const res = await fetch("https://boringapi.com/api/v1/photos");
+    if (!res.ok) throw new Error(`Photo API returned ${res.status}`);
+
+    const payload = await res.json();
+    if (!payload || !Array.isArray(payload.photos)) {
+      throw new Error("Photo API payload is invalid");
+    }
+
+    const normalized = normalizePhotos(payload.photos);
+    if (!normalized.length) throw new Error("Photo API returned no valid photos");
+    return normalized;
+  } catch (err) {
+    console.warn("[PhotoRoll docs] Falling back to local demo photos:", err?.message || err);
+    return normalizePhotos(fallbackPhotos);
+  }
+}
+
+const photos = await loadPhotos();
+const data = { photos };
+const imagesArray = photos.map(({ url, description }) => ({ url, description }));
 ---
 
 <DocLayout
