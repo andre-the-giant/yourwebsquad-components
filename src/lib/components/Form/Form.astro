@@ -634,15 +634,41 @@ const resolvedMessages = {
       alertEl.setAttribute("hidden", "true");
     }
 
+    function safeScrollIntoView(el) {
+      if (!el || typeof el.scrollIntoView !== "function") return;
+      try {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      } catch (_) {
+        try {
+          el.scrollIntoView();
+        } catch (_) {
+          // noop
+        }
+      }
+    }
+
+    function safeFocus(el) {
+      if (!el || typeof el.focus !== "function") return;
+      try {
+        el.focus({ preventScroll: true });
+      } catch (_) {
+        try {
+          el.focus();
+        } catch (_) {
+          // noop
+        }
+      }
+    }
+
     function showAlert(alertEl, { focus = false } = {}) {
       if (!alertEl) return;
       alertEl.classList.remove("is-hidden");
       alertEl.removeAttribute("hidden");
-      alertEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      safeScrollIntoView(alertEl);
       if (focus && alertEl instanceof HTMLElement) {
         alertEl.setAttribute("tabindex", "-1");
         requestAnimationFrame(() => {
-          alertEl.focus({ preventScroll: true });
+          safeFocus(alertEl);
         });
       }
     }
@@ -903,8 +929,8 @@ const resolvedMessages = {
     function focusFieldByName(name) {
       const input = getInputByName(name);
       if (!(input instanceof HTMLElement)) return;
-      input.focus({ preventScroll: true });
-      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      safeFocus(input);
+      safeScrollIntoView(input);
     }
 
     function listToUl(listEl, entries) {
@@ -984,82 +1010,110 @@ const resolvedMessages = {
       });
     });
 
-    form.addEventListener("submit", async (event) => {
-      if (!shouldValidate) return;
-
-      const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
-      fileInputs.forEach((input) => {
-        const msg = validateFileInput(input);
-        input.setCustomValidity(msg);
-      });
-
-      const invalidFields = Array.from(form.querySelectorAll("input, select, textarea")).filter(
-        (el) => !el.checkValidity()
-      );
-
-      if (invalidFields.length) {
-        event.preventDefault();
-        setFieldErrors({});
-        const entries = invalidFields.map((el) => {
-          const fieldName = normalizeFieldName(el.getAttribute("name")) || undefined;
-          const label = getFieldLabel(el);
-          const issue = getClientValidationIssue(el);
-          return {
-            field: fieldName,
-            text: `${label}${messages.fieldErrorSeparator}${issue}`
-          };
-        });
-        hideAlert(alertServer);
-        listToUl(listClient, entries);
-        showAlert(alertClient, { focus: true });
-        const first = invalidFields[0];
-        if (first instanceof HTMLElement) {
-          first.scrollIntoView({ behavior: "smooth", block: "center" });
+    function nativeSubmitFallback() {
+      if (form.dataset.nativeSubmitting === "true") return;
+      form.dataset.nativeSubmitting = "true";
+      try {
+        HTMLFormElement.prototype.submit.call(form);
+      } catch (_) {
+        try {
+          form.submit();
+        } catch (_) {
+          // noop
         }
-        return;
       }
+    }
 
-      if (action) {
+    form.addEventListener("submit", async (event) => {
+      let preventedByJs = false;
+      const preventDefault = () => {
         event.preventDefault();
-        hideAlert(alertClient);
-        hideAlert(alertServer);
+        preventedByJs = true;
+      };
 
-        const formData = new FormData(form);
-        const opts = { method, headers: {} };
+      try {
+        if (!shouldValidate) return;
 
-        if (method === "GET") {
-          const params = new URLSearchParams(formData);
-          const sep = action.includes("?") ? "&" : "?";
-          try {
-            const res = await fetch(action + sep + params.toString(), opts);
-            await handleResponse(res);
-          } catch (err) {
-            showError(err);
+        const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+        fileInputs.forEach((input) => {
+          const msg = validateFileInput(input);
+          input.setCustomValidity(msg);
+        });
+
+        const invalidFields = Array.from(form.querySelectorAll("input, select, textarea")).filter(
+          (el) => !el.checkValidity()
+        );
+
+        if (invalidFields.length) {
+          preventDefault();
+          setFieldErrors({});
+          const entries = invalidFields.map((el) => {
+            const fieldName = normalizeFieldName(el.getAttribute("name")) || undefined;
+            const label = getFieldLabel(el);
+            const issue = getClientValidationIssue(el);
+            return {
+              field: fieldName,
+              text: `${label}${messages.fieldErrorSeparator}${issue}`
+            };
+          });
+          hideAlert(alertServer);
+          listToUl(listClient, entries);
+          showAlert(alertClient, { focus: true });
+          const first = invalidFields[0];
+          if (first instanceof HTMLElement) {
+            safeScrollIntoView(first);
           }
           return;
         }
 
-        if (enctype === "application/json") {
-          const hasFiles = Array.from(formData.values()).some(
-            (value) => value instanceof File && value.size > 0
-          );
+        if (action) {
+          preventDefault();
+          hideAlert(alertClient);
+          hideAlert(alertServer);
 
-          if (!hasFiles) {
-            opts.headers["Content-Type"] = "application/json";
-            opts.body = JSON.stringify(Object.fromEntries(formData));
+          const formData = new FormData(form);
+          const opts = { method, headers: {} };
+
+          if (method === "GET") {
+            const params = new URLSearchParams(formData);
+            const sep = action.includes("?") ? "&" : "?";
+            try {
+              const res = await fetch(action + sep + params.toString(), opts);
+              await handleResponse(res);
+            } catch (err) {
+              showError(err);
+            }
+            return;
+          }
+
+          if (enctype === "application/json") {
+            const hasFiles = Array.from(formData.values()).some(
+              (value) => value instanceof File && value.size > 0
+            );
+
+            if (!hasFiles) {
+              opts.headers["Content-Type"] = "application/json";
+              opts.body = JSON.stringify(Object.fromEntries(formData));
+            } else {
+              opts.body = formData;
+            }
           } else {
             opts.body = formData;
           }
-        } else {
-          opts.body = formData;
-        }
 
-        try {
-          const res = await fetch(action, opts);
-          await handleResponse(res);
-        } catch (err) {
-          showError(err);
+          try {
+            const res = await fetch(action, opts);
+            await handleResponse(res);
+          } catch (err) {
+            showError(err);
+          }
         }
+      } catch (err) {
+        if (action && preventedByJs) {
+          nativeSubmitFallback();
+          return;
+        }
+        showError(err);
       }
     });
 
