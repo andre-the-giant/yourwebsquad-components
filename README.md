@@ -164,7 +164,12 @@ export const collections = { forms };
       "maxFileSizeMb": 5,
       "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" },
       "browseLabel": { "en": "Choose images", "fr": "Choisir des images" },
-      "removeLabel": { "en": "Remove", "fr": "Retirer" }
+      "removeLabel": { "en": "Remove", "fr": "Retirer" },
+      "filesSelectedText": {
+        "en": "{count} files selected",
+        "fr": "{count} fichiers sélectionnés"
+      },
+      "previewUnavailableText": { "en": "Preview unavailable", "fr": "Aperçu indisponible" }
     }
   ],
   "email": {
@@ -175,6 +180,24 @@ export const collections = { forms };
   "security": {
     "honeypot": { "name": "middle_name", "enabled": true },
     "rateLimit": { "max": 5, "windowSeconds": 60 }
+  },
+  "messages": {
+    "alertClientTitle": {
+      "en": "Please fix the highlighted fields",
+      "fr": "Merci de corriger les champs en erreur"
+    },
+    "alertServerTitle": { "en": "Something went wrong", "fr": "Une erreur est survenue" },
+    "alertSuccessTitle": { "en": "Success", "fr": "Succès" },
+    "successMessage": {
+      "en": "Thanks! Your message was sent.",
+      "fr": "Merci, votre message a été envoyé."
+    },
+    "fieldErrorSeparator": { "en": " - ", "fr": " - " },
+    "validationInvalidFormat": { "en": "Invalid format.", "fr": "Format invalide." },
+    "uploadTooManyFiles": {
+      "en": "Please select at most {max} files.",
+      "fr": "Veuillez sélectionner au maximum {max} fichiers."
+    }
   }
 }
 ```
@@ -200,13 +223,14 @@ During `astro build`, the integration emits `/build/api/<formId>/index.php` with
 - Rate limiting: default 5 requests per 60s (configurable per form)
 - Phone fields (`type: "tel"`) get a default server validation pattern `^[0-9+()\\-\\s]{6,20}$` if none is provided.
 - Upload fields (`type: "upload"`) default to `imagesOnly: true`, reject dangerous/script-like file extensions and MIME types, and attach validated uploads to the outgoing email.
-- Upload UI text is localizable via `noFileText`, `browseLabel`, and `removeLabel`.
+- Upload UI text is localizable via `noFileText`, `browseLabel`, `removeLabel`, `filesSelectedText`, and `previewUnavailableText`.
 
 ### Client usage tips
 
 - `<Form>` resolves fields from the content entry; render with `formId` (preferred) or pass a preloaded `form` object.
 - The form auto-injects the honeypot from `security.honeypot`.
-- Frontend UX uses alerts: warning for client validation, error for server errors, success replaces the form.
+- Frontend UX uses alerts: warning for client validation, error for server errors, success replaces the form, and each alert row is keyboard-focusable to jump to its field.
+- Form-level i18n messages can be configured via `messages` (alert titles, success text, validation/upload messages, and field error separator).
 
 ### Deployment
 

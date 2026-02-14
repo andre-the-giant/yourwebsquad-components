@@ -5,5 +5,6 @@ export const formCollectionSchema = schemas.form;
 export const fieldSchema = schemas.field;
 export const emailSchema = schemas.email;
 export const securitySchema = schemas.security;
+export const messagesSchema = schemas.messages;
 
 export default formCollectionSchema;

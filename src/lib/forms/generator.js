@@ -244,21 +244,23 @@ function is_image_extension(string $filename): bool {
 function mime_matches_accept(string $mime, string $accept, string $filename): bool {
     $mime = strtolower(trim($mime));
     $accept = strtolower(trim($accept));
-
-    if ($mime === '') {
-        return false;
-    }
+    $ext = file_extension($filename);
+    $isImageExt = $ext !== '' && is_image_extension($filename);
 
     if ($accept === '') {
-        return str_starts_with($mime, 'image/');
+        if ($mime !== '') {
+            return str_starts_with($mime, 'image/');
+        }
+        return $isImageExt;
     }
 
     $tokens = array_values(array_filter(array_map('trim', explode(',', $accept))));
     if (empty($tokens)) {
-        return str_starts_with($mime, 'image/');
+        if ($mime !== '') {
+            return str_starts_with($mime, 'image/');
+        }
+        return $isImageExt;
     }
-
-    $ext = file_extension($filename);
 
     foreach ($tokens as $token) {
         if ($token === '') {
@@ -272,12 +274,15 @@ function mime_matches_accept(string $mime, string $accept, string $filename): bo
         }
         if (str_ends_with($token, '/*')) {
             $prefix = substr($token, 0, -1);
-            if (str_starts_with($mime, $prefix)) {
+            if ($mime !== '' && str_starts_with($mime, $prefix)) {
+                return true;
+            }
+            if ($prefix === 'image/' && $isImageExt) {
                 return true;
             }
             continue;
         }
-        if ($mime === $token) {
+        if ($mime !== '' && $mime === $token) {
             return true;
         }
     }

@@ -7,6 +7,34 @@ const localizedString = z.union([
 
 const localizedOptional = z.union([z.string(), z.record(z.string().min(1), z.string())]);
 
+const formMessagesSchema = z
+  .object({
+    alertClientTitle: localizedOptional.optional(),
+    alertServerTitle: localizedOptional.optional(),
+    alertSuccessTitle: localizedOptional.optional(),
+    successMessage: localizedOptional.optional(),
+    networkError: localizedOptional.optional(),
+    fallbackValidationIssue: localizedOptional.optional(),
+    fieldErrorSeparator: localizedOptional.optional(),
+    validationRequired: localizedOptional.optional(),
+    validationInvalid: localizedOptional.optional(),
+    validationInvalidEmail: localizedOptional.optional(),
+    validationTooLong: localizedOptional.optional(),
+    validationTooShort: localizedOptional.optional(),
+    validationInvalidFormat: localizedOptional.optional(),
+    validationInvalidSelection: localizedOptional.optional(),
+    uploadFilesSelectedText: localizedOptional.optional(),
+    uploadPreviewUnavailableText: localizedOptional.optional(),
+    uploadOnlyOneFile: localizedOptional.optional(),
+    uploadTooManyFiles: localizedOptional.optional(),
+    uploadFileTooLarge: localizedOptional.optional(),
+    uploadBlockedFileType: localizedOptional.optional(),
+    uploadBlockedFileContentType: localizedOptional.optional(),
+    uploadOnlyImageFiles: localizedOptional.optional(),
+    uploadInvalidFileType: localizedOptional.optional()
+  })
+  .optional();
+
 // Field option schema for select/radio inputs
 const fieldOptionSchema = z.object({
   value: z.string().min(1, "Option value is required"),
@@ -55,7 +83,9 @@ const fieldSchema = z
     maxFileSizeMb: z.number().positive().optional(),
     noFileText: localizedOptional.optional(),
     browseLabel: localizedOptional.optional(),
-    removeLabel: localizedOptional.optional()
+    removeLabel: localizedOptional.optional(),
+    filesSelectedText: localizedOptional.optional(),
+    previewUnavailableText: localizedOptional.optional()
   })
   .superRefine((val, ctx) => {
     const hasUploadOptions =
@@ -66,7 +96,9 @@ const fieldSchema = z
       val.maxFileSizeMb !== undefined ||
       val.noFileText !== undefined ||
       val.browseLabel !== undefined ||
-      val.removeLabel !== undefined;
+      val.removeLabel !== undefined ||
+      val.filesSelectedText !== undefined ||
+      val.previewUnavailableText !== undefined;
 
     if (
       (val.type === "select" || val.type === "radio") &&
@@ -88,7 +120,7 @@ const fieldSchema = z
     if (val.type !== "upload" && hasUploadOptions) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `Field "${val.name}": accept, imagesOnly, multiple, maxFiles, maxFileSizeMb, noFileText, browseLabel, and removeLabel are only valid for upload fields`
+        message: `Field "${val.name}": accept, imagesOnly, multiple, maxFiles, maxFileSizeMb, noFileText, browseLabel, removeLabel, filesSelectedText, and previewUnavailableText are only valid for upload fields`
       });
     }
 
@@ -161,7 +193,8 @@ const formSchema = z.object({
   endpoint: z.string().optional(),
   fields: z.array(fieldSchema).min(1, "At least one field is required"),
   email: emailSchema,
-  security: securitySchema.optional()
+  security: securitySchema.optional(),
+  messages: formMessagesSchema
 });
 
 const DEFAULT_ENDPOINT = (id) => `/api/${id}/`;
@@ -254,5 +287,6 @@ export const schemas = {
   field: fieldSchema,
   email: emailSchema,
   security: securitySchema,
-  form: formSchema
+  form: formSchema,
+  messages: formMessagesSchema
 };

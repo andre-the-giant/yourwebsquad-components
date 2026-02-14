@@ -48,7 +48,12 @@
       "maxFileSizeMb": 5,
       "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" },
       "browseLabel": { "en": "Choose images", "fr": "Choisir des images" },
-      "removeLabel": { "en": "Remove", "fr": "Retirer" }
+      "removeLabel": { "en": "Remove", "fr": "Retirer" },
+      "filesSelectedText": {
+        "en": "{count} files selected",
+        "fr": "{count} fichiers sélectionnés"
+      },
+      "previewUnavailableText": { "en": "Preview unavailable", "fr": "Aperçu indisponible" }
     },
     {
       "name": "message",
@@ -68,5 +73,23 @@
   "security": {
     "honeypot": { "name": "middle_name", "enabled": true },
     "rateLimit": { "max": 5, "windowSeconds": 60 }
+  },
+  "messages": {
+    "alertClientTitle": {
+      "en": "Please fix the highlighted fields",
+      "fr": "Merci de corriger les champs en erreur"
+    },
+    "alertServerTitle": { "en": "Something went wrong", "fr": "Une erreur est survenue" },
+    "alertSuccessTitle": { "en": "Success", "fr": "Succès" },
+    "successMessage": {
+      "en": "Thanks! Your message was sent.",
+      "fr": "Merci, votre message a été envoyé."
+    },
+    "fieldErrorSeparator": { "en": " - ", "fr": " - " },
+    "validationInvalidFormat": { "en": "Invalid format.", "fr": "Format invalide." },
+    "uploadTooManyFiles": {
+      "en": "Please select at most {max} files.",
+      "fr": "Veuillez sélectionner au maximum {max} fichiers."
+    }
   }
 }

@@ -99,7 +99,7 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
   {
     resolvedIcon ? (
       <div class="alert__icon">
-        <Icon content={{ name: resolvedIcon, label: resolvedIconLabel }} />
+        <Icon name={resolvedIcon} label={resolvedIconLabel} />
       </div>
     ) : null
   }

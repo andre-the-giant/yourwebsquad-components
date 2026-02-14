@@ -60,6 +60,8 @@ const forms = defineCollection({
         noFileText: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
         browseLabel: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
         removeLabel: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+        filesSelectedText: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+        previewUnavailableText: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
         options: z.array(option).optional()
       })
     ),
@@ -67,7 +69,18 @@ const forms = defineCollection({
       to: z.union([z.string().email(), z.array(z.string().email())]),
       subject: z.union([z.string(), z.record(z.string(), z.string())]),
       intro: z.union([z.string(), z.record(z.string(), z.string())]).optional()
-    })
+    }),
+    messages: z.object({
+      alertClientTitle: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      alertServerTitle: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      alertSuccessTitle: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      successMessage: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      fieldErrorSeparator: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      validationRequired: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      validationInvalidFormat: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      uploadFilesSelectedText: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+      uploadTooManyFiles: z.union([z.string(), z.record(z.string(), z.string())]).optional()
+    }).optional()
   })
 });
 
@@ -86,7 +99,7 @@ const sampleForm = `{
         { "value": "seo", "label": { "en": "SEO" } }
       ]
     },
-    { "name": "reference_images", "label": { "en": "Reference images", "fr": "Images de référence" }, "type": "upload", "required": false, "accept": "image/*", "imagesOnly": true, "multiple": true, "maxFiles": 3, "maxFileSizeMb": 5, "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" }, "browseLabel": { "en": "Choose images", "fr": "Choisir des images" }, "removeLabel": { "en": "Remove", "fr": "Retirer" } },
+    { "name": "reference_images", "label": { "en": "Reference images", "fr": "Images de référence" }, "type": "upload", "required": false, "accept": "image/*", "imagesOnly": true, "multiple": true, "maxFiles": 3, "maxFileSizeMb": 5, "noFileText": { "en": "No image selected", "fr": "Aucune image sélectionnée" }, "browseLabel": { "en": "Choose images", "fr": "Choisir des images" }, "removeLabel": { "en": "Remove", "fr": "Retirer" }, "filesSelectedText": { "en": "{count} files selected", "fr": "{count} fichiers sélectionnés" }, "previewUnavailableText": { "en": "Preview unavailable", "fr": "Aperçu indisponible" } },
     { "name": "message", "label": { "en": "Message" }, "type": "textarea", "required": true },
     { "name": "middle_name", "label": { "en": "Leave blank" }, "type": "hidden" }
   ],
@@ -99,6 +112,15 @@ const sampleForm = `{
   "security": {
     "honeypot": { "name": "middle_name", "enabled": true },
     "rateLimit": { "max": 5, "windowSeconds": 60 }
+  },
+  "messages": {
+    "alertClientTitle": { "en": "Please fix the highlighted fields", "fr": "Merci de corriger les champs en erreur" },
+    "alertServerTitle": { "en": "Something went wrong", "fr": "Une erreur est survenue" },
+    "alertSuccessTitle": { "en": "Success", "fr": "Succès" },
+    "successMessage": { "en": "Thanks! Your message was sent.", "fr": "Merci, votre message a été envoyé." },
+    "fieldErrorSeparator": { "en": " - ", "fr": " - " },
+    "validationInvalidFormat": { "en": "Invalid format.", "fr": "Format invalide." },
+    "uploadTooManyFiles": { "en": "Please select at most {max} files.", "fr": "Veuillez sélectionner au maximum {max} fichiers." }
   }
 }`;
 
@@ -116,7 +138,8 @@ const props = [
   {
     name: "locale",
     type: "string",
-    description: "Locale key to resolve localized labels/placeholders."
+    description:
+      "Locale key to resolve localized labels, upload UI text, and form feedback messages."
   },
   { name: "id", type: "string", description: "Optional HTML id (auto-generated if omitted)." },
   {
@@ -200,6 +223,11 @@ const props = [
     name: "resetStyle",
     type: "string",
     description: "Inline style for the default reset button (CSS vars supported)."
+  },
+  {
+    name: "messages",
+    type: "object",
+    description: "Runtime message overrides (same keys as form.messages, useful for i18n)."
   },
   { name: "class", type: "string", description: "Additional className for form." },
   {

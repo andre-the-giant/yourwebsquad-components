@@ -52,7 +52,7 @@ const props = [
   {
     name: "previewLimit",
     type: "number",
-    default: "4",
+    default: "maxFiles (when provided), else 4",
     description: "Maximum number of thumbnails to render."
   },
   {
@@ -72,6 +72,24 @@ const props = [
     type: "string",
     default: '"Remove"',
     description: "Label for each thumbnail remove button (useful for i18n)."
+  },
+  {
+    name: "filesSelectedText",
+    type: "string",
+    default: '"{count} files selected"',
+    description: "Summary template when multiple files are selected (supports `{count}`)."
+  },
+  {
+    name: "previewUnavailableText",
+    type: "string",
+    default: '"Preview unavailable"',
+    description: "Fallback text for files that cannot be rendered as image previews."
+  },
+  {
+    name: "messages",
+    type: "object",
+    description:
+      "Localized validation templates for file errors (`onlyOneFile`, `tooManyFiles`, `fileTooLarge`, `blockedFileType`, `blockedFileContentType`, `onlyImageFiles`, `invalidFileType`)."
   },
   { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
   {

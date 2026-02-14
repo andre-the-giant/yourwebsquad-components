@@ -14,6 +14,17 @@ Props:
 - noFileText?: string
 - browseLabel?: string
 - removeLabel?: string
+- filesSelectedText?: string
+- previewUnavailableText?: string
+- messages?: {
+    onlyOneFile?: string
+    tooManyFiles?: string
+    fileTooLarge?: string
+    blockedFileType?: string
+    blockedFileContentType?: string
+    onlyImageFiles?: string
+    invalidFileType?: string
+  }
 - disabled?: boolean
 - required?: boolean
 - ariaLabel?: string
@@ -56,6 +67,9 @@ const schema = {
   noFileText: { type: "string" },
   browseLabel: { type: "string" },
   removeLabel: { type: "string" },
+  filesSelectedText: { type: "string" },
+  previewUnavailableText: { type: "string" },
+  messages: { type: "object" },
   disabled: { type: "boolean" },
   required: { type: "boolean" },
   ariaLabel: { type: "string" },
@@ -78,10 +92,13 @@ const {
   maxFileSizeMb,
   imagesOnly = true,
   showPreview = true,
-  previewLimit = 4,
+  previewLimit,
   noFileText = "No file selected",
   browseLabel = "Browse",
   removeLabel = "Remove",
+  filesSelectedText = "{count} files selected",
+  previewUnavailableText = "Preview unavailable",
+  messages,
   disabled = false,
   required = false,
   ariaLabel,
@@ -97,6 +114,33 @@ const resolvedLabel = label;
 const resolvedId = id ?? `form-upload-${Math.random().toString(36).slice(2, 9)}`;
 const resolvedName = multiple && name && !name.endsWith("[]") ? `${name}[]` : name;
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
+const parsedPreviewLimit = Number(previewLimit);
+const parsedMaxFiles = Number(maxFiles);
+const resolvedPreviewLimit =
+  Number.isFinite(parsedPreviewLimit) && parsedPreviewLimit > 0
+    ? Math.floor(parsedPreviewLimit)
+    : Number.isFinite(parsedMaxFiles) && parsedMaxFiles > 0
+      ? Math.floor(parsedMaxFiles)
+      : 4;
+
+const uploadMessages =
+  messages && typeof messages === "object"
+    ? {
+        onlyOneFile: typeof messages.onlyOneFile === "string" ? messages.onlyOneFile : undefined,
+        tooManyFiles: typeof messages.tooManyFiles === "string" ? messages.tooManyFiles : undefined,
+        fileTooLarge: typeof messages.fileTooLarge === "string" ? messages.fileTooLarge : undefined,
+        blockedFileType:
+          typeof messages.blockedFileType === "string" ? messages.blockedFileType : undefined,
+        blockedFileContentType:
+          typeof messages.blockedFileContentType === "string"
+            ? messages.blockedFileContentType
+            : undefined,
+        onlyImageFiles:
+          typeof messages.onlyImageFiles === "string" ? messages.onlyImageFiles : undefined,
+        invalidFileType:
+          typeof messages.invalidFileType === "string" ? messages.invalidFileType : undefined
+      }
+    : {};
 
 const styleVars = {};
 const resolvedStyle = makeStyleVars(styleVars, style);
@@ -108,6 +152,8 @@ const resolvedClass = mergeClasses("form-field", className);
   style={resolvedStyle || undefined}
   data-form-upload-root
   data-upload-no-file-text={noFileText}
+  data-upload-files-selected-text={filesSelectedText}
+  data-upload-preview-unavailable-text={previewUnavailableText}
   data-upload-remove-label={removeLabel}
 >
   {
@@ -141,9 +187,18 @@ const resolvedClass = mergeClasses("form-field", className);
       data-form-upload-input
       data-images-only={imagesOnly ? "true" : "false"}
       data-show-preview={showPreview ? "true" : "false"}
-      data-preview-limit={previewLimit ?? undefined}
+      data-preview-limit={resolvedPreviewLimit}
       data-max-files={maxFiles ?? undefined}
       data-max-file-size-mb={maxFileSizeMb ?? undefined}
+      data-msg-only-one-file={uploadMessages.onlyOneFile || "Only one file is allowed."}
+      data-msg-too-many-files={uploadMessages.tooManyFiles || "Please select at most {max} files."}
+      data-msg-file-too-large={uploadMessages.fileTooLarge ||
+        "Each file must be {max}MB or smaller."}
+      data-msg-blocked-file-type={uploadMessages.blockedFileType || "Blocked file type: {name}"}
+      data-msg-blocked-file-content-type={uploadMessages.blockedFileContentType ||
+        "Blocked file content type: {name}"}
+      data-msg-only-image-files={uploadMessages.onlyImageFiles || "Only image files are allowed."}
+      data-msg-invalid-file-type={uploadMessages.invalidFileType || "Invalid file type."}
       {...rest}
     />
   </div>
@@ -241,6 +296,20 @@ const resolvedClass = mergeClasses("form-field", className);
         return dot >= 0 ? String(name).toLowerCase().slice(dot) : "";
       };
 
+      const formatTemplate = (template, values = {}) =>
+        String(template || "")
+          .replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => {
+            const value = values[token];
+            return value === undefined || value === null ? "" : String(value);
+          })
+          .replace(/\s{2,}/g, " ")
+          .trim();
+
+      const readInputMessage = (input, key, fallback) => {
+        const value = input.dataset[key];
+        return typeof value === "string" && value.trim() ? value.trim() : fallback;
+      };
+
       const isDangerousMime = (type) => {
         const mime = String(type || "")
           .trim()
@@ -257,6 +326,31 @@ const resolvedClass = mergeClasses("form-field", className);
 
         const ext = getExtension(file.name);
         return imageExtensions.has(ext);
+      };
+
+      const matchesAccept = (file, accept) => {
+        const tokens = String(accept || "")
+          .split(",")
+          .map((token) => token.trim().toLowerCase())
+          .filter(Boolean);
+        if (!tokens.length) return true;
+
+        const mime = String(file.type || "").toLowerCase();
+        const ext = getExtension(file.name);
+
+        return tokens.some((token) => {
+          if (token.startsWith(".")) {
+            return ext === token;
+          }
+          if (token.endsWith("/*")) {
+            const prefix = token.slice(0, -1);
+            if (mime && mime.startsWith(prefix)) return true;
+            if (prefix === "image/" && imageExtensions.has(ext)) return true;
+            return false;
+          }
+          if (!mime) return false;
+          return mime === token;
+        });
       };
 
       const revokeObjectUrls = (input) => {
@@ -325,8 +419,44 @@ const resolvedClass = mergeClasses("form-field", className);
       const validateInputFiles = (input, files) => {
         if (!(input instanceof HTMLInputElement) || input.type !== "file") return "";
 
+        const msgOnlyOneFile = readInputMessage(
+          input,
+          "msgOnlyOneFile",
+          "Only one file is allowed."
+        );
+        const msgTooManyFiles = readInputMessage(
+          input,
+          "msgTooManyFiles",
+          "Please select at most {max} files."
+        );
+        const msgFileTooLarge = readInputMessage(
+          input,
+          "msgFileTooLarge",
+          "Each file must be {max}MB or smaller."
+        );
+        const msgBlockedFileType = readInputMessage(
+          input,
+          "msgBlockedFileType",
+          "Blocked file type: {name}"
+        );
+        const msgBlockedFileContentType = readInputMessage(
+          input,
+          "msgBlockedFileContentType",
+          "Blocked file content type: {name}"
+        );
+        const msgOnlyImageFiles = readInputMessage(
+          input,
+          "msgOnlyImageFiles",
+          "Only image files are allowed."
+        );
+        const msgInvalidFileType = readInputMessage(
+          input,
+          "msgInvalidFileType",
+          "Invalid file type."
+        );
+
         if (!input.multiple && files.length > 1) {
-          return "Only one file is allowed.";
+          return msgOnlyOneFile;
         }
 
         const maxFiles = Number(input.dataset.maxFiles || "");
@@ -334,31 +464,39 @@ const resolvedClass = mergeClasses("form-field", className);
         const imagesOnly = input.dataset.imagesOnly !== "false";
 
         if (Number.isFinite(maxFiles) && maxFiles > 0 && files.length > maxFiles) {
-          return `Please select at most ${maxFiles} file${maxFiles > 1 ? "s" : ""}.`;
+          return formatTemplate(msgTooManyFiles, { max: maxFiles, count: files.length });
         }
 
         if (Number.isFinite(maxFileSizeMb) && maxFileSizeMb > 0) {
           const maxBytes = maxFileSizeMb * 1024 * 1024;
           const tooLarge = files.find((file) => file.size > maxBytes);
           if (tooLarge) {
-            return `Each file must be ${maxFileSizeMb}MB or smaller.`;
+            return formatTemplate(msgFileTooLarge, { max: maxFileSizeMb, name: tooLarge.name });
           }
         }
 
         const blocked = files.find((file) => blockedExtensions.has(getExtension(file.name)));
         if (blocked) {
-          return `Blocked file type: ${blocked.name}`;
+          return formatTemplate(msgBlockedFileType, { name: blocked.name });
         }
 
         const dangerousMime = files.find((file) => isDangerousMime(file.type));
         if (dangerousMime) {
-          return `Blocked file content type: ${dangerousMime.name}`;
+          return formatTemplate(msgBlockedFileContentType, { name: dangerousMime.name });
         }
 
         if (imagesOnly) {
           const nonImage = files.find((file) => !isImageByTypeOrExtension(file));
           if (nonImage) {
-            return "Only image files are allowed.";
+            return msgOnlyImageFiles;
+          }
+        }
+
+        const accept = String(input.getAttribute("accept") || "").trim();
+        if (accept) {
+          const invalidType = files.find((file) => !matchesAccept(file, accept));
+          if (invalidType) {
+            return formatTemplate(msgInvalidFileType, { name: invalidType.name });
           }
         }
 
@@ -370,6 +508,7 @@ const resolvedClass = mergeClasses("form-field", className);
         if (!(summary instanceof HTMLElement)) return;
 
         const noFileText = root.dataset.uploadNoFileText || "No file selected";
+        const filesSelectedText = root.dataset.uploadFilesSelectedText || "{count} files selected";
 
         if (files.length === 0) {
           summary.textContent = noFileText;
@@ -383,7 +522,7 @@ const resolvedClass = mergeClasses("form-field", className);
           return;
         }
 
-        summary.textContent = `${files.length} files selected`;
+        summary.textContent = formatTemplate(filesSelectedText, { count: files.length });
         summary.removeAttribute("title");
       };
 
@@ -391,6 +530,8 @@ const resolvedClass = mergeClasses("form-field", className);
         const preview = root.querySelector("[data-upload-preview]");
         if (!(preview instanceof HTMLElement)) return;
         const removeLabel = root.dataset.uploadRemoveLabel || "Remove";
+        const previewUnavailableText =
+          root.dataset.uploadPreviewUnavailableText || "Preview unavailable";
 
         revokeObjectUrls(input);
         preview.innerHTML = "";
@@ -414,20 +555,41 @@ const resolvedClass = mergeClasses("form-field", className);
         const objectUrls = [];
 
         previewable.slice(0, previewLimit).forEach((file) => {
-          const url = URL.createObjectURL(file);
-          objectUrls.push(url);
-
           const figure = document.createElement("figure");
           figure.className = "form-upload-thumb";
 
           const media = document.createElement("div");
           media.className = "form-upload-thumb__media";
 
+          const fallback = document.createElement("span");
+          fallback.className = "form-upload-thumb__fallback";
+          fallback.textContent = previewUnavailableText;
+          fallback.setAttribute("hidden", "true");
+
           const img = document.createElement("img");
           img.className = "form-upload-thumb__img";
-          img.src = url;
           img.alt = file.name;
-          img.loading = "lazy";
+          img.loading = "eager";
+          img.decoding = "async";
+
+          let url = "";
+          try {
+            url = URL.createObjectURL(file);
+          } catch (_) {
+            url = "";
+          }
+          if (url) {
+            img.src = url;
+            objectUrls.push(url);
+          } else {
+            img.setAttribute("hidden", "true");
+            fallback.removeAttribute("hidden");
+          }
+
+          img.addEventListener("error", () => {
+            img.setAttribute("hidden", "true");
+            fallback.removeAttribute("hidden");
+          });
 
           const caption = document.createElement("figcaption");
           caption.className = "form-upload-thumb__caption";
@@ -464,6 +626,7 @@ const resolvedClass = mergeClasses("form-field", className);
           meta.appendChild(caption);
           meta.appendChild(remove);
 
+          media.appendChild(fallback);
           media.appendChild(img);
           figure.appendChild(media);
           figure.appendChild(meta);
@@ -648,6 +811,7 @@ const resolvedClass = mergeClasses("form-field", className);
     width: 100%;
     aspect-ratio: var(--form-upload-thumb-ratio, 4/3);
     overflow: hidden;
+    position: relative;
   }
 
   .form-upload-preview :global(.form-upload-thumb__img) {
@@ -655,6 +819,18 @@ const resolvedClass = mergeClasses("form-field", className);
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  .form-upload-preview :global(.form-upload-thumb__fallback) {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: var(--size-xs);
+    color: var(--color-muted);
+    background: color-mix(in srgb, var(--color-surface) 90%, #000 10%);
   }
 
   .form-upload-preview :global(.form-upload-thumb__meta) {

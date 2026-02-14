@@ -42,6 +42,7 @@ Props:
 - resetClass?: string
 - resetStyle?: string
 - validateOnSubmit?: boolean
+- messages?: object         // optional runtime message overrides
 - class?: string
 - style?: string
 */
@@ -71,7 +72,8 @@ const schema = {
   resetDisabled: { type: "boolean" },
   resetClass: { type: "string" },
   resetStyle: { type: "string" },
-  validateOnSubmit: { type: "boolean" }
+  validateOnSubmit: { type: "boolean" },
+  messages: { type: "object" }
 };
 
 const {
@@ -100,6 +102,7 @@ const {
   resetClass,
   resetStyle,
   validateOnSubmit = true,
+  messages,
   ...rest
 } = validateProps(schema, Astro.props, { component: "Form" });
 
@@ -141,14 +144,73 @@ function registerField(name) {
 const formFields = normalizedForm?.fields ?? [];
 const hasUploadField = formFields.some((field) => field.type === "upload");
 const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : undefined);
+const formMessageConfig =
+  messages && typeof messages === "object"
+    ? { ...(normalizedForm?.messages ?? {}), ...messages }
+    : (normalizedForm?.messages ?? {});
+
+const resolveMessage = (key, fallback) =>
+  resolveLocalized(formMessageConfig?.[key], locale) || fallback;
+
+const resolvedMessages = {
+  alertClientTitle: resolveMessage("alertClientTitle", "Please fix the highlighted fields"),
+  alertServerTitle: resolveMessage("alertServerTitle", "Something went wrong"),
+  alertSuccessTitle: resolveMessage("alertSuccessTitle", "Success"),
+  successMessage: resolveMessage("successMessage", "Thanks! Your message was sent."),
+  networkError: resolveMessage("networkError", "Network error. Please try again."),
+  fallbackValidationIssue: resolveMessage("fallbackValidationIssue", "is required or invalid."),
+  fieldErrorSeparator: resolveMessage("fieldErrorSeparator", " - "),
+  validationRequired: resolveMessage("validationRequired", "This field is required."),
+  validationInvalid: resolveMessage("validationInvalid", "Invalid value."),
+  validationInvalidEmail: resolveMessage("validationInvalidEmail", "Please enter a valid email."),
+  validationTooLong: resolveMessage("validationTooLong", "Too long."),
+  validationTooShort: resolveMessage("validationTooShort", "Too short."),
+  validationInvalidFormat: resolveMessage("validationInvalidFormat", "Invalid format."),
+  validationInvalidSelection: resolveMessage("validationInvalidSelection", "Invalid selection."),
+  uploadFilesSelectedText: resolveMessage("uploadFilesSelectedText", "{count} files selected"),
+  uploadPreviewUnavailableText: resolveMessage(
+    "uploadPreviewUnavailableText",
+    "Preview unavailable"
+  ),
+  uploadOnlyOneFile: resolveMessage("uploadOnlyOneFile", "Only one file is allowed."),
+  uploadTooManyFiles: resolveMessage("uploadTooManyFiles", "Please select at most {max} files."),
+  uploadFileTooLarge: resolveMessage("uploadFileTooLarge", "Each file must be {max}MB or smaller."),
+  uploadBlockedFileType: resolveMessage("uploadBlockedFileType", "Blocked file type: {name}"),
+  uploadBlockedFileContentType: resolveMessage(
+    "uploadBlockedFileContentType",
+    "Blocked file content type: {name}"
+  ),
+  uploadOnlyImageFiles: resolveMessage("uploadOnlyImageFiles", "Only image files are allowed."),
+  uploadInvalidFileType: resolveMessage("uploadInvalidFileType", "Invalid file type.")
+};
 ---
 
-<div class="form-wrapper" data-form-wrapper>
+<div
+  class="form-wrapper"
+  data-form-wrapper
+  data-msg-network-error={resolvedMessages.networkError}
+  data-msg-fallback-validation={resolvedMessages.fallbackValidationIssue}
+  data-msg-field-separator={resolvedMessages.fieldErrorSeparator}
+  data-msg-required={resolvedMessages.validationRequired}
+  data-msg-invalid={resolvedMessages.validationInvalid}
+  data-msg-invalid-email={resolvedMessages.validationInvalidEmail}
+  data-msg-too-long={resolvedMessages.validationTooLong}
+  data-msg-too-short={resolvedMessages.validationTooShort}
+  data-msg-invalid-format={resolvedMessages.validationInvalidFormat}
+  data-msg-invalid-selection={resolvedMessages.validationInvalidSelection}
+  data-msg-upload-only-one={resolvedMessages.uploadOnlyOneFile}
+  data-msg-upload-too-many={resolvedMessages.uploadTooManyFiles}
+  data-msg-upload-too-large={resolvedMessages.uploadFileTooLarge}
+  data-msg-upload-blocked-type={resolvedMessages.uploadBlockedFileType}
+  data-msg-upload-blocked-content={resolvedMessages.uploadBlockedFileContentType}
+  data-msg-upload-images-only={resolvedMessages.uploadOnlyImageFiles}
+  data-msg-upload-invalid-type={resolvedMessages.uploadInvalidFileType}
+>
   <div class="form-alerts">
     <Alert
       type="warning"
       tone="soft"
-      title="Please fix the highlighted fields"
+      title={resolvedMessages.alertClientTitle}
       class="form-alert is-hidden"
       data-alert="client"
       hidden
@@ -159,7 +221,7 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
     <Alert
       type="error"
       tone="soft"
-      title="Something went wrong"
+      title={resolvedMessages.alertServerTitle}
       class="form-alert is-hidden"
       data-alert="server"
       hidden
@@ -172,12 +234,12 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
     <Alert
       type="success"
       tone="soft"
-      title="Success"
+      title={resolvedMessages.alertSuccessTitle}
       class="form-alert is-hidden"
       data-alert="success"
       hidden
     >
-      <p data-alert-message="success">Thanks! Your message was sent.</p>
+      <p data-alert-message="success">{resolvedMessages.successMessage}</p>
     </Alert>
   </div>
 
@@ -392,6 +454,23 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
                     noFileText={localizedNoFileText}
                     browseLabel={localizedBrowseLabel}
                     removeLabel={localizedRemoveLabel}
+                    filesSelectedText={
+                      resolveLocalized(field.filesSelectedText, locale) ||
+                      resolvedMessages.uploadFilesSelectedText
+                    }
+                    previewUnavailableText={
+                      resolveLocalized(field.previewUnavailableText, locale) ||
+                      resolvedMessages.uploadPreviewUnavailableText
+                    }
+                    messages={{
+                      onlyOneFile: resolvedMessages.uploadOnlyOneFile,
+                      tooManyFiles: resolvedMessages.uploadTooManyFiles,
+                      fileTooLarge: resolvedMessages.uploadFileTooLarge,
+                      blockedFileType: resolvedMessages.uploadBlockedFileType,
+                      blockedFileContentType: resolvedMessages.uploadBlockedFileContentType,
+                      onlyImageFiles: resolvedMessages.uploadOnlyImageFiles,
+                      invalidFileType: resolvedMessages.uploadInvalidFileType
+                    }}
                     helpId={help.helpId}
                     errorId={help.errorId}
                     {...shared}
@@ -464,8 +543,90 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
     const listClient = wrapper.querySelector('[data-alert-list="client"]');
     const listServer = wrapper.querySelector('[data-alert-list="server"]');
     const successMessage = wrapper.querySelector('[data-alert-message="success"]');
-
     const fieldErrorEls = wrapper.querySelectorAll("[data-field-error]");
+
+    const readMsg = (key, fallback) => {
+      const value = wrapper.dataset[key];
+      return typeof value === "string" && value.trim() ? value.trim() : fallback;
+    };
+
+    const messages = {
+      networkError: readMsg("msgNetworkError", "Network error. Please try again."),
+      fallbackValidationIssue: readMsg("msgFallbackValidation", "is required or invalid."),
+      fieldErrorSeparator: readMsg("msgFieldSeparator", " - "),
+      validationRequired: readMsg("msgRequired", "This field is required."),
+      validationInvalid: readMsg("msgInvalid", "Invalid value."),
+      validationInvalidEmail: readMsg("msgInvalidEmail", "Please enter a valid email."),
+      validationTooLong: readMsg("msgTooLong", "Too long."),
+      validationTooShort: readMsg("msgTooShort", "Too short."),
+      validationInvalidFormat: readMsg("msgInvalidFormat", "Invalid format."),
+      validationInvalidSelection: readMsg("msgInvalidSelection", "Invalid selection."),
+      uploadOnlyOneFile: readMsg("msgUploadOnlyOne", "Only one file is allowed."),
+      uploadTooManyFiles: readMsg("msgUploadTooMany", "Please select at most {max} files."),
+      uploadFileTooLarge: readMsg("msgUploadTooLarge", "Each file must be {max}MB or smaller."),
+      uploadBlockedFileType: readMsg("msgUploadBlockedType", "Blocked file type: {name}"),
+      uploadBlockedFileContentType: readMsg(
+        "msgUploadBlockedContent",
+        "Blocked file content type: {name}"
+      ),
+      uploadOnlyImageFiles: readMsg("msgUploadImagesOnly", "Only image files are allowed."),
+      uploadInvalidFileType: readMsg("msgUploadInvalidType", "Invalid file type.")
+    };
+
+    function normalizeFieldName(name) {
+      return typeof name === "string" ? name.replace(/\[\]$/, "") : name;
+    }
+
+    function formatTemplate(template, values = {}) {
+      return String(template || "")
+        .replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => {
+          const value = values[token];
+          return value === undefined || value === null ? "" : String(value);
+        })
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    function normalize(value) {
+      return Array.isArray(value) ? value : value ? [value] : [];
+    }
+
+    function getInputByName(name) {
+      const normalized = normalizeFieldName(name);
+      if (!normalized) return null;
+      const inputs = form.querySelectorAll("input[name], select[name], textarea[name]");
+      for (const input of inputs) {
+        const candidate = normalizeFieldName(input.getAttribute("name"));
+        if (candidate === normalized) return input;
+      }
+      return null;
+    }
+
+    function getFieldLabel(el) {
+      const id = el.id;
+      const cleanName = normalizeFieldName(el.getAttribute("name"));
+      let label = "";
+      if (id) {
+        const labels = form.querySelectorAll("label[for]");
+        for (const current of labels) {
+          if (current.getAttribute("for") === id) {
+            label = current.textContent?.trim() || "";
+            break;
+          }
+        }
+      }
+      return label || el.getAttribute("aria-label") || cleanName || id || "This field";
+    }
+
+    function getFieldLabelByName(name) {
+      const input = getInputByName(name);
+      return input ? getFieldLabel(input) : normalizeFieldName(name) || "This field";
+    }
+
+    function formatFieldIssue(fieldName, issue) {
+      const label = getFieldLabelByName(fieldName);
+      return `${label}${messages.fieldErrorSeparator}${issue}`;
+    }
 
     function hideAlert(alertEl) {
       if (!alertEl) return;
@@ -473,36 +634,90 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
       alertEl.setAttribute("hidden", "true");
     }
 
-    function showAlert(alertEl) {
+    function showAlert(alertEl, { focus = false } = {}) {
       if (!alertEl) return;
       alertEl.classList.remove("is-hidden");
       alertEl.removeAttribute("hidden");
       alertEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (focus && alertEl instanceof HTMLElement) {
+        alertEl.setAttribute("tabindex", "-1");
+        requestAnimationFrame(() => {
+          alertEl.focus({ preventScroll: true });
+        });
+      }
+    }
+
+    function localizeServerIssue(fieldName, issue) {
+      const raw = String(issue || "").trim();
+      if (!raw) return messages.validationInvalid;
+
+      const uploadInput = getInputByName(fieldName);
+      const maxFiles = Number(uploadInput?.dataset.maxFiles || "");
+      const maxFileSizeMb = Number(uploadInput?.dataset.maxFileSizeMb || "");
+      const maxFilesValue = Number.isFinite(maxFiles) && maxFiles > 0 ? maxFiles : "";
+      const maxFileSizeValue =
+        Number.isFinite(maxFileSizeMb) && maxFileSizeMb > 0 ? maxFileSizeMb : "";
+      const formatWithoutDanglingPunctuation = (template, values, fallback) => {
+        const formatted = formatTemplate(template, values)
+          .replace(/[:;,.\-]\s*$/, "")
+          .trim();
+        return formatted || fallback;
+      };
+
+      if (raw === "This field is required.") return messages.validationRequired;
+      if (raw === "Invalid value.") return messages.validationInvalid;
+      if (raw === "Please enter a valid email.") return messages.validationInvalidEmail;
+      if (raw === "Too long.") return messages.validationTooLong;
+      if (raw === "Too short.") return messages.validationTooShort;
+      if (raw === "Invalid format.") return messages.validationInvalidFormat;
+      if (raw === "Invalid selection.") return messages.validationInvalidSelection;
+      if (raw === "Only one file is allowed.") return messages.uploadOnlyOneFile;
+      if (raw === "Too many files uploaded.") {
+        return formatTemplate(messages.uploadTooManyFiles, { max: maxFilesValue });
+      }
+      if (raw === "File is too large.") {
+        return formatTemplate(messages.uploadFileTooLarge, { max: maxFileSizeValue });
+      }
+      if (raw === "Blocked file extension.") {
+        return formatWithoutDanglingPunctuation(
+          messages.uploadBlockedFileType,
+          { name: "" },
+          messages.uploadInvalidFileType
+        );
+      }
+      if (raw === "Blocked file content type.") {
+        return formatWithoutDanglingPunctuation(
+          messages.uploadBlockedFileContentType,
+          { name: "" },
+          messages.uploadInvalidFileType
+        );
+      }
+      if (raw === "Only image files are allowed.") return messages.uploadOnlyImageFiles;
+      if (raw === "Invalid file type.") return messages.uploadInvalidFileType;
+      return raw;
+    }
+
+    function messagesForField(map, name) {
+      const direct = map[name];
+      if (direct !== undefined) return normalize(direct);
+      const normalized = normalizeFieldName(name);
+      if (normalized !== undefined && map[normalized] !== undefined) {
+        return normalize(map[normalized]);
+      }
+      if (normalized !== undefined && map[`${normalized}[]`] !== undefined) {
+        return normalize(map[`${normalized}[]`]);
+      }
+      return [];
     }
 
     function setFieldErrors(map = {}) {
-      const normalize = (value) => (Array.isArray(value) ? value : value ? [value] : []);
-      const normalizeFieldName = (name) =>
-        typeof name === "string" ? name.replace(/\[\]$/, "") : name;
-
-      function messagesForField(name) {
-        const direct = map[name];
-        if (direct !== undefined) return normalize(direct);
-        const normalized = normalizeFieldName(name);
-        if (normalized !== undefined && map[normalized] !== undefined) {
-          return normalize(map[normalized]);
-        }
-        if (normalized !== undefined && map[`${normalized}[]`] !== undefined) {
-          return normalize(map[`${normalized}[]`]);
-        }
-        return [];
-      }
-
       fieldErrorEls.forEach((el) => {
         const field = el.dataset.fieldError;
-        const messages = messagesForField(field);
-        el.textContent = messages.join(" ");
-        if (messages.length === 0) {
+        const localized = messagesForField(map, field).map((msg) =>
+          localizeServerIssue(field, msg)
+        );
+        el.textContent = localized.join(" ");
+        if (localized.length === 0) {
           el.setAttribute("hidden", "true");
         } else {
           el.removeAttribute("hidden");
@@ -511,25 +726,13 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
 
       const inputs = form.querySelectorAll("input[name], select[name], textarea[name]");
       inputs.forEach((input) => {
-        const messages = messagesForField(input.name);
-        if (messages.length) {
+        const invalid = messagesForField(map, input.name).length > 0;
+        if (invalid) {
           input.setAttribute("aria-invalid", "true");
         } else {
           input.removeAttribute("aria-invalid");
         }
       });
-    }
-
-    function getFieldLabel(el) {
-      const id = el.id;
-      const cleanName = el.getAttribute("name")?.replace(/\[\]$/, "");
-      return (
-        (id ? form.querySelector(`label[for="${id}"]`)?.textContent?.trim() : "") ||
-        el.getAttribute("aria-label") ||
-        cleanName ||
-        id ||
-        "This field"
-      );
     }
 
     const blockedExtensions = new Set([
@@ -619,56 +822,145 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
       return imageExtensions.has(ext);
     }
 
+    function matchesAccept(file, accept) {
+      const tokens = String(accept || "")
+        .split(",")
+        .map((token) => token.trim().toLowerCase())
+        .filter(Boolean);
+      if (!tokens.length) return true;
+
+      const mime = String(file?.type || "").toLowerCase();
+      const ext = getExtension(file?.name || "");
+
+      return tokens.some((token) => {
+        if (token.startsWith(".")) {
+          return ext === token;
+        }
+        if (token.endsWith("/*")) {
+          const prefix = token.slice(0, -1);
+          if (mime && mime.startsWith(prefix)) return true;
+          if (prefix === "image/" && imageExtensions.has(ext)) return true;
+          return false;
+        }
+        if (!mime) return false;
+        return mime === token;
+      });
+    }
+
     function validateFileInput(input) {
       if (!(input instanceof HTMLInputElement) || input.type !== "file") return "";
       const files = Array.from(input.files || []);
       if (!input.multiple && files.length > 1) {
-        return "Only one file is allowed.";
+        return messages.uploadOnlyOneFile;
       }
       const maxFiles = Number(input.dataset.maxFiles || "");
       const maxFileSizeMb = Number(input.dataset.maxFileSizeMb || "");
       const imagesOnly = input.dataset.imagesOnly !== "false";
 
       if (Number.isFinite(maxFiles) && maxFiles > 0 && files.length > maxFiles) {
-        return `Please select at most ${maxFiles} file${maxFiles > 1 ? "s" : ""}.`;
+        return formatTemplate(messages.uploadTooManyFiles, { max: maxFiles, count: files.length });
       }
 
       if (Number.isFinite(maxFileSizeMb) && maxFileSizeMb > 0) {
         const maxBytes = maxFileSizeMb * 1024 * 1024;
         const tooLarge = files.find((file) => file.size > maxBytes);
         if (tooLarge) {
-          return `Each file must be ${maxFileSizeMb}MB or smaller.`;
+          return formatTemplate(messages.uploadFileTooLarge, {
+            max: maxFileSizeMb,
+            name: tooLarge.name
+          });
         }
       }
 
       const blocked = files.find((file) => blockedExtensions.has(getExtension(file.name)));
       if (blocked) {
-        return `Blocked file type: ${blocked.name}`;
+        return formatTemplate(messages.uploadBlockedFileType, { name: blocked.name });
       }
 
       const dangerousMime = files.find((file) => isDangerousMime(file.type));
       if (dangerousMime) {
-        return `Blocked file content type: ${dangerousMime.name}`;
+        return formatTemplate(messages.uploadBlockedFileContentType, { name: dangerousMime.name });
       }
 
       if (imagesOnly) {
         const nonImage = files.find((file) => !isImageFile(file));
         if (nonImage) {
-          return "Only image files are allowed.";
+          return messages.uploadOnlyImageFiles;
+        }
+      }
+
+      const accept = String(input.getAttribute("accept") || "").trim();
+      if (accept) {
+        const invalidType = files.find((file) => !matchesAccept(file, accept));
+        if (invalidType) {
+          return formatTemplate(messages.uploadInvalidFileType, { name: invalidType.name });
         }
       }
 
       return "";
     }
 
-    function listToUl(listEl, messages) {
+    function focusFieldByName(name) {
+      const input = getInputByName(name);
+      if (!(input instanceof HTMLElement)) return;
+      input.focus({ preventScroll: true });
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function listToUl(listEl, entries) {
       if (!listEl) return;
       listEl.innerHTML = "";
-      messages.forEach((msg) => {
+      entries.forEach((entry) => {
+        const payload =
+          typeof entry === "string"
+            ? { text: entry, field: undefined }
+            : { ...entry, text: entry?.text || "" };
         const li = document.createElement("li");
-        li.textContent = msg;
+        const fieldName = normalizeFieldName(payload.field);
+        const hasField = Boolean(fieldName && getInputByName(fieldName));
+        if (hasField) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "form-alert-link";
+          button.textContent = payload.text;
+          button.addEventListener("click", () => focusFieldByName(fieldName));
+          li.appendChild(button);
+        } else {
+          li.textContent = payload.text;
+        }
         listEl.appendChild(li);
       });
+    }
+
+    function getClientValidationIssue(el) {
+      if (!(el instanceof HTMLElement) || !("validity" in el)) {
+        return messages.fallbackValidationIssue;
+      }
+      const validity = el.validity;
+      if (!validity) return messages.fallbackValidationIssue;
+
+      if (validity.customError) {
+        return el.validationMessage?.trim() || messages.validationInvalid;
+      }
+      if (validity.valueMissing) return messages.validationRequired;
+      if (validity.typeMismatch) {
+        if (el instanceof HTMLInputElement && el.type === "email") {
+          return messages.validationInvalidEmail;
+        }
+        return messages.validationInvalid;
+      }
+      if (validity.tooLong) return messages.validationTooLong;
+      if (validity.tooShort) return messages.validationTooShort;
+      if (validity.patternMismatch) return messages.validationInvalidFormat;
+      if (
+        validity.badInput ||
+        validity.rangeOverflow ||
+        validity.rangeUnderflow ||
+        validity.stepMismatch
+      ) {
+        return messages.validationInvalid;
+      }
+      return el.validationMessage?.trim() || messages.fallbackValidationIssue;
     }
 
     document.querySelectorAll("form[data-prevent-enter]").forEach((f) => {
@@ -708,16 +1000,22 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
       if (invalidFields.length) {
         event.preventDefault();
         setFieldErrors({});
-        const messages = invalidFields.map((el) => {
+        const entries = invalidFields.map((el) => {
+          const fieldName = normalizeFieldName(el.getAttribute("name")) || undefined;
           const label = getFieldLabel(el);
-          const issue = el.validationMessage?.trim() || "is required or invalid.";
-          return `${label}: ${issue}`;
+          const issue = getClientValidationIssue(el);
+          return {
+            field: fieldName,
+            text: `${label}${messages.fieldErrorSeparator}${issue}`
+          };
         });
         hideAlert(alertServer);
-        listToUl(listClient, messages);
-        showAlert(alertClient);
+        listToUl(listClient, entries);
+        showAlert(alertClient, { focus: true });
         const first = invalidFields[0];
-        first?.focus({ preventScroll: false });
+        if (first instanceof HTMLElement) {
+          first.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         return;
       }
 
@@ -775,9 +1073,10 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
       }
 
       const fieldErrors = payload && typeof payload.errors === "object" ? payload.errors : {};
+      const successFallback = successMessage?.textContent?.trim() || "";
       const globalMsg =
         (payload && (payload.message || payload.detail || payload.error)) ||
-        (res.ok ? "Thanks! Your message was sent." : res.statusText);
+        (res.ok ? successFallback : res.statusText);
 
       setFieldErrors(fieldErrors || {});
 
@@ -787,29 +1086,36 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
         }
         hideAlert(alertClient);
         hideAlert(alertServer);
-        showAlert(alertSuccess);
+        showAlert(alertSuccess, { focus: true });
         form.classList.add("is-hidden");
         form.setAttribute("hidden", "true");
         return;
       }
 
-      const messages = [];
-      if (globalMsg) messages.push(globalMsg);
+      const entries = [];
+      if (globalMsg) entries.push({ text: globalMsg });
       Object.entries(fieldErrors || {}).forEach(([field, value]) => {
-        const arr = Array.isArray(value) ? value : value ? [value] : [];
-        arr.forEach((msg) => messages.push(msg || field));
+        const arr = normalize(value);
+        arr.forEach((msg) => {
+          const normalizedField = normalizeFieldName(field) || field;
+          const issue = localizeServerIssue(normalizedField, msg || field);
+          entries.push({
+            field: normalizedField,
+            text: formatFieldIssue(normalizedField, issue)
+          });
+        });
       });
 
-      listToUl(listServer, messages);
+      listToUl(listServer, entries);
       hideAlert(alertClient);
-      showAlert(alertServer);
+      showAlert(alertServer, { focus: true });
     }
 
     function showError(err) {
       setFieldErrors({});
-      listToUl(listServer, [err?.message || "Network error. Please try again."]);
+      listToUl(listServer, [{ text: err?.message || messages.networkError }]);
       hideAlert(alertClient);
-      showAlert(alertServer);
+      showAlert(alertServer, { focus: true });
     }
   });
 </script>
@@ -871,6 +1177,22 @@ const resolvedEnctype = enctype ?? (hasUploadField ? "multipart/form-data" : und
   .form-radio-group {
     display: grid;
     gap: var(--space-2);
+  }
+
+  .form-alert-link {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    text-align: left;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .form-alert-link:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
   }
 
   .is-hidden {
