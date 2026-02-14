@@ -833,6 +833,10 @@ const resolvedClass = mergeClasses("form-field", className);
     background: color-mix(in srgb, var(--color-surface) 90%, #000 10%);
   }
 
+  .form-upload-preview :global(.form-upload-thumb__fallback[hidden]) {
+    display: none !important;
+  }
+
   .form-upload-preview :global(.form-upload-thumb__meta) {
     display: flex;
     align-items: center;

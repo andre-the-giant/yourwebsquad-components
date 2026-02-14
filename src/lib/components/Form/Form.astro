@@ -610,7 +610,7 @@ const resolvedMessages = {
         const labels = form.querySelectorAll("label[for]");
         for (const current of labels) {
           if (current.getAttribute("for") === id) {
-            label = current.textContent?.trim() || "";
+            label = (current.textContent || "").trim();
             break;
           }
         }
@@ -678,8 +678,12 @@ const resolvedMessages = {
       if (!raw) return messages.validationInvalid;
 
       const uploadInput = getInputByName(fieldName);
-      const maxFiles = Number(uploadInput?.dataset.maxFiles || "");
-      const maxFileSizeMb = Number(uploadInput?.dataset.maxFileSizeMb || "");
+      const maxFiles = Number(
+        (uploadInput && uploadInput.dataset && uploadInput.dataset.maxFiles) || ""
+      );
+      const maxFileSizeMb = Number(
+        (uploadInput && uploadInput.dataset && uploadInput.dataset.maxFileSizeMb) || ""
+      );
       const maxFilesValue = Number.isFinite(maxFiles) && maxFiles > 0 ? maxFiles : "";
       const maxFileSizeValue =
         Number.isFinite(maxFileSizeMb) && maxFileSizeMb > 0 ? maxFileSizeMb : "";
@@ -842,9 +846,9 @@ const resolvedMessages = {
     }
 
     function isImageFile(file) {
-      const mime = String(file?.type || "").toLowerCase();
+      const mime = String((file && file.type) || "").toLowerCase();
       if (mime.startsWith("image/") && mime !== "image/svg+xml") return true;
-      const ext = getExtension(file?.name || "");
+      const ext = getExtension((file && file.name) || "");
       return imageExtensions.has(ext);
     }
 
@@ -855,8 +859,8 @@ const resolvedMessages = {
         .filter(Boolean);
       if (!tokens.length) return true;
 
-      const mime = String(file?.type || "").toLowerCase();
-      const ext = getExtension(file?.name || "");
+      const mime = String((file && file.type) || "").toLowerCase();
+      const ext = getExtension((file && file.name) || "");
 
       return tokens.some((token) => {
         if (token.startsWith(".")) {
@@ -940,7 +944,7 @@ const resolvedMessages = {
         const payload =
           typeof entry === "string"
             ? { text: entry, field: undefined }
-            : { ...entry, text: entry?.text || "" };
+            : { ...entry, text: (entry && entry.text) || "" };
         const li = document.createElement("li");
         const fieldName = normalizeFieldName(payload.field);
         const hasField = Boolean(fieldName && getInputByName(fieldName));
@@ -966,7 +970,7 @@ const resolvedMessages = {
       if (!validity) return messages.fallbackValidationIssue;
 
       if (validity.customError) {
-        return el.validationMessage?.trim() || messages.validationInvalid;
+        return (el.validationMessage || "").trim() || messages.validationInvalid;
       }
       if (validity.valueMissing) return messages.validationRequired;
       if (validity.typeMismatch) {
@@ -986,7 +990,7 @@ const resolvedMessages = {
       ) {
         return messages.validationInvalid;
       }
-      return el.validationMessage?.trim() || messages.fallbackValidationIssue;
+      return (el.validationMessage || "").trim() || messages.fallbackValidationIssue;
     }
 
     document.querySelectorAll("form[data-prevent-enter]").forEach((f) => {
@@ -997,8 +1001,8 @@ const resolvedMessages = {
         if (event.key !== "Enter") return;
         const target = event.target;
         if (!target) return;
-        const tag = target.tagName?.toLowerCase();
-        const type = target.getAttribute?.("type");
+        const tag = target.tagName && target.tagName.toLowerCase();
+        const type = typeof target.getAttribute === "function" ? target.getAttribute("type") : "";
         const allow =
           tag === "textarea" ||
           tag === "select" ||
@@ -1126,15 +1130,41 @@ const resolvedMessages = {
         payload = null;
       }
 
-      const fieldErrors = payload && typeof payload.errors === "object" ? payload.errors : {};
-      const successFallback = successMessage?.textContent?.trim() || "";
+      const normalizeApiError = (entry) => {
+        if (!entry) return "";
+        if (typeof entry === "string") return entry.trim();
+        if (typeof entry !== "object") return "";
+        const title = typeof entry.title === "string" ? entry.title.trim() : "";
+        const detail = typeof entry.detail === "string" ? entry.detail.trim() : "";
+        const message = typeof entry.message === "string" ? entry.message.trim() : "";
+        const base = title || detail || message;
+        if (!base) return "";
+        const code =
+          entry.code !== undefined && entry.code !== null ? String(entry.code).trim() : "";
+        return code ? `${base} (${code})` : base;
+      };
+
+      const payloadErrors = payload && payload.errors;
+      const fieldErrors =
+        payloadErrors && !Array.isArray(payloadErrors) && typeof payloadErrors === "object"
+          ? payloadErrors
+          : {};
+      const apiErrorList = Array.isArray(payloadErrors)
+        ? payloadErrors.map((entry) => normalizeApiError(entry)).filter(Boolean)
+        : [];
+      const successFallback = successMessage ? (successMessage.textContent || "").trim() : "";
       const globalMsg =
-        (payload && (payload.message || payload.detail || payload.error)) ||
+        (payload &&
+          (payload.message ||
+            payload.detail ||
+            payload.error ||
+            (typeof payload.title === "string" ? payload.title : ""))) ||
+        apiErrorList[0] ||
         (res.ok ? successFallback : res.statusText);
 
       setFieldErrors(fieldErrors || {});
 
-      if (res.ok && payload?.ok !== false) {
+      if (res.ok && (!payload || payload.ok !== false)) {
         if (successMessage && globalMsg) {
           successMessage.textContent = globalMsg;
         }
@@ -1148,6 +1178,10 @@ const resolvedMessages = {
 
       const entries = [];
       if (globalMsg) entries.push({ text: globalMsg });
+      const start = apiErrorList[0] === globalMsg ? 1 : 0;
+      apiErrorList.slice(start).forEach((msg) => {
+        entries.push({ text: msg });
+      });
       Object.entries(fieldErrors || {}).forEach(([field, value]) => {
         const arr = normalize(value);
         arr.forEach((msg) => {
@@ -1167,7 +1201,7 @@ const resolvedMessages = {
 
     function showError(err) {
       setFieldErrors({});
-      listToUl(listServer, [{ text: err?.message || messages.networkError }]);
+      listToUl(listServer, [{ text: (err && err.message) || messages.networkError }]);
       hideAlert(alertClient);
       showAlert(alertServer, { focus: true });
     }
