@@ -13,6 +13,8 @@ const formMessagesSchema = z
     alertServerTitle: localizedOptional.optional(),
     alertSuccessTitle: localizedOptional.optional(),
     successMessage: localizedOptional.optional(),
+    submitLoadingLabel: localizedOptional.optional(),
+    submitLoadingAria: localizedOptional.optional(),
     networkError: localizedOptional.optional(),
     fallbackValidationIssue: localizedOptional.optional(),
     fieldErrorSeparator: localizedOptional.optional(),

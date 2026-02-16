@@ -157,6 +157,8 @@ const resolvedMessages = {
   alertServerTitle: resolveMessage("alertServerTitle", "Something went wrong"),
   alertSuccessTitle: resolveMessage("alertSuccessTitle", "Success"),
   successMessage: resolveMessage("successMessage", "Thanks! Your message was sent."),
+  submitLoadingLabel: resolveMessage("submitLoadingLabel", "Sending..."),
+  submitLoadingAria: resolveMessage("submitLoadingAria", "Form is submitting, please wait."),
   networkError: resolveMessage("networkError", "Network error. Please try again."),
   fallbackValidationIssue: resolveMessage("fallbackValidationIssue", "is required or invalid."),
   fieldErrorSeparator: resolveMessage("fieldErrorSeparator", " - "),
@@ -191,6 +193,8 @@ const resolvedMessages = {
   data-msg-network-error={resolvedMessages.networkError}
   data-msg-fallback-validation={resolvedMessages.fallbackValidationIssue}
   data-msg-field-separator={resolvedMessages.fieldErrorSeparator}
+  data-msg-submit-loading-label={resolvedMessages.submitLoadingLabel}
+  data-msg-submit-loading-aria={resolvedMessages.submitLoadingAria}
   data-msg-required={resolvedMessages.validationRequired}
   data-msg-invalid={resolvedMessages.validationInvalid}
   data-msg-invalid-email={resolvedMessages.validationInvalidEmail}
@@ -517,11 +521,15 @@ const resolvedMessages = {
           disabled={submitDisabled}
           class={submitClass}
           style={submitStyle}
+          data-form-submit-default
         >
-          {submitLabel}
+          <span data-form-submit-label>{submitLabel}</span>
+          <span class="form-submit-spinner" data-form-submit-spinner aria-hidden="true" hidden></span>
+          <span data-form-submit-loading-label hidden>{resolvedMessages.submitLoadingLabel}</span>
         </Button>
       </slot>
     </div>
+    <p class="form-visually-hidden" data-form-loading-status aria-live="polite"></p>
   </form>
 </div>
 
@@ -544,6 +552,7 @@ const resolvedMessages = {
     const listServer = wrapper.querySelector('[data-alert-list="server"]');
     const successMessage = wrapper.querySelector('[data-alert-message="success"]');
     const fieldErrorEls = wrapper.querySelectorAll("[data-field-error]");
+    const loadingStatusEl = form.querySelector("[data-form-loading-status]");
 
     const readMsg = (key, fallback) => {
       const value = wrapper.dataset[key];
@@ -551,6 +560,8 @@ const resolvedMessages = {
     };
 
     const messages = {
+      submitLoadingLabel: readMsg("msgSubmitLoadingLabel", "Sending..."),
+      submitLoadingAria: readMsg("msgSubmitLoadingAria", "Form is submitting, please wait."),
       networkError: readMsg("msgNetworkError", "Network error. Please try again."),
       fallbackValidationIssue: readMsg("msgFallbackValidation", "is required or invalid."),
       fieldErrorSeparator: readMsg("msgFieldSeparator", " - "),
@@ -572,6 +583,117 @@ const resolvedMessages = {
       uploadOnlyImageFiles: readMsg("msgUploadImagesOnly", "Only image files are allowed."),
       uploadInvalidFileType: readMsg("msgUploadInvalidType", "Invalid file type.")
     };
+    let isLoading = false;
+    let loadingDisabledSnapshot = new WeakMap();
+    let loadingSubmitSnapshot = new WeakMap();
+
+    function setSubmitLoadingState(next) {
+      const submitControls = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+      if (next) {
+        loadingSubmitSnapshot = new WeakMap();
+      }
+
+      submitControls.forEach((control) => {
+        if (!(control instanceof HTMLButtonElement || control instanceof HTMLInputElement)) return;
+
+        if (next) {
+          loadingSubmitSnapshot.set(control, {
+            ariaLabel: control.getAttribute("aria-label"),
+            value: control instanceof HTMLInputElement ? control.value : null,
+            html: control instanceof HTMLButtonElement ? control.innerHTML : null
+          });
+
+          control.setAttribute("aria-label", messages.submitLoadingAria);
+
+          if (control instanceof HTMLButtonElement) {
+            const labelEl = control.querySelector("[data-form-submit-label]");
+            const loadingLabelEl = control.querySelector("[data-form-submit-loading-label]");
+            const spinnerEl = control.querySelector("[data-form-submit-spinner]");
+            const hasManagedSubmitUi = Boolean(labelEl && loadingLabelEl && spinnerEl);
+
+            if (hasManagedSubmitUi) {
+              labelEl.setAttribute("hidden", "true");
+              loadingLabelEl.removeAttribute("hidden");
+              spinnerEl.removeAttribute("hidden");
+              control.classList.add("is-loading");
+            } else {
+              control.textContent = messages.submitLoadingLabel;
+            }
+            return;
+          }
+
+          control.value = messages.submitLoadingLabel;
+          return;
+        }
+
+        const snapshot = loadingSubmitSnapshot.get(control);
+        if (!snapshot) return;
+
+        if (control instanceof HTMLButtonElement) {
+          const labelEl = control.querySelector("[data-form-submit-label]");
+          const loadingLabelEl = control.querySelector("[data-form-submit-loading-label]");
+          const spinnerEl = control.querySelector("[data-form-submit-spinner]");
+          const hasManagedSubmitUi = Boolean(labelEl && loadingLabelEl && spinnerEl);
+
+          if (hasManagedSubmitUi) {
+            labelEl.removeAttribute("hidden");
+            loadingLabelEl.setAttribute("hidden", "true");
+            spinnerEl.setAttribute("hidden", "true");
+            control.classList.remove("is-loading");
+          } else if (typeof snapshot.html === "string") {
+            control.innerHTML = snapshot.html;
+          }
+        } else if (typeof snapshot.value === "string") {
+          control.value = snapshot.value;
+        }
+
+        if (typeof snapshot.ariaLabel === "string") {
+          control.setAttribute("aria-label", snapshot.ariaLabel);
+        } else {
+          control.removeAttribute("aria-label");
+        }
+      });
+
+      if (!next) {
+        loadingSubmitSnapshot = new WeakMap();
+      }
+    }
+
+    function setLoadingState(nextState) {
+      const next = Boolean(nextState);
+      if (isLoading === next) return;
+      isLoading = next;
+
+      form.dataset.loading = isLoading ? "true" : "false";
+      form.setAttribute("aria-busy", isLoading ? "true" : "false");
+      form.classList.toggle("is-loading", isLoading);
+      if (loadingStatusEl instanceof HTMLElement) {
+        loadingStatusEl.textContent = isLoading ? messages.submitLoadingAria : "";
+      }
+      setSubmitLoadingState(isLoading);
+
+      const controls = form.querySelectorAll("button, input, select, textarea, fieldset");
+      if (isLoading) {
+        loadingDisabledSnapshot = new WeakMap();
+        controls.forEach((control) => {
+          if (!("disabled" in control)) return;
+          loadingDisabledSnapshot.set(control, Boolean(control.disabled));
+          control.disabled = true;
+        });
+        return;
+      }
+
+      controls.forEach((control) => {
+        if (!("disabled" in control)) return;
+        const wasDisabled = loadingDisabledSnapshot.get(control);
+        if (typeof wasDisabled === "boolean") {
+          control.disabled = wasDisabled;
+        } else {
+          control.disabled = false;
+        }
+      });
+      loadingDisabledSnapshot = new WeakMap();
+    }
 
     function normalizeFieldName(name) {
       return typeof name === "string" ? name.replace(/\[\]$/, "") : name;
@@ -986,6 +1108,10 @@ const resolvedMessages = {
 
     form.addEventListener("submit", async (event) => {
       if (!shouldValidate) return;
+      if (isLoading) {
+        event.preventDefault();
+        return;
+      }
 
       const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
       fileInputs.forEach((input) => {
@@ -1023,42 +1149,40 @@ const resolvedMessages = {
         event.preventDefault();
         hideAlert(alertClient);
         hideAlert(alertServer);
-
-        const formData = new FormData(form);
-        const opts = { method, headers: {} };
-
-        if (method === "GET") {
-          const params = new URLSearchParams(formData);
-          const sep = action.includes("?") ? "&" : "?";
-          try {
-            const res = await fetch(action + sep + params.toString(), opts);
-            await handleResponse(res);
-          } catch (err) {
-            showError(err);
-          }
-          return;
-        }
-
-        if (enctype === "application/json") {
-          const hasFiles = Array.from(formData.values()).some(
-            (value) => value instanceof File && value.size > 0
-          );
-
-          if (!hasFiles) {
-            opts.headers["Content-Type"] = "application/json";
-            opts.body = JSON.stringify(Object.fromEntries(formData));
-          } else {
-            opts.body = formData;
-          }
-        } else {
-          opts.body = formData;
-        }
-
+        setLoadingState(true);
         try {
-          const res = await fetch(action, opts);
+          const formData = new FormData(form);
+          const opts = { method, headers: {} };
+          let res;
+
+          if (method === "GET") {
+            const params = new URLSearchParams(formData);
+            const sep = action.includes("?") ? "&" : "?";
+            res = await fetch(action + sep + params.toString(), opts);
+          } else {
+            if (enctype === "application/json") {
+              const hasFiles = Array.from(formData.values()).some(
+                (value) => value instanceof File && value.size > 0
+              );
+
+              if (!hasFiles) {
+                opts.headers["Content-Type"] = "application/json";
+                opts.body = JSON.stringify(Object.fromEntries(formData));
+              } else {
+                opts.body = formData;
+              }
+            } else {
+              opts.body = formData;
+            }
+
+            res = await fetch(action, opts);
+          }
+
           await handleResponse(res);
         } catch (err) {
           showError(err);
+        } finally {
+          setLoadingState(false);
         }
       }
     });
@@ -1126,6 +1250,11 @@ const resolvedMessages = {
     flex-direction: column;
     gap: var(--space-4);
     width: var(--form-width);
+    transition: opacity 140ms ease;
+  }
+
+  .form.is-loading {
+    opacity: 0.5;
   }
 
   .form-title {
@@ -1181,18 +1310,71 @@ const resolvedMessages = {
 
   .form-alert-link {
     font: inherit;
-    color: inherit;
-    background: transparent;
-    border: 0;
-    padding: 0;
+    color: var(--color-fg);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     text-align: left;
-    text-decoration: underline;
+    text-decoration: none;
+    font-size: var(--size-sm);
+    line-height: 1.3;
     cursor: pointer;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease,
+      transform 120ms ease;
+  }
+
+  .form-alert-link:hover {
+    background: var(--color-surface);
+    border-color: var(--color-fg);
+  }
+
+  .form-alert-link:active {
+    transform: translateY(1px);
   }
 
   .form-alert-link:focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+  }
+
+  .form-submit-spinner {
+    width: 1em;
+    height: 1em;
+    border: 0.14em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: form-submit-spin 650ms linear infinite;
+  }
+
+  .form-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @keyframes form-submit-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .form-submit-spinner {
+      animation: none;
+    }
   }
 
   .is-hidden {

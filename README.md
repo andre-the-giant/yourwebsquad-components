@@ -192,6 +192,11 @@ export const collections = { forms };
       "en": "Thanks! Your message was sent.",
       "fr": "Merci, votre message a été envoyé."
     },
+    "submitLoadingLabel": { "en": "Sending...", "fr": "Envoi en cours..." },
+    "submitLoadingAria": {
+      "en": "Form is submitting, please wait.",
+      "fr": "Le formulaire est en cours d'envoi, merci de patienter."
+    },
     "fieldErrorSeparator": { "en": " - ", "fr": " - " },
     "validationInvalidFormat": { "en": "Invalid format.", "fr": "Format invalide." },
     "uploadTooManyFiles": {
@@ -230,7 +235,7 @@ During `astro build`, the integration emits `/build/api/<formId>/index.php` with
 - `<Form>` resolves fields from the content entry; render with `formId` (preferred) or pass a preloaded `form` object.
 - The form auto-injects the honeypot from `security.honeypot`.
 - Frontend UX uses alerts: warning for client validation, error for server errors, success replaces the form, and each alert row is keyboard-focusable to jump to its field.
-- Form-level i18n messages can be configured via `messages` (alert titles, success text, validation/upload messages, and field error separator).
+- Form-level i18n messages can be configured via `messages` (alert titles, success text, loading labels, validation/upload messages, and field error separator).
 
 ### Deployment
 

@@ -85,6 +85,11 @@
       "en": "Thanks! Your message was sent.",
       "fr": "Merci, votre message a été envoyé."
     },
+    "submitLoadingLabel": { "en": "Sending...", "fr": "Envoi en cours..." },
+    "submitLoadingAria": {
+      "en": "Form is submitting, please wait.",
+      "fr": "Le formulaire est en cours d'envoi, merci de patienter."
+    },
     "fieldErrorSeparator": { "en": " - ", "fr": " - " },
     "validationInvalidFormat": { "en": "Invalid format.", "fr": "Format invalide." },
     "uploadTooManyFiles": {
