@@ -1150,9 +1150,9 @@ const resolvedMessages = {
         event.preventDefault();
         hideAlert(alertClient);
         hideAlert(alertServer);
+        const formData = new FormData(form);
         setLoadingState(true);
         try {
-          const formData = new FormData(form);
           const opts = { method, headers: {} };
           let res;
 
