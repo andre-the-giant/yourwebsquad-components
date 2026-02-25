@@ -1,0 +1,310 @@
+---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import Button from "../Button/Button.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  locale: { type: "string" },
+  title: { type: "string" },
+  strings: { type: "object" },
+  vendors: { type: "array" }
+};
+
+const { id, class: className, style, locale = "en", title, strings, vendors = [], ...rest } = validateProps(
+  schema,
+  Astro.props,
+  { component: "PipedaSettings" }
+);
+
+const DEFAULT_STRINGS = {
+  en: {
+    title: "Cookie settings",
+    intro:
+      "Choose which optional cookies you want to allow. You can update these settings at any time.",
+    saveLabel: "Save",
+    bannerSettingsLabel: "Cookie settings",
+    necessaryLabel: "Necessary",
+    analyticsLabel: "Analytics",
+    marketingLabel: "Marketing",
+    necessaryDescription:
+      "Always on. Required for the site to work. Helps remember your choices and improve the experience",
+    analyticsDescription: "Helps us understand traffic so we can improve.",
+    marketingDescription: "Used to show more relevant ads and measure campaigns."
+  },
+  fr: {
+    title: "Paramètres des cookies",
+    intro:
+      "Choisissez les témoins optionnels que vous autorisez. Vous pouvez modifier ces paramètres en tout temps.",
+    saveLabel: "Enregistrer",
+    bannerSettingsLabel: "Paramètres des cookies",
+    necessaryLabel: "Nécessaires",
+    analyticsLabel: "Analyse",
+    marketingLabel: "Marketing",
+    necessaryDescription:
+      "Toujours actif. Requis pour le fonctionnement du site. Aide à mémoriser vos choix et améliorer l'expérience.",
+    analyticsDescription: "Aide à comprendre le trafic pour améliorer le site.",
+    marketingDescription:
+      "Sert à mesurer les campagnes et afficher des annonces plus pertinentes."
+  }
+};
+
+const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+const resolvedLocale = locale === "fr" ? "fr" : "en";
+const localeDefaults = DEFAULT_STRINGS[resolvedLocale];
+const stringOverrides = isObject(strings) ? strings : {};
+const resolvedStrings = { ...localeDefaults, ...stringOverrides };
+const resolvedTitle = typeof title === "string" && title.trim() ? title.trim() : resolvedStrings.title;
+
+const resolvedId = id ?? "pipeda-settings-" + Math.random().toString(36).slice(2, 9);
+const ids = {
+  necessaryDesc: `${resolvedId}-necessary-desc`,
+  analyticsDesc: `${resolvedId}-analytics-desc`,
+  marketingDesc: `${resolvedId}-marketing-desc`
+};
+
+const styleVars = {
+  "--pipeda-settings-max-width": "48rem"
+};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("pipeda-settings", className);
+const resolvedVendors = Array.isArray(vendors) ? vendors : [];
+---
+
+<section
+  id={resolvedId}
+  class={resolvedClass}
+  style={resolvedStyle || undefined}
+  data-pipeda-settings-root
+  data-pipeda-locale={resolvedLocale}
+  data-pipeda-vendors={JSON.stringify(resolvedVendors)}
+  {...rest}
+>
+  <header class="pipeda-settings__header">
+    <h2 class="pipeda-settings__title">{resolvedTitle}</h2>
+    <p class="pipeda-settings__intro">{resolvedStrings.intro}</p>
+  </header>
+
+  <form class="pipeda-settings__form" data-pipeda-settings-form>
+    <div class="pipeda-settings__option">
+      <FormCheckbox
+        id={`${resolvedId}-necessary`}
+        name="necessary"
+        label={resolvedStrings.necessaryLabel}
+        checked={true}
+        disabled={true}
+        ariaDescribedBy={ids.necessaryDesc}
+      />
+      <p id={ids.necessaryDesc} class="pipeda-settings__description">
+        {resolvedStrings.necessaryDescription}
+      </p>
+    </div>
+
+    <div class="pipeda-settings__option">
+      <FormCheckbox
+        id={`${resolvedId}-analytics`}
+        name="analytics"
+        label={resolvedStrings.analyticsLabel}
+        checked={false}
+        ariaDescribedBy={ids.analyticsDesc}
+      />
+      <p id={ids.analyticsDesc} class="pipeda-settings__description">
+        {resolvedStrings.analyticsDescription}
+      </p>
+    </div>
+
+    <div class="pipeda-settings__option">
+      <FormCheckbox
+        id={`${resolvedId}-marketing`}
+        name="marketing"
+        label={resolvedStrings.marketingLabel}
+        checked={false}
+        ariaDescribedBy={ids.marketingDesc}
+      />
+      <p id={ids.marketingDesc} class="pipeda-settings__description">
+        {resolvedStrings.marketingDescription}
+      </p>
+    </div>
+
+    <div class="pipeda-settings__actions">
+      <Button type="submit" size="sm" data-pipeda-settings-save>{resolvedStrings.saveLabel}</Button>
+      <button type="button" class="pipeda-settings__open-banner" data-pipeda-open-banner>
+        {resolvedStrings.bannerSettingsLabel}
+      </button>
+    </div>
+  </form>
+</section>
+
+<script type="module">
+  import {
+    DEFAULT_PREFS,
+    loadAllowedVendors,
+    normalizePrefs,
+    readStoredConsent,
+    writeStoredConsent
+  } from "./consent.js";
+
+  const onReady = (callback) => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", callback, { once: true });
+    } else {
+      callback();
+    }
+  };
+
+  const getCheckbox = (form, name) =>
+    form.querySelector(`input[type="checkbox"][name="${name}"]`);
+
+  const applyPrefsToForm = (form, prefs) => {
+    const resolved = normalizePrefs(prefs);
+    const necessaryInput = getCheckbox(form, "necessary");
+    const analyticsInput = getCheckbox(form, "analytics");
+    const marketingInput = getCheckbox(form, "marketing");
+
+    if (necessaryInput) necessaryInput.checked = true;
+    if (analyticsInput) analyticsInput.checked = resolved.analytics;
+    if (marketingInput) marketingInput.checked = resolved.marketing;
+  };
+
+  const getPrefsFromForm = (form) => {
+    const analyticsInput = getCheckbox(form, "analytics");
+    const marketingInput = getCheckbox(form, "marketing");
+    return normalizePrefs({
+      necessary: true,
+      analytics: Boolean(analyticsInput?.checked),
+      marketing: Boolean(marketingInput?.checked)
+    });
+  };
+
+  onReady(() => {
+    const roots = Array.from(document.querySelectorAll("[data-pipeda-settings-root]"));
+
+    roots.forEach((root) => {
+      if (!(root instanceof HTMLElement)) return;
+
+      const form = root.querySelector("[data-pipeda-settings-form]");
+      if (!(form instanceof HTMLFormElement)) return;
+
+      const rawVendors = root.dataset.pipedaVendors;
+      let vendors = [];
+      if (typeof rawVendors === "string" && rawVendors.length) {
+        try {
+          const parsed = JSON.parse(rawVendors);
+          vendors = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          vendors = [];
+        }
+      }
+
+      const storedConsent = readStoredConsent();
+      const startingPrefs = storedConsent?.prefs ? normalizePrefs(storedConsent.prefs) : DEFAULT_PREFS;
+      applyPrefsToForm(form, startingPrefs);
+      loadAllowedVendors(vendors, startingPrefs);
+
+      if (form.dataset.pipedaBound === "true") return;
+      form.dataset.pipedaBound = "true";
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const nextPrefs = getPrefsFromForm(form);
+        const saved = writeStoredConsent(nextPrefs);
+        applyPrefsToForm(form, nextPrefs);
+        if (saved) {
+          loadAllowedVendors(vendors, saved.prefs);
+          window.dispatchEvent(
+            new CustomEvent("yws:pipeda:change", {
+              detail: {
+                prefs: saved.prefs,
+                payload: saved
+              }
+            })
+          );
+        }
+      });
+
+      const openBannerButtons = Array.from(form.querySelectorAll("[data-pipeda-open-banner]"));
+      openBannerButtons.forEach((trigger) => {
+        if (!(trigger instanceof HTMLElement)) return;
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          if (window.YWSPipeda && typeof window.YWSPipeda.open === "function") {
+            window.YWSPipeda.open();
+          }
+        });
+      });
+
+      window.addEventListener("yws:pipeda:change", (event) => {
+        const detail = event?.detail;
+        if (!detail || typeof detail !== "object") return;
+        const incomingPrefs = detail.prefs;
+        if (!incomingPrefs || typeof incomingPrefs !== "object") return;
+        applyPrefsToForm(form, incomingPrefs);
+      });
+    });
+  });
+</script>
+
+<style>
+  .pipeda-settings {
+    width: min(100%, var(--pipeda-settings-max-width));
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .pipeda-settings__header {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .pipeda-settings__title,
+  .pipeda-settings__intro,
+  .pipeda-settings__description {
+    margin: 0;
+  }
+
+  .pipeda-settings__intro {
+    font-size: var(--size-sm);
+    opacity: 0.9;
+  }
+
+  .pipeda-settings__form {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pipeda-settings__option {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .pipeda-settings__description {
+    font-size: var(--size-sm);
+    opacity: 0.85;
+  }
+
+  .pipeda-settings__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .pipeda-settings__open-banner {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .pipeda-settings__open-banner:focus-visible {
+    outline: 2px solid var(--button-focus);
+    outline-offset: 2px;
+  }
+</style>

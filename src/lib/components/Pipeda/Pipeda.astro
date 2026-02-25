@@ -1,0 +1,399 @@
+---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import Button from "../Button/Button.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  locale: { type: "string" },
+  privacyUrl: { type: "string" },
+  cookieUrl: { type: "string" },
+  strings: { type: "object" },
+  vendors: { type: "array" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  locale = "en",
+  privacyUrl = "/privacy",
+  cookieUrl,
+  strings,
+  vendors = [],
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Pipeda" });
+
+const CONSENT_VERSION = "1";
+
+const DEFAULT_STRINGS = {
+  en: {
+    cookieNoticeAriaLabel: "Cookie notice",
+    bannerText:
+      "We use cookies to run this site. With your permission, we may also use cookies to understand traffic and improve the site.",
+    okLabel: "OK",
+    settingsLabel: "Cookie settings",
+    privacyLabel: "Privacy policy",
+    cookieLabel: "Cookie policy",
+    necessaryLabel: "Necessary",
+    analyticsLabel: "Analytics",
+    marketingLabel: "Marketing",
+    necessaryDescription:
+      "Always on. Required for the site to work. Helps remember your choices and improve the experience",
+    analyticsDescription: "Helps us understand traffic so we can improve.",
+    marketingDescription: "Used to show more relevant ads and measure campaigns."
+  },
+  fr: {
+    cookieNoticeAriaLabel: "Avis sur les témoins",
+    bannerText:
+      "Nous utilisons des témoins (cookies) pour faire fonctionner ce site. Avec votre accord, nous pouvons aussi en utiliser pour comprendre le trafic et améliorer le site.",
+    okLabel: "OK",
+    settingsLabel: "Paramètres des cookies",
+    privacyLabel: "Politique de confidentialité",
+    cookieLabel: "Politique de témoins",
+    necessaryLabel: "Nécessaires",
+    analyticsLabel: "Analyse",
+    marketingLabel: "Marketing",
+    necessaryDescription:
+      "Toujours actif. Requis pour le fonctionnement du site. Aide à mémoriser vos choix et améliorer l'expérience.",
+    analyticsDescription: "Aide à comprendre le trafic pour améliorer le site.",
+    marketingDescription:
+      "Sert à mesurer les campagnes et afficher des annonces plus pertinentes."
+  }
+};
+
+const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+const resolvedLocale = locale === "fr" ? "fr" : "en";
+const localeDefaults = DEFAULT_STRINGS[resolvedLocale];
+const stringOverrides = isObject(strings) ? strings : {};
+const resolvedStrings = { ...localeDefaults, ...stringOverrides };
+
+const resolvedVendors = Array.isArray(vendors) ? vendors : [];
+const resolvedId = id ?? "pipeda-" + Math.random().toString(36).slice(2, 9);
+const ids = {
+  settings: `${resolvedId}-settings`,
+  necessaryDesc: `${resolvedId}-necessary-desc`,
+  analyticsDesc: `${resolvedId}-analytics-desc`,
+  marketingDesc: `${resolvedId}-marketing-desc`
+};
+const styleVars = {
+  "--pipeda-max-width": "72rem"
+};
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("pipeda", className);
+---
+
+<section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+  <div
+    class="pipeda-banner"
+    role="region"
+    aria-label={resolvedStrings.cookieNoticeAriaLabel}
+    data-pipeda-banner
+    data-pipeda-consent-version={CONSENT_VERSION}
+    data-pipeda-locale={resolvedLocale}
+    data-pipeda-vendors-count={String(resolvedVendors.length)}
+    data-pipeda-vendors={JSON.stringify(resolvedVendors)}
+  >
+    <div class="pipeda-banner__inner">
+      <p class="pipeda-banner__text">{resolvedStrings.bannerText}</p>
+
+      <form class="pipeda-banner__form" data-pipeda-form>
+        <fieldset class="pipeda-banner__fieldset" id={ids.settings} data-pipeda-settings>
+          <legend class="pipeda-banner__legend">{resolvedStrings.settingsLabel}</legend>
+
+          <div class="pipeda-banner__option">
+            <FormCheckbox
+              id={`${resolvedId}-necessary`}
+              name="necessary"
+              label={resolvedStrings.necessaryLabel}
+              checked={true}
+              disabled={true}
+              ariaDescribedBy={ids.necessaryDesc}
+            />
+            <p id={ids.necessaryDesc} class="pipeda-banner__description">
+              {resolvedStrings.necessaryDescription}
+            </p>
+          </div>
+
+          <div class="pipeda-banner__option">
+            <FormCheckbox
+              id={`${resolvedId}-analytics`}
+              name="analytics"
+              label={resolvedStrings.analyticsLabel}
+              checked={false}
+              ariaDescribedBy={ids.analyticsDesc}
+            />
+            <p id={ids.analyticsDesc} class="pipeda-banner__description">
+              {resolvedStrings.analyticsDescription}
+            </p>
+          </div>
+
+          <div class="pipeda-banner__option">
+            <FormCheckbox
+              id={`${resolvedId}-marketing`}
+              name="marketing"
+              label={resolvedStrings.marketingLabel}
+              checked={false}
+              ariaDescribedBy={ids.marketingDesc}
+            />
+            <p id={ids.marketingDesc} class="pipeda-banner__description">
+              {resolvedStrings.marketingDescription}
+            </p>
+          </div>
+        </fieldset>
+
+        <div class="pipeda-banner__actions">
+          <Button type="submit" size="sm" data-pipeda-save>{resolvedStrings.okLabel}</Button>
+          <button type="button" class="pipeda-banner__settings-link" data-pipeda-open>
+            {resolvedStrings.settingsLabel}
+          </button>
+        </div>
+      </form>
+
+      <p class="pipeda-banner__links">
+        <a href={privacyUrl}>{resolvedStrings.privacyLabel}</a>
+        {cookieUrl ? <a href={cookieUrl}>{resolvedStrings.cookieLabel}</a> : null}
+      </p>
+    </div>
+  </div>
+</section>
+
+<script type="module">
+  import {
+    DEFAULT_PREFS,
+    loadAllowedVendors,
+    normalizePrefs,
+    readStoredConsent,
+    writeStoredConsent
+  } from "./consent.js";
+
+  const onReady = (callback) => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", callback, { once: true });
+    } else {
+      callback();
+    }
+  };
+
+  const getCheckbox = (form, name) =>
+    form.querySelector(`input[type="checkbox"][name="${name}"]`);
+
+  const applyPrefsToForm = (form, prefs) => {
+    const resolved = normalizePrefs(prefs);
+    const necessaryInput = getCheckbox(form, "necessary");
+    const analyticsInput = getCheckbox(form, "analytics");
+    const marketingInput = getCheckbox(form, "marketing");
+
+    if (necessaryInput) necessaryInput.checked = true;
+    if (analyticsInput) analyticsInput.checked = resolved.analytics;
+    if (marketingInput) marketingInput.checked = resolved.marketing;
+  };
+
+  const getPrefsFromForm = (form) => {
+    const analyticsInput = getCheckbox(form, "analytics");
+    const marketingInput = getCheckbox(form, "marketing");
+    return normalizePrefs({
+      necessary: true,
+      analytics: Boolean(analyticsInput?.checked),
+      marketing: Boolean(marketingInput?.checked)
+    });
+  };
+
+  const setBannerVisible = (banner, visible) => {
+    banner.hidden = !visible;
+    banner.setAttribute("data-pipeda-visible", visible ? "true" : "false");
+  };
+
+  const focusSettingsControl = (form) => {
+    const focusTarget =
+      getCheckbox(form, "analytics") ||
+      getCheckbox(form, "marketing") ||
+      getCheckbox(form, "necessary") ||
+      form.querySelector("[data-pipeda-save]");
+    if (focusTarget instanceof HTMLElement) {
+      focusTarget.focus();
+    }
+  };
+
+  const controllers = [];
+
+  onReady(() => {
+    const roots = Array.from(document.querySelectorAll(".pipeda"));
+
+    roots.forEach((root) => {
+      if (!(root instanceof HTMLElement)) return;
+      const banner = root.querySelector("[data-pipeda-banner]");
+      const form = root.querySelector("[data-pipeda-form]");
+      if (!(banner instanceof HTMLElement) || !(form instanceof HTMLFormElement)) return;
+      const rawVendors = banner.dataset.pipedaVendors;
+      let vendors = [];
+      if (typeof rawVendors === "string" && rawVendors.length) {
+        try {
+          const parsed = JSON.parse(rawVendors);
+          vendors = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          vendors = [];
+        }
+      }
+
+      const storedConsent = readStoredConsent();
+      const startingPrefs = storedConsent?.prefs ? normalizePrefs(storedConsent.prefs) : DEFAULT_PREFS;
+
+      applyPrefsToForm(form, startingPrefs);
+      setBannerVisible(banner, !storedConsent);
+      loadAllowedVendors(vendors, startingPrefs);
+
+      if (form.dataset.pipedaBound === "true") return;
+      form.dataset.pipedaBound = "true";
+
+      const openBannerSettings = () => {
+        setBannerVisible(banner, true);
+        requestAnimationFrame(() => focusSettingsControl(form));
+      };
+      controllers.push({ open: openBannerSettings });
+
+      const openTriggers = Array.from(form.querySelectorAll("[data-pipeda-open]"));
+      openTriggers.forEach((trigger) => {
+        if (!(trigger instanceof HTMLElement)) return;
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          openBannerSettings();
+        });
+      });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const nextPrefs = getPrefsFromForm(form);
+        const saved = writeStoredConsent(nextPrefs);
+        applyPrefsToForm(form, nextPrefs);
+        if (saved) {
+          loadAllowedVendors(vendors, saved.prefs);
+          setBannerVisible(banner, false);
+          window.dispatchEvent(
+            new CustomEvent("yws:pipeda:change", {
+              detail: {
+                prefs: saved.prefs,
+                payload: saved
+              }
+            })
+          );
+        }
+      });
+    });
+
+    const existing = window.YWSPipeda && typeof window.YWSPipeda === "object" ? window.YWSPipeda : {};
+    window.YWSPipeda = {
+      ...existing,
+      open: () => {
+        const controller = controllers[0];
+        if (controller && typeof controller.open === "function") {
+          controller.open();
+        }
+      }
+    };
+  });
+</script>
+
+<style>
+  .pipeda {
+    display: block;
+  }
+
+  .pipeda-banner {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    color: var(--color-fg);
+  }
+
+  .pipeda-banner__inner {
+    width: min(100%, var(--pipeda-max-width));
+    margin: 0 auto;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pipeda-banner__text,
+  .pipeda-banner__links,
+  .pipeda-banner__description {
+    margin: 0;
+  }
+
+  .pipeda-banner__form {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pipeda-banner__fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .pipeda-banner__legend {
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-1);
+  }
+
+  .pipeda-banner__option {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .pipeda-banner__description {
+    font-size: var(--size-sm);
+    opacity: 0.85;
+  }
+
+  .pipeda-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .pipeda-banner__settings-link {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .pipeda-banner__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .pipeda-banner__links a,
+  .pipeda-banner__settings-link {
+    color: inherit;
+  }
+
+  .pipeda-banner__settings-link:focus-visible,
+  .pipeda-banner__links a:focus-visible {
+    outline: 2px solid var(--button-focus);
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 56rem) {
+    .pipeda-banner__form {
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: var(--space-4);
+    }
+  }
+</style>

@@ -148,5 +148,11 @@ export const components = [
     href: "/components/components/googlereviews",
     description: "Add Google reviews on a page.",
     group: "components"
+  },
+  {
+    name: "Pipeda",
+    href: "/components/components/pipeda",
+    description: "PIPEDA-oriented cookie banner and privacy-page settings component",
+    group: "components"
   }
 ];

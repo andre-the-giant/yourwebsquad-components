@@ -19,3 +19,5 @@ export { default as Map } from "./components/Map/Map.astro";
 export { default as Accordion } from "./components/Accordion/Accordion.astro";
 export { default as ComparisonSlider } from "./components/ComparisonSlider/ComparisonSlider.astro";
 export { default as GoogleReviews } from "./components/GoogleReviews/GoogleReviews.astro";
+export { default as Pipeda } from "./components/Pipeda/Pipeda.astro";
+export { default as PipedaSettings } from "./components/Pipeda/PipedaSettings.astro";

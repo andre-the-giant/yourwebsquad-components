@@ -1,0 +1,347 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import PipedaSettings from "@lib/components/Pipeda/PipedaSettings.astro";
+
+const bannerProps = [
+  { name: "id", type: "string", default: "auto", description: "Optional id for the banner root." },
+  { name: "class", type: "string", default: "—", description: "Additional class names." },
+  { name: "style", type: "string", default: "—", description: "Inline styles or CSS variable overrides." },
+  {
+    name: "locale",
+    type: '"en" | "fr"',
+    default: '"en"',
+    description: "Language used for default labels and messages."
+  },
+  {
+    name: "privacyUrl",
+    type: "string",
+    default: '"/privacy"',
+    description: "Link to your privacy policy page."
+  },
+  {
+    name: "cookieUrl",
+    type: "string",
+    default: "—",
+    description: "Optional extra link to a dedicated cookie policy page."
+  },
+  {
+    name: "strings",
+    type: "object",
+    default: "—",
+    description: "Partial copy overrides for labels, text, and aria copy."
+  },
+  {
+    name: "vendors",
+    type: "Vendor[]",
+    default: "[]",
+    description: "Optional scripts to gate by consent category."
+  }
+];
+
+const settingsProps = [
+  {
+    name: "id",
+    type: "string",
+    default: "auto",
+    description: "Optional id for the settings section root."
+  },
+  { name: "class", type: "string", default: "—", description: "Additional class names." },
+  { name: "style", type: "string", default: "—", description: "Inline styles or CSS variable overrides." },
+  {
+    name: "locale",
+    type: '"en" | "fr"',
+    default: '"en"',
+    description: "Language used for default labels and messages."
+  },
+  {
+    name: "title",
+    type: "string",
+    default: "localized default",
+    description: "Optional title override for the privacy-page settings block."
+  },
+  {
+    name: "strings",
+    type: "object",
+    default: "—",
+    description: "Partial copy overrides for labels and descriptions."
+  },
+  {
+    name: "vendors",
+    type: "Vendor[]",
+    default: "[]",
+    description: "Optional scripts to gate by consent category."
+  }
+];
+
+const vendorShape = [
+  {
+    name: "key",
+    type: "string",
+    default: "required",
+    description: "Stable vendor key (for tracking loaded vendor names)."
+  },
+  {
+    name: "category",
+    type: '"functional" | "analytics" | "marketing"',
+    default: "required",
+    description: "Consent category. functional maps to necessary."
+  },
+  {
+    name: "type",
+    type: '"script"',
+    default: '"script"',
+    description: "Current supported loader type."
+  },
+  {
+    name: "src",
+    type: "string",
+    default: "required",
+    description: "Script source URL."
+  },
+  {
+    name: "id",
+    type: "string",
+    default: "required",
+    description: "Unique DOM id used by loadScriptOnce."
+  },
+  {
+    name: "attrs",
+    type: "Record<string, string>",
+    default: "{}",
+    description: "Optional script attributes like async, defer, data-domain."
+  }
+];
+
+const styleVars = [
+  {
+    name: "--pipeda-max-width",
+    default: "72rem",
+    description: "Max width for the fixed banner content row."
+  },
+  {
+    name: "--pipeda-settings-max-width",
+    default: "48rem",
+    description: "Max width for the privacy-page settings block."
+  }
+];
+
+const installCode = `npm i yourwebsquad-components`;
+
+const importCode = `import { Pipeda, PipedaSettings } from "yourwebsquad-components";`;
+
+const layoutCode = `---
+import { Pipeda } from "yourwebsquad-components";
+---
+
+<html lang="en">
+  <body>
+    <slot />
+
+    <Pipeda
+      locale="en"
+      privacyUrl="/privacy"
+      cookieUrl="/cookies"
+    />
+  </body>
+</html>`;
+
+const privacyPageCode = `---
+import { PipedaSettings } from "yourwebsquad-components";
+---
+
+<main>
+  <h1>Privacy policy</h1>
+  <!-- your policy content -->
+
+  <PipedaSettings locale="en" />
+</main>`;
+
+const customVendorsCode = `const vendors = [
+  {
+    key: "plausible",
+    category: "analytics",
+    type: "script",
+    src: "https://plausible.io/js/script.js",
+    id: "vendor-plausible",
+    attrs: { defer: "true", "data-domain": "example.ca" }
+  }
+];
+
+<Pipeda locale="en" privacyUrl="/privacy" vendors={vendors} />
+<PipedaSettings locale="en" vendors={vendors} />`;
+
+const verifyCode = `// In browser devtools:
+localStorage.getItem("yws_pipeda_consent");
+window.YWSPipeda?.open();`;
+
+const basicBannerCode = `<Pipeda locale="en" privacyUrl="/privacy" />`;
+
+const vendorsCode = `<Pipeda
+  locale="en"
+  privacyUrl="/privacy"
+  cookieUrl="/cookies"
+  vendors={[
+    {
+      key: "plausible",
+      category: "analytics",
+      type: "script",
+      src: "https://plausible.io/js/script.js",
+      id: "vendor-plausible",
+      attrs: {
+        defer: "true",
+        "data-domain": "example.ca"
+      }
+    }
+  ]}
+/>`;
+
+const settingsCode = `<PipedaSettings
+  locale="en"
+  title="Manage your cookie choices"
+  vendors={[
+    {
+      key: "plausible",
+      category: "analytics",
+      type: "script",
+      src: "https://plausible.io/js/script.js",
+      id: "vendor-plausible",
+      attrs: { defer: "true", "data-domain": "example.ca" }
+    }
+  ]}
+/>`;
+---
+
+<DocLayout
+  title="Pipeda"
+  description="Lightweight PIPEDA-oriented cookie consent for Canadian small-business websites."
+  items={components}
+>
+  <div class="pipeda-doc-intro">
+    <p>This component gives you a plain-language cookie notice focused on meaningful consent.</p>
+    <p>Defaults are privacy-friendly: necessary on, analytics off, marketing off.</p>
+    <p>The banner is sticky and lightweight, with no heavy dependencies.</p>
+    <p>Consent is stored in localStorage with versioned payloads.</p>
+    <p>Use <code>PipedaSettings</code> on your privacy page so people can change choices later.</p>
+  </div>
+
+  <section class="pipeda-steps">
+    <h2>Step-by-step setup</h2>
+
+    <ol>
+      <li>Install the package in your website project.</li>
+    </ol>
+    <pre><code>{installCode}</code></pre>
+
+    <ol start="2">
+      <li>Import both components where needed.</li>
+    </ol>
+    <pre><code>{importCode}</code></pre>
+
+    <ol start="3">
+      <li>Add <code>Pipeda</code> once in your main layout so the banner is available site-wide.</li>
+    </ol>
+    <pre><code>{layoutCode}</code></pre>
+
+    <ol start="4">
+      <li>Add <code>PipedaSettings</code> to your privacy policy page.</li>
+    </ol>
+    <pre><code>{privacyPageCode}</code></pre>
+
+    <ol start="5">
+      <li>Optional: pass the same <code>vendors</code> array to both components for script gating.</li>
+    </ol>
+    <pre><code>{customVendorsCode}</code></pre>
+
+    <ol start="6">
+      <li>Verify behavior in the browser.</li>
+    </ol>
+    <p class="step-note">
+      First visit should show the banner. Saving creates a versioned payload in
+      <code>localStorage</code> under <code>yws_pipeda_consent</code>. You can reopen settings with the
+      global API.
+    </p>
+    <pre><code>{verifyCode}</code></pre>
+  </section>
+
+  <PropsTable title="Pipeda Props" props={bannerProps} />
+  <PropsTable title="PipedaSettings Props" props={settingsProps} />
+  <PropsTable title="Vendor Shape" props={vendorShape} />
+  <PropsTable title="Style Variables" props={styleVars} />
+
+  <div class="preview-grid">
+    <Preview
+      title="Basic Banner Usage"
+      note="Pipeda is fixed to the viewport bottom, so this preview shows code-first usage."
+      code={basicBannerCode}
+    >
+      <p class="preview-note">Add this once in your site layout so consent is available everywhere.</p>
+    </Preview>
+
+    <Preview title="Banner with Vendor Gating" code={vendorsCode}>
+      <p class="preview-note">
+        Pass vendor scripts to load only after consent allows their category.
+      </p>
+    </Preview>
+
+    <Preview title="Privacy Page Settings Component" code={settingsCode}>
+      <PipedaSettings />
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .pipeda-doc-intro {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .pipeda-doc-intro p {
+    margin: 0;
+  }
+
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .preview-note {
+    margin: 0;
+    font-size: var(--size-sm);
+  }
+
+  .pipeda-steps {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-5) 0;
+  }
+
+  .pipeda-steps h2 {
+    margin: 0;
+  }
+
+  .pipeda-steps ol {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  .pipeda-steps pre {
+    margin: 0;
+    padding: var(--space-3);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    overflow-x: auto;
+  }
+
+  .pipeda-steps code {
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+  }
+
+  .step-note {
+    margin: 0;
+  }
+</style>
