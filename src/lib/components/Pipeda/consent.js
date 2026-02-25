@@ -38,7 +38,8 @@ export function createConsentPayload(prefs, timestamp = new Date().toISOString()
 export function isConsentPayload(value) {
   if (!isObject(value)) return false;
   if (value.version !== CONSENT_VERSION) return false;
-  if (typeof value.timestamp !== "string" || Number.isNaN(Date.parse(value.timestamp))) return false;
+  if (typeof value.timestamp !== "string" || Number.isNaN(Date.parse(value.timestamp)))
+    return false;
   if (!isObject(value.prefs)) return false;
   if (!PREF_KEYS.every((key) => key in value.prefs)) return false;
   if (value.prefs.necessary !== true) return false;

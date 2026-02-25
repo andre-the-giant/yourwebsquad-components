@@ -8,7 +8,12 @@ import PipedaSettings from "@lib/components/Pipeda/PipedaSettings.astro";
 const bannerProps = [
   { name: "id", type: "string", default: "auto", description: "Optional id for the banner root." },
   { name: "class", type: "string", default: "—", description: "Additional class names." },
-  { name: "style", type: "string", default: "—", description: "Inline styles or CSS variable overrides." },
+  {
+    name: "style",
+    type: "string",
+    default: "—",
+    description: "Inline styles or CSS variable overrides."
+  },
   {
     name: "locale",
     type: '"en" | "fr"',
@@ -49,7 +54,12 @@ const settingsProps = [
     description: "Optional id for the settings section root."
   },
   { name: "class", type: "string", default: "—", description: "Additional class names." },
-  { name: "style", type: "string", default: "—", description: "Inline styles or CSS variable overrides." },
+  {
+    name: "style",
+    type: "string",
+    default: "—",
+    description: "Inline styles or CSS variable overrides."
+  },
   {
     name: "locale",
     type: '"en" | "fr"',
@@ -241,7 +251,9 @@ const settingsCode = `<PipedaSettings
     <pre><code>{importCode}</code></pre>
 
     <ol start="3">
-      <li>Add <code>Pipeda</code> once in your main layout so the banner is available site-wide.</li>
+      <li>
+        Add <code>Pipeda</code> once in your main layout so the banner is available site-wide.
+      </li>
     </ol>
     <pre><code>{layoutCode}</code></pre>
 
@@ -251,7 +263,9 @@ const settingsCode = `<PipedaSettings
     <pre><code>{privacyPageCode}</code></pre>
 
     <ol start="5">
-      <li>Optional: pass the same <code>vendors</code> array to both components for script gating.</li>
+      <li>
+        Optional: pass the same <code>vendors</code> array to both components for script gating.
+      </li>
     </ol>
     <pre><code>{customVendorsCode}</code></pre>
 
@@ -260,8 +274,8 @@ const settingsCode = `<PipedaSettings
     </ol>
     <p class="step-note">
       First visit should show the banner. Saving creates a versioned payload in
-      <code>localStorage</code> under <code>yws_pipeda_consent</code>. You can reopen settings with the
-      global API.
+      <code>localStorage</code> under <code>yws_pipeda_consent</code>. You can reopen settings with
+      the global API.
     </p>
     <pre><code>{verifyCode}</code></pre>
   </section>
@@ -277,7 +291,9 @@ const settingsCode = `<PipedaSettings
       note="Pipeda is fixed to the viewport bottom, so this preview shows code-first usage."
       code={basicBannerCode}
     >
-      <p class="preview-note">Add this once in your site layout so consent is available everywhere.</p>
+      <p class="preview-note">
+        Add this once in your site layout so consent is available everywhere.
+      </p>
     </Preview>
 
     <Preview title="Banner with Vendor Gating" code={vendorsCode}>

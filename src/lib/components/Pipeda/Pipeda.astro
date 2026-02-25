@@ -60,8 +60,7 @@ const DEFAULT_STRINGS = {
     necessaryDescription:
       "Toujours actif. Requis pour le fonctionnement du site. Aide à mémoriser vos choix et améliorer l'expérience.",
     analyticsDescription: "Aide à comprendre le trafic pour améliorer le site.",
-    marketingDescription:
-      "Sert à mesurer les campagnes et afficher des annonces plus pertinentes."
+    marketingDescription: "Sert à mesurer les campagnes et afficher des annonces plus pertinentes."
   }
 };
 
@@ -178,8 +177,7 @@ const resolvedClass = mergeClasses("pipeda", className);
     }
   };
 
-  const getCheckbox = (form, name) =>
-    form.querySelector(`input[type="checkbox"][name="${name}"]`);
+  const getCheckbox = (form, name) => form.querySelector(`input[type="checkbox"][name="${name}"]`);
 
   const applyPrefsToForm = (form, prefs) => {
     const resolved = normalizePrefs(prefs);
@@ -240,7 +238,9 @@ const resolvedClass = mergeClasses("pipeda", className);
       }
 
       const storedConsent = readStoredConsent();
-      const startingPrefs = storedConsent?.prefs ? normalizePrefs(storedConsent.prefs) : DEFAULT_PREFS;
+      const startingPrefs = storedConsent?.prefs
+        ? normalizePrefs(storedConsent.prefs)
+        : DEFAULT_PREFS;
 
       applyPrefsToForm(form, startingPrefs);
       setBannerVisible(banner, !storedConsent);
@@ -284,7 +284,8 @@ const resolvedClass = mergeClasses("pipeda", className);
       });
     });
 
-    const existing = window.YWSPipeda && typeof window.YWSPipeda === "object" ? window.YWSPipeda : {};
+    const existing =
+      window.YWSPipeda && typeof window.YWSPipeda === "object" ? window.YWSPipeda : {};
     window.YWSPipeda = {
       ...existing,
       open: () => {

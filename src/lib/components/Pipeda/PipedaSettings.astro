@@ -14,11 +14,16 @@ const schema = {
   vendors: { type: "array" }
 };
 
-const { id, class: className, style, locale = "en", title, strings, vendors = [], ...rest } = validateProps(
-  schema,
-  Astro.props,
-  { component: "PipedaSettings" }
-);
+const {
+  id,
+  class: className,
+  style,
+  locale = "en",
+  title,
+  strings,
+  vendors = [],
+  ...rest
+} = validateProps(schema, Astro.props, { component: "PipedaSettings" });
 
 const DEFAULT_STRINGS = {
   en: {
@@ -47,8 +52,7 @@ const DEFAULT_STRINGS = {
     necessaryDescription:
       "Toujours actif. Requis pour le fonctionnement du site. Aide à mémoriser vos choix et améliorer l'expérience.",
     analyticsDescription: "Aide à comprendre le trafic pour améliorer le site.",
-    marketingDescription:
-      "Sert à mesurer les campagnes et afficher des annonces plus pertinentes."
+    marketingDescription: "Sert à mesurer les campagnes et afficher des annonces plus pertinentes."
   }
 };
 
@@ -57,7 +61,8 @@ const resolvedLocale = locale === "fr" ? "fr" : "en";
 const localeDefaults = DEFAULT_STRINGS[resolvedLocale];
 const stringOverrides = isObject(strings) ? strings : {};
 const resolvedStrings = { ...localeDefaults, ...stringOverrides };
-const resolvedTitle = typeof title === "string" && title.trim() ? title.trim() : resolvedStrings.title;
+const resolvedTitle =
+  typeof title === "string" && title.trim() ? title.trim() : resolvedStrings.title;
 
 const resolvedId = id ?? "pipeda-settings-" + Math.random().toString(36).slice(2, 9);
 const ids = {
@@ -155,8 +160,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
     }
   };
 
-  const getCheckbox = (form, name) =>
-    form.querySelector(`input[type="checkbox"][name="${name}"]`);
+  const getCheckbox = (form, name) => form.querySelector(`input[type="checkbox"][name="${name}"]`);
 
   const applyPrefsToForm = (form, prefs) => {
     const resolved = normalizePrefs(prefs);
@@ -200,7 +204,9 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
       }
 
       const storedConsent = readStoredConsent();
-      const startingPrefs = storedConsent?.prefs ? normalizePrefs(storedConsent.prefs) : DEFAULT_PREFS;
+      const startingPrefs = storedConsent?.prefs
+        ? normalizePrefs(storedConsent.prefs)
+        : DEFAULT_PREFS;
       applyPrefsToForm(form, startingPrefs);
       loadAllowedVendors(vendors, startingPrefs);
 
