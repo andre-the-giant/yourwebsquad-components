@@ -1,6 +1,7 @@
 ---
 import { validateProps } from "../../utils/props.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import Alert from "../Alert/Alert.astro";
 import Button from "../Button/Button.astro";
 import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
 
@@ -32,7 +33,8 @@ const DEFAULT_STRINGS = {
       "Choose which optional cookies you want to allow. You can update these settings at any time.",
     settingsLegend: "Cookie categories",
     saveLabel: "Save",
-    bannerSettingsLabel: "Cookie settings",
+    savedTitle: "Settings saved",
+    savedDescription: "Your cookie preferences were updated.",
     necessaryLabel: "Necessary",
     analyticsLabel: "Analytics",
     marketingLabel: "Marketing",
@@ -47,7 +49,8 @@ const DEFAULT_STRINGS = {
       "Choisissez les témoins optionnels que vous autorisez. Vous pouvez modifier ces paramètres en tout temps.",
     settingsLegend: "Categories de temoins",
     saveLabel: "Enregistrer",
-    bannerSettingsLabel: "Paramètres des cookies",
+    savedTitle: "Parametres enregistres",
+    savedDescription: "Vos preferences de temoins ont ete mises a jour.",
     necessaryLabel: "Nécessaires",
     analyticsLabel: "Analyse",
     marketingLabel: "Marketing",
@@ -71,7 +74,8 @@ const ids = {
   settings: `${resolvedId}-settings`,
   necessaryDesc: `${resolvedId}-necessary-desc`,
   analyticsDesc: `${resolvedId}-analytics-desc`,
-  marketingDesc: `${resolvedId}-marketing-desc`
+  marketingDesc: `${resolvedId}-marketing-desc`,
+  savedAlert: `${resolvedId}-saved-alert`
 };
 
 const styleVars = {
@@ -142,10 +146,19 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
 
     <div class="pipeda-settings__actions">
       <Button type="submit" size="lg" data-pipeda-settings-save>{resolvedStrings.saveLabel}</Button>
-      <button type="button" class="pipeda-settings__open-banner" data-pipeda-open-banner>
-        {resolvedStrings.bannerSettingsLabel}
-      </button>
     </div>
+
+    <Alert
+      id={ids.savedAlert}
+      type="success"
+      tone="soft"
+      title={resolvedStrings.savedTitle}
+      description={resolvedStrings.savedDescription}
+      class="pipeda-settings__saved-alert"
+      hidden
+      tabindex="-1"
+      data-pipeda-settings-saved-alert
+    />
   </form>
 </section>
 
@@ -189,6 +202,11 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
     });
   };
 
+  const toggleSavedAlert = (alertEl, visible) => {
+    if (!(alertEl instanceof HTMLElement)) return;
+    alertEl.hidden = !visible;
+  };
+
   onReady(() => {
     const roots = Array.from(document.querySelectorAll("[data-pipeda-settings-root]"));
 
@@ -197,6 +215,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
 
       const form = root.querySelector("[data-pipeda-settings-form]");
       if (!(form instanceof HTMLFormElement)) return;
+      const savedAlert = root.querySelector("[data-pipeda-settings-saved-alert]");
 
       const rawVendors = root.dataset.pipedaVendors;
       let vendors = [];
@@ -215,6 +234,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
         : DEFAULT_PREFS;
       applyPrefsToForm(form, startingPrefs);
       loadAllowedVendors(vendors, startingPrefs);
+      toggleSavedAlert(savedAlert, false);
 
       if (form.dataset.pipedaBound === "true") return;
       form.dataset.pipedaBound = "true";
@@ -226,6 +246,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
         applyPrefsToForm(form, nextPrefs);
         if (saved) {
           loadAllowedVendors(vendors, saved.prefs);
+          toggleSavedAlert(savedAlert, true);
           window.dispatchEvent(
             new CustomEvent("yws:pipeda:change", {
               detail: {
@@ -237,14 +258,11 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
         }
       });
 
-      const openBannerButtons = Array.from(form.querySelectorAll("[data-pipeda-open-banner]"));
-      openBannerButtons.forEach((trigger) => {
-        if (!(trigger instanceof HTMLElement)) return;
-        trigger.addEventListener("click", (event) => {
-          event.preventDefault();
-          if (window.YWSPipeda && typeof window.YWSPipeda.open === "function") {
-            window.YWSPipeda.open();
-          }
+      const checkboxInputs = Array.from(form.querySelectorAll('input[type="checkbox"]'));
+      checkboxInputs.forEach((input) => {
+        if (!(input instanceof HTMLInputElement)) return;
+        input.addEventListener("change", () => {
+          toggleSavedAlert(savedAlert, false);
         });
       });
 
@@ -319,19 +337,8 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
     gap: var(--space-2);
   }
 
-  .pipeda-settings__open-banner {
-    border: 0;
-    background: transparent;
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    padding: 0;
-    cursor: pointer;
-    font: inherit;
+  .pipeda-settings__saved-alert {
+    width: 100%;
   }
 
-  .pipeda-settings__open-banner:focus-visible {
-    outline: 2px solid var(--button-focus);
-    outline-offset: 2px;
-  }
 </style>
