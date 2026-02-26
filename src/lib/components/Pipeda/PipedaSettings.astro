@@ -141,7 +141,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
     </fieldset>
 
     <div class="pipeda-settings__actions">
-      <Button type="submit" size="sm" data-pipeda-settings-save>{resolvedStrings.saveLabel}</Button>
+      <Button type="submit" size="lg" data-pipeda-settings-save>{resolvedStrings.saveLabel}</Button>
       <button type="button" class="pipeda-settings__open-banner" data-pipeda-open-banner>
         {resolvedStrings.bannerSettingsLabel}
       </button>
@@ -149,7 +149,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
   </form>
 </section>
 
-<script type="module">
+<script>
   import {
     DEFAULT_PREFS,
     loadAllowedVendors,

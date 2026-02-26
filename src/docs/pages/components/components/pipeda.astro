@@ -234,7 +234,7 @@ const settingsCode = `<PipedaSettings
   <div class="pipeda-doc-intro">
     <p>This component gives you a plain-language cookie notice focused on meaningful consent.</p>
     <p>Defaults are privacy-friendly: necessary on, analytics off, marketing off.</p>
-    <p>The banner is sticky and lightweight, with no heavy dependencies.</p>
+    <p>The banner is fixed at the bottom and lightweight, with no heavy dependencies.</p>
     <p>Consent is stored in localStorage with versioned payloads.</p>
     <p>
       Add <code>PipedaSettings</code> to your privacy page for detailed controls. On that page, the banner
@@ -301,7 +301,7 @@ const settingsCode = `<PipedaSettings
   <div class="preview-grid">
     <Preview
       title="Basic Banner Usage"
-      note="Pipeda is sticky near the bottom, so this preview shows code-first usage."
+      note="Pipeda is fixed to the viewport bottom, so this preview shows code-first usage."
       code={basicBannerCode}
     >
       <p class="preview-note">

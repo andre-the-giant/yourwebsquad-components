@@ -163,8 +163,8 @@ const resolvedClass = mergeClasses("pipeda", className);
         </fieldset>
 
         <div class="pipeda-banner__actions">
-          <Button type="submit" size="sm" data-pipeda-save>{resolvedStrings.okLabel}</Button>
-          <Button type="button" variant="ghost" size="sm" data-pipeda-close>
+          <Button type="button" size="lg" data-pipeda-save>{resolvedStrings.okLabel}</Button>
+          <Button type="button" variant="ghost" size="lg" data-pipeda-close>
             {resolvedStrings.closeLabel}
           </Button>
         </div>
@@ -178,7 +178,7 @@ const resolvedClass = mergeClasses("pipeda", className);
   </div>
 </section>
 
-<script type="module">
+<script>
   import {
     DEFAULT_PREFS,
     loadAllowedVendors,
@@ -238,6 +238,7 @@ const resolvedClass = mergeClasses("pipeda", className);
 
   onReady(() => {
     const roots = Array.from(document.querySelectorAll(".pipeda"));
+    const isSettingsPage = () => Boolean(document.querySelector("[data-pipeda-settings-root]"));
 
     roots.forEach((root) => {
       if (!(root instanceof HTMLElement)) return;
@@ -259,39 +260,59 @@ const resolvedClass = mergeClasses("pipeda", className);
       const startingPrefs = storedConsent?.prefs
         ? normalizePrefs(storedConsent.prefs)
         : DEFAULT_PREFS;
-      const hasSettingsOnPage = Boolean(document.querySelector("[data-pipeda-settings-root]"));
 
       applyPrefsToForm(form, startingPrefs);
-      setBannerVisible(banner, !storedConsent && !hasSettingsOnPage);
+      setBannerVisible(banner, !storedConsent && !isSettingsPage());
       loadAllowedVendors(vendors, startingPrefs);
 
       if (form.dataset.pipedaBound === "true") return;
       form.dataset.pipedaBound = "true";
 
       const openBannerSettings = () => {
-        if (hasSettingsOnPage) return;
+        if (isSettingsPage()) {
+          setBannerVisible(banner, false);
+          return;
+        }
         setBannerVisible(banner, true);
         requestAnimationFrame(() => focusSettingsControl(form));
       };
       controllers.push({ open: openBannerSettings });
 
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const nextPrefs = getPrefsFromForm(form);
-        const saved = writeStoredConsent(nextPrefs);
-        applyPrefsToForm(form, nextPrefs);
-        if (saved) {
-          loadAllowedVendors(vendors, saved.prefs);
-          setBannerVisible(banner, false);
-          window.dispatchEvent(
-            new CustomEvent("yws:pipeda:change", {
-              detail: {
-                prefs: saved.prefs,
-                payload: saved
+      const observer =
+        typeof MutationObserver !== "undefined"
+          ? new MutationObserver(() => {
+              if (isSettingsPage()) {
+                setBannerVisible(banner, false);
               }
             })
-          );
-        }
+          : null;
+      observer?.observe(document.documentElement, { childList: true, subtree: true });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+      });
+
+      const saveButtons = Array.from(form.querySelectorAll("[data-pipeda-save]"));
+      saveButtons.forEach((button) => {
+        if (!(button instanceof HTMLElement)) return;
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          const nextPrefs = getPrefsFromForm(form);
+          const saved = writeStoredConsent(nextPrefs);
+          applyPrefsToForm(form, nextPrefs);
+          if (saved) {
+            loadAllowedVendors(vendors, saved.prefs);
+            setBannerVisible(banner, false);
+            window.dispatchEvent(
+              new CustomEvent("yws:pipeda:change", {
+                detail: {
+                  prefs: saved.prefs,
+                  payload: saved
+                }
+              })
+            );
+          }
+        });
       });
 
       const closeButtons = Array.from(form.querySelectorAll("[data-pipeda-close]"));
@@ -322,6 +343,7 @@ const resolvedClass = mergeClasses("pipeda", className);
     window.YWSPipeda = {
       ...existing,
       open: () => {
+        if (isSettingsPage()) return;
         const controller = controllers[0];
         if (controller && typeof controller.open === "function") {
           controller.open();
@@ -337,7 +359,9 @@ const resolvedClass = mergeClasses("pipeda", className);
   }
 
   .pipeda-banner {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
     z-index: 50;
     padding: var(--space-3) var(--space-4);
@@ -410,5 +434,9 @@ const resolvedClass = mergeClasses("pipeda", className);
   .pipeda-banner__links a:focus-visible {
     outline: 2px solid var(--button-focus);
     outline-offset: 2px;
+  }
+
+  :global(body:has([data-pipeda-settings-root])) .pipeda-banner {
+    display: none;
   }
 </style>
