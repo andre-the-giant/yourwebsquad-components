@@ -30,6 +30,7 @@ const DEFAULT_STRINGS = {
     title: "Cookie settings",
     intro:
       "Choose which optional cookies you want to allow. You can update these settings at any time.",
+    settingsLegend: "Cookie categories",
     saveLabel: "Save",
     bannerSettingsLabel: "Cookie settings",
     necessaryLabel: "Necessary",
@@ -44,6 +45,7 @@ const DEFAULT_STRINGS = {
     title: "Paramètres des cookies",
     intro:
       "Choisissez les témoins optionnels que vous autorisez. Vous pouvez modifier ces paramètres en tout temps.",
+    settingsLegend: "Categories de temoins",
     saveLabel: "Enregistrer",
     bannerSettingsLabel: "Paramètres des cookies",
     necessaryLabel: "Nécessaires",
@@ -66,6 +68,7 @@ const resolvedTitle =
 
 const resolvedId = id ?? "pipeda-settings-" + Math.random().toString(36).slice(2, 9);
 const ids = {
+  settings: `${resolvedId}-settings`,
   necessaryDesc: `${resolvedId}-necessary-desc`,
   analyticsDesc: `${resolvedId}-analytics-desc`,
   marketingDesc: `${resolvedId}-marketing-desc`
@@ -94,45 +97,48 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
   </header>
 
   <form class="pipeda-settings__form" data-pipeda-settings-form>
-    <div class="pipeda-settings__option">
-      <FormCheckbox
-        id={`${resolvedId}-necessary`}
-        name="necessary"
-        label={resolvedStrings.necessaryLabel}
-        checked={true}
-        disabled={true}
-        ariaDescribedBy={ids.necessaryDesc}
-      />
-      <p id={ids.necessaryDesc} class="pipeda-settings__description">
-        {resolvedStrings.necessaryDescription}
-      </p>
-    </div>
+    <fieldset class="pipeda-settings__fieldset" id={ids.settings}>
+      <legend class="pipeda-settings__legend">{resolvedStrings.settingsLegend}</legend>
+      <div class="pipeda-settings__option">
+        <FormCheckbox
+          id={`${resolvedId}-necessary`}
+          name="necessary"
+          label={resolvedStrings.necessaryLabel}
+          checked={true}
+          disabled={true}
+          ariaDescribedBy={ids.necessaryDesc}
+        />
+        <p id={ids.necessaryDesc} class="pipeda-settings__description">
+          {resolvedStrings.necessaryDescription}
+        </p>
+      </div>
 
-    <div class="pipeda-settings__option">
-      <FormCheckbox
-        id={`${resolvedId}-analytics`}
-        name="analytics"
-        label={resolvedStrings.analyticsLabel}
-        checked={false}
-        ariaDescribedBy={ids.analyticsDesc}
-      />
-      <p id={ids.analyticsDesc} class="pipeda-settings__description">
-        {resolvedStrings.analyticsDescription}
-      </p>
-    </div>
+      <div class="pipeda-settings__option">
+        <FormCheckbox
+          id={`${resolvedId}-analytics`}
+          name="analytics"
+          label={resolvedStrings.analyticsLabel}
+          checked={false}
+          ariaDescribedBy={ids.analyticsDesc}
+        />
+        <p id={ids.analyticsDesc} class="pipeda-settings__description">
+          {resolvedStrings.analyticsDescription}
+        </p>
+      </div>
 
-    <div class="pipeda-settings__option">
-      <FormCheckbox
-        id={`${resolvedId}-marketing`}
-        name="marketing"
-        label={resolvedStrings.marketingLabel}
-        checked={false}
-        ariaDescribedBy={ids.marketingDesc}
-      />
-      <p id={ids.marketingDesc} class="pipeda-settings__description">
-        {resolvedStrings.marketingDescription}
-      </p>
-    </div>
+      <div class="pipeda-settings__option">
+        <FormCheckbox
+          id={`${resolvedId}-marketing`}
+          name="marketing"
+          label={resolvedStrings.marketingLabel}
+          checked={false}
+          ariaDescribedBy={ids.marketingDesc}
+        />
+        <p id={ids.marketingDesc} class="pipeda-settings__description">
+          {resolvedStrings.marketingDescription}
+        </p>
+      </div>
+    </fieldset>
 
     <div class="pipeda-settings__actions">
       <Button type="submit" size="sm" data-pipeda-settings-save>{resolvedStrings.saveLabel}</Button>
@@ -284,6 +290,21 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
   .pipeda-settings__option {
     display: grid;
     gap: var(--space-1);
+  }
+
+  .pipeda-settings__fieldset {
+    border: 1px solid var(--color-border);
+    padding: var(--space-3);
+    margin: 0;
+    display: grid;
+    gap: var(--space-2);
+    background: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg) 12%);
+  }
+
+  .pipeda-settings__legend {
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-2);
+    padding: 0 var(--space-1);
   }
 
   .pipeda-settings__description {

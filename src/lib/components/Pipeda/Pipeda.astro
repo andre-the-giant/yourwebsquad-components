@@ -35,8 +35,9 @@ const DEFAULT_STRINGS = {
     bannerText:
       "We use cookies to run this site. With your permission, we may also use cookies to understand traffic and improve the site.",
     okLabel: "OK",
+    closeLabel: "Close",
     settingsLabel: "Cookie settings",
-    privacyLabel: "Privacy policy",
+    privacyLabel: "Privacy policy & settings",
     cookieLabel: "Cookie policy",
     necessaryLabel: "Necessary",
     analyticsLabel: "Analytics",
@@ -51,8 +52,9 @@ const DEFAULT_STRINGS = {
     bannerText:
       "Nous utilisons des témoins (cookies) pour faire fonctionner ce site. Avec votre accord, nous pouvons aussi en utiliser pour comprendre le trafic et améliorer le site.",
     okLabel: "OK",
+    closeLabel: "Fermer",
     settingsLabel: "Paramètres des cookies",
-    privacyLabel: "Politique de confidentialité",
+    privacyLabel: "Politique de confidentialité et paramètres",
     cookieLabel: "Politique de témoins",
     necessaryLabel: "Nécessaires",
     analyticsLabel: "Analyse",
@@ -65,10 +67,26 @@ const DEFAULT_STRINGS = {
 };
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+const normalizeHref = (value) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("?") ||
+    /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed)
+  ) {
+    return trimmed;
+  }
+  return `/${trimmed}`;
+};
 const resolvedLocale = locale === "fr" ? "fr" : "en";
 const localeDefaults = DEFAULT_STRINGS[resolvedLocale];
 const stringOverrides = isObject(strings) ? strings : {};
 const resolvedStrings = { ...localeDefaults, ...stringOverrides };
+const resolvedPrivacyUrl = normalizeHref(privacyUrl);
+const resolvedCookieUrl = cookieUrl ? normalizeHref(cookieUrl) : cookieUrl;
 
 const resolvedVendors = Array.isArray(vendors) ? vendors : [];
 const resolvedId = id ?? "pipeda-" + Math.random().toString(36).slice(2, 9);
@@ -146,15 +164,15 @@ const resolvedClass = mergeClasses("pipeda", className);
 
         <div class="pipeda-banner__actions">
           <Button type="submit" size="sm" data-pipeda-save>{resolvedStrings.okLabel}</Button>
-          <button type="button" class="pipeda-banner__settings-link" data-pipeda-open>
-            {resolvedStrings.settingsLabel}
-          </button>
+          <Button type="button" variant="ghost" size="sm" data-pipeda-close>
+            {resolvedStrings.closeLabel}
+          </Button>
         </div>
       </form>
 
       <p class="pipeda-banner__links">
-        <a href={privacyUrl}>{resolvedStrings.privacyLabel}</a>
-        {cookieUrl ? <a href={cookieUrl}>{resolvedStrings.cookieLabel}</a> : null}
+        <a href={resolvedPrivacyUrl}>{resolvedStrings.privacyLabel}</a>
+        {resolvedCookieUrl ? <a href={resolvedCookieUrl}>{resolvedStrings.cookieLabel}</a> : null}
       </p>
     </div>
   </div>
@@ -241,28 +259,21 @@ const resolvedClass = mergeClasses("pipeda", className);
       const startingPrefs = storedConsent?.prefs
         ? normalizePrefs(storedConsent.prefs)
         : DEFAULT_PREFS;
+      const hasSettingsOnPage = Boolean(document.querySelector("[data-pipeda-settings-root]"));
 
       applyPrefsToForm(form, startingPrefs);
-      setBannerVisible(banner, !storedConsent);
+      setBannerVisible(banner, !storedConsent && !hasSettingsOnPage);
       loadAllowedVendors(vendors, startingPrefs);
 
       if (form.dataset.pipedaBound === "true") return;
       form.dataset.pipedaBound = "true";
 
       const openBannerSettings = () => {
+        if (hasSettingsOnPage) return;
         setBannerVisible(banner, true);
         requestAnimationFrame(() => focusSettingsControl(form));
       };
       controllers.push({ open: openBannerSettings });
-
-      const openTriggers = Array.from(form.querySelectorAll("[data-pipeda-open]"));
-      openTriggers.forEach((trigger) => {
-        if (!(trigger instanceof HTMLElement)) return;
-        trigger.addEventListener("click", (event) => {
-          event.preventDefault();
-          openBannerSettings();
-        });
-      });
 
       form.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -281,6 +292,28 @@ const resolvedClass = mergeClasses("pipeda", className);
             })
           );
         }
+      });
+
+      const closeButtons = Array.from(form.querySelectorAll("[data-pipeda-close]"));
+      closeButtons.forEach((button) => {
+        if (!(button instanceof HTMLElement)) return;
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          const saved = writeStoredConsent(DEFAULT_PREFS);
+          applyPrefsToForm(form, DEFAULT_PREFS);
+          if (saved) {
+            loadAllowedVendors(vendors, saved.prefs);
+            setBannerVisible(banner, false);
+            window.dispatchEvent(
+              new CustomEvent("yws:pipeda:change", {
+                detail: {
+                  prefs: saved.prefs,
+                  payload: saved
+                }
+              })
+            );
+          }
+        });
       });
     });
 
@@ -304,8 +337,7 @@ const resolvedClass = mergeClasses("pipeda", className);
   }
 
   .pipeda-banner {
-    position: fixed;
-    inset-inline: 0;
+    position: sticky;
     bottom: 0;
     z-index: 50;
     padding: var(--space-3) var(--space-4);
@@ -333,16 +365,18 @@ const resolvedClass = mergeClasses("pipeda", className);
   }
 
   .pipeda-banner__fieldset {
-    border: 0;
-    padding: 0;
+    border: 1px solid var(--color-border);
+    padding: var(--space-3);
     margin: 0;
     display: grid;
     gap: var(--space-2);
+    background: color-mix(in srgb, var(--color-surface) 88%, var(--color-bg) 12%);
   }
 
   .pipeda-banner__legend {
     font-weight: var(--weight-semibold);
-    margin-bottom: var(--space-1);
+    margin-bottom: var(--space-2);
+    padding: 0 var(--space-1);
   }
 
   .pipeda-banner__option {
@@ -360,17 +394,7 @@ const resolvedClass = mergeClasses("pipeda", className);
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-  }
-
-  .pipeda-banner__settings-link {
-    border: 0;
-    background: transparent;
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    padding: 0;
-    cursor: pointer;
-    font: inherit;
+    justify-content: flex-end;
   }
 
   .pipeda-banner__links {
@@ -379,22 +403,12 @@ const resolvedClass = mergeClasses("pipeda", className);
     gap: var(--space-3);
   }
 
-  .pipeda-banner__links a,
-  .pipeda-banner__settings-link {
+  .pipeda-banner__links a {
     color: inherit;
   }
 
-  .pipeda-banner__settings-link:focus-visible,
   .pipeda-banner__links a:focus-visible {
     outline: 2px solid var(--button-focus);
     outline-offset: 2px;
-  }
-
-  @media (min-width: 56rem) {
-    .pipeda-banner__form {
-      grid-template-columns: 1fr auto;
-      align-items: start;
-      gap: var(--space-4);
-    }
   }
 </style>

@@ -24,7 +24,8 @@ const bannerProps = [
     name: "privacyUrl",
     type: "string",
     default: '"/privacy"',
-    description: "Link to your privacy policy page."
+    description:
+      "Link used by the banner label 'Privacy policy & settings'. Relative values are normalized to start with '/'."
   },
   {
     name: "cookieUrl",
@@ -129,7 +130,7 @@ const styleVars = [
   {
     name: "--pipeda-max-width",
     default: "72rem",
-    description: "Max width for the fixed banner content row."
+    description: "Max width for the banner content row."
   },
   {
     name: "--pipeda-settings-max-width",
@@ -166,6 +167,7 @@ import { PipedaSettings } from "yourwebsquad-components";
   <h1>Privacy policy</h1>
   <!-- your policy content -->
 
+  <!-- When this component exists on the page, the banner stays hidden -->
   <PipedaSettings locale="en" />
 </main>`;
 
@@ -234,7 +236,10 @@ const settingsCode = `<PipedaSettings
     <p>Defaults are privacy-friendly: necessary on, analytics off, marketing off.</p>
     <p>The banner is sticky and lightweight, with no heavy dependencies.</p>
     <p>Consent is stored in localStorage with versioned payloads.</p>
-    <p>Use <code>PipedaSettings</code> on your privacy page so people can change choices later.</p>
+    <p>
+      Add <code>PipedaSettings</code> to your privacy page for detailed controls. On that page, the
+      banner is automatically hidden.
+    </p>
   </div>
 
   <section class="pipeda-steps">
@@ -255,11 +260,18 @@ const settingsCode = `<PipedaSettings
         Add <code>Pipeda</code> once in your main layout so the banner is available site-wide.
       </li>
     </ol>
+    <p class="step-note">
+      Use absolute paths like <code>/en/privacy</code> or full URLs. If you pass
+      <code>en/privacy</code>, it will be normalized to <code>/en/privacy</code>.
+    </p>
     <pre><code>{layoutCode}</code></pre>
 
     <ol start="4">
       <li>Add <code>PipedaSettings</code> to your privacy policy page.</li>
     </ol>
+    <p class="step-note">
+      This page becomes the place to manage preferences. The banner is suppressed automatically.
+    </p>
     <pre><code>{privacyPageCode}</code></pre>
 
     <ol start="5">
@@ -273,7 +285,8 @@ const settingsCode = `<PipedaSettings
       <li>Verify behavior in the browser.</li>
     </ol>
     <p class="step-note">
-      First visit should show the banner. Saving creates a versioned payload in
+      First visit should show the banner with <code>OK</code> and <code>Close</code>.
+      <code>Close</code> accepts conservative defaults. Saving creates a versioned payload in
       <code>localStorage</code> under <code>yws_pipeda_consent</code>. You can reopen settings with
       the global API.
     </p>
@@ -288,7 +301,7 @@ const settingsCode = `<PipedaSettings
   <div class="preview-grid">
     <Preview
       title="Basic Banner Usage"
-      note="Pipeda is fixed to the viewport bottom, so this preview shows code-first usage."
+      note="Pipeda is sticky near the bottom, so this preview shows code-first usage."
       code={basicBannerCode}
     >
       <p class="preview-note">
