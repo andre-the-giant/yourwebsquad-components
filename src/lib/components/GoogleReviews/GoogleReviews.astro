@@ -97,7 +97,7 @@ const shouldTranslate = translate !== false;
 
 const encodedPlaceId = encodeURIComponent(placeId);
 const reviewLink = `https://search.google.com/local/writereview?placeid=${encodedPlaceId}`;
-const moreReviewsLink = `https://www.google.com/maps/search/?api=1&query_place_id=${encodedPlaceId}`;
+const moreReviewsLink = `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${encodedPlaceId}`;
 
 const palette = ["#f44336", "#4285f4", "#0f9d58", "#f4b400", "#8e44ad", "#2c3e50"];
 const getAvatarColor = (name = "") => {
