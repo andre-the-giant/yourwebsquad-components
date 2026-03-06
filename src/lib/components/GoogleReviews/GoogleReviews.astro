@@ -125,8 +125,27 @@ const mapReview = (review) => ({
     review?.relative_time_description ?? review?.relativePublishTimeDescription ?? "Recent",
   author_url: review?.author_url ?? review?.authorUrl ?? review?.authorAttribution?.uri,
   profile_photo_url:
-    review?.profile_photo_url ?? review?.profilePhotoUrl ?? review?.authorAttribution?.photoUri
+    review?.profile_photo_url ?? review?.profilePhotoUrl ?? review?.authorAttribution?.photoUri,
+  published_time:
+    review?.publishTime ??
+    review?.publish_time ??
+    review?.time ??
+    review?.timestamp ??
+    review?.createTime
 });
+
+const toIsoDate = (value) => {
+  if (typeof value === "string" && value.trim().length) {
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : new Date(parsed).toISOString();
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const millis = value > 1e12 ? value : value * 1000;
+    const date = new Date(millis);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+  return null;
+};
 
 let fetchedReviews = [];
 let rating = null;
@@ -203,11 +222,13 @@ const structuredReviews = reviews
     const ratingValue = typeof review?.rating === "number" ? review.rating : null;
     const body =
       typeof review?.text === "string" && review.text.trim().length ? review.text.trim() : null;
+    const datePublished = toIsoDate(review?.published_time);
     if (!ratingValue && !body) return null;
     return {
       "@type": "Review",
       name: `Customer review ${index + 1}`,
       reviewBody: body ?? undefined,
+      datePublished: datePublished ?? undefined,
       reviewRating: ratingValue
         ? {
             "@type": "Rating",
@@ -232,7 +253,9 @@ const baseBusiness = {
   aggregateRating: {
     "@type": "AggregateRating",
     ratingValue: averageRating,
-    reviewCount: total
+    reviewCount: total,
+    bestRating: 5,
+    worstRating: 1
   },
   review: structuredReviews.length ? structuredReviews : undefined
 };
