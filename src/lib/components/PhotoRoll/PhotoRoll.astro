@@ -108,7 +108,7 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
   <div class="photo-roll__track">
     {
       hasImages ? (
-        resolvedImages.map((photo) => (
+        resolvedImages.map((photo, idx) => (
           <div class="imageWrap">
             <Image
               src={photo.url}
@@ -116,6 +116,8 @@ const resolvedClass = `photo-roll ${className ?? ""}`.trim();
               class="in-photo-roll"
               sizes={imageSizes}
               widths={imageWidths}
+              loading={idx === 0 ? "eager" : "lazy"}
+              fetchpriority={idx === 0 ? "high" : "low"}
             />
           </div>
         ))
