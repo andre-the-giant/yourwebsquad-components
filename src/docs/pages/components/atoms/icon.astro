@@ -34,6 +34,16 @@ const props = [
   { name: "svgPath", type: "string", description: "Inner SVG path(s) to render." },
   { name: "svg", type: "string", description: "Full inner SVG markup (without outer <svg>)." },
   { name: "viewBox", type: "string", description: "Custom viewBox when using svg/svgPath." },
+  {
+    name: "fillColor",
+    type: "string",
+    description: "Root SVG fill color override (e.g. currentColor, #000, none)."
+  },
+  {
+    name: "strokeColor",
+    type: "string",
+    description: "Root SVG stroke color override (e.g. currentColor, #000, none)."
+  },
   { name: "strokeWidth", type: "string | number", description: "Stroke width override." },
   { name: "strokeLinecap", type: "string", description: "Stroke linecap override." },
   { name: "strokeLinejoin", type: "string", description: "Stroke linejoin override." },
@@ -74,40 +84,22 @@ const styleVars = [
   </Preview>
 
   <Preview title="Registry icons" code={registryCode}>
-    <div class="row">
-      {registryNames.map((name) => <IconComponent name={name} />)}
+    <section class="registry-table-wrap">
+    <h2>All Registry Icons</h2>
+    <div class="registry-grid">
+      {
+        allRegistryNames.map((name) => (
+          <div class="registry-item">
+            <IconComponent name={name} label={`${name} icon`} size="lg" style="--icon-size:50px" />
+            <div class="registry-name">{name}</div>
+          </div>
+        ))
+      }
     </div>
+  </section>
   </Preview>
 
-  <section class="registry-table-wrap">
-    <h2>All Registry Icons</h2>
-    <table class="registry-table">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Embed code</th>
-          <th scope="col">Icon</th>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          allRegistryNames.map((name) => (
-            <tr>
-              <td>
-                <code>{name}</code>
-              </td>
-              <td>
-                <code>{`<Icon name="${name}" />`}</code>
-              </td>
-              <td class="registry-icon-cell">
-                <IconComponent name={name} label={`${name} icon`} />
-              </td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </section>
+  
 
   <Preview title="Alert icons" code={alertIconsCode}>
     <div class="row">
@@ -140,10 +132,10 @@ const styleVars = [
       </li>
     </ul>
     <p>
-      For safety and consistency the component sanitizes the inner SVG markup by removing any inline
-      `fill`, `stroke` and `style` attributes. The outer &lt;svg> uses `fill="currentColor"` and
-      `stroke="currentColor"`, so icons inherit color from CSS. To override the color, set parent
-      `color` or `--icon-color`.
+      For safety and consistency the component sanitizes the inner SVG markup by removing inline
+      `fill`, `stroke` and `style` attributes. Default `fillColor` and `strokeColor` are defined in
+      the icon registry per icon. You can override per usage with `fillColor` and `strokeColor`
+      props.
     </p>
     <p>
       Accessibility: provide a `label` to expose an accessible name. If no label is supplied the
@@ -173,31 +165,36 @@ const styleVars = [
     align-items: center;
   }
 
-  .registry-table-wrap {
-    display: grid;
+  .registry-table-wrap {  
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
   }
 
-  .registry-table {
+  .registry-grid {
     width: 100%;
-    border-collapse: collapse;
-    font-size: var(--size-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: flex-start;
   }
 
-  .registry-table th,
-  .registry-table td {
+  .registry-item {
+    width: 92px;
+    min-height: 86px;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 0.4rem;
+    padding: 0.5rem 0.25rem;
     border: 1px solid var(--color-border);
-    padding: 0.6rem 0.75rem;
-    text-align: left;
-    vertical-align: middle;
+    background: var(--color-surface);
   }
 
-  .registry-table thead th {
-    background: color-mix(in srgb, var(--color-surface) 70%, var(--color-accent-muted) 30%);
-  }
-
-  .registry-icon-cell {
-    width: 72px;
+  .registry-name {
+    font-size: 0.8rem;
+    line-height: 1.2;
     text-align: center;
+    word-break: break-word;
   }
 </style>

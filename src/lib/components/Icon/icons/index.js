@@ -1,5 +1,6 @@
 // Simple icons registry for runtime lookup
-// Each entry: { viewBox: string, svg: string } where `svg` contains inner SVG markup (paths, rects, etc.)
+// Each entry: { viewBox: string, svg: string, fillColor?: string, strokeColor?: string }
+// where `svg` contains inner SVG markup (paths, rects, etc.)
 const builtinIcons = {
   spark: {
     viewBox: "0 0 24 24",
@@ -77,13 +78,26 @@ const fileIcons = Object.fromEntries(
       iconName,
       {
         viewBox: readViewBox(raw),
-        svg: stripSvgWrapper(raw)
+        svg: stripSvgWrapper(raw),
+        fillColor: "",
+        strokeColor: ""
       }
     ];
   })
 );
 
+const normalizedBuiltinIcons = Object.fromEntries(
+  Object.entries(builtinIcons).map(([name, def]) => [
+    name,
+    {
+      fillColor: "none",
+      strokeColor: "currentColor",
+      ...def
+    }
+  ])
+);
+
 export default {
-  ...builtinIcons,
+  ...normalizedBuiltinIcons,
   ...fileIcons
 };

@@ -7,6 +7,8 @@ Props:
 - svgPath?: string
 - svg?: string
 - viewBox?: string
+- fillColor?: string
+- strokeColor?: string
 - strokeWidth?: string | number
 - strokeLinecap?: string
 - strokeLinejoin?: string
@@ -31,6 +33,8 @@ const schema = {
   svgPath: { type: "string" },
   svg: { type: "string" },
   viewBox: { type: "string" },
+  fillColor: { type: "string" },
+  strokeColor: { type: "string" },
   strokeWidth: { type: ["string", "number"] },
   strokeLinecap: { type: "string" },
   strokeLinejoin: { type: "string" },
@@ -48,6 +52,8 @@ const {
   svgPath,
   svg,
   viewBox: viewBoxProp,
+  fillColor: fillColorProp,
+  strokeColor: strokeColorProp,
   strokeWidth: strokeWidthProp,
   strokeLinecap: strokeLinecapProp,
   strokeLinejoin: strokeLinejoinProp,
@@ -90,6 +96,8 @@ function sanitizeSvgString(raw = "") {
 // resolve SVG inner markup and viewBox from either content.svgPath, content.svg, or registry
 let innerSvg = "";
 let viewBox = "0 0 24 24";
+let iconFillColor = "";
+let iconStrokeColor = "";
 let iconStrokeWidth = "2";
 let iconStrokeLinecap = "round";
 let iconStrokeLinejoin = "round";
@@ -101,11 +109,15 @@ if (svgPath) {
   const def = icons[String(resolvedName)];
   innerSvg = sanitizeSvgString(def.svg || "");
   viewBox = def.viewBox || viewBox;
+  if (def.fillColor !== undefined) iconFillColor = String(def.fillColor);
+  if (def.strokeColor !== undefined) iconStrokeColor = String(def.strokeColor);
   if (def.strokeWidth) iconStrokeWidth = String(def.strokeWidth);
   if (def.strokeLinecap) iconStrokeLinecap = String(def.strokeLinecap);
   if (def.strokeLinejoin) iconStrokeLinejoin = String(def.strokeLinejoin);
 }
 if (viewBoxProp) viewBox = viewBoxProp;
+if (fillColorProp !== undefined) iconFillColor = String(fillColorProp);
+if (strokeColorProp !== undefined) iconStrokeColor = String(strokeColorProp);
 if (strokeWidthProp) iconStrokeWidth = String(strokeWidthProp);
 if (strokeLinecapProp) iconStrokeLinecap = String(strokeLinecapProp);
 if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
@@ -117,8 +129,8 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
   width={iconSize}
   height={iconSize}
   viewBox={viewBox}
-  fill="none"
-  stroke="currentColor"
+  fill={iconFillColor || undefined}
+  stroke={iconStrokeColor || undefined}
   stroke-width={iconStrokeWidth}
   stroke-linecap={iconStrokeLinecap}
   stroke-linejoin={iconStrokeLinejoin}
