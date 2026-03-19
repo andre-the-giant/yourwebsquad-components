@@ -1,6 +1,6 @@
 // Simple icons registry for runtime lookup
 // Each entry: { viewBox: string, svg: string } where `svg` contains inner SVG markup (paths, rects, etc.)
-export default {
+const builtinIcons = {
   spark: {
     viewBox: "0 0 24 24",
     svg: `<path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z" />`
@@ -52,4 +52,38 @@ export default {
     viewBox: "0 0 24 24",
     svg: `<path d="M9 5v14M15 5v14" />`
   }
+};
+
+const svgModules = import.meta.glob("../svg/*.svg", {
+  eager: true,
+  query: "?raw",
+  import: "default"
+});
+
+function stripSvgWrapper(raw = "") {
+  return String(raw).replace(/<svg\b[^>]*>/i, "").replace(/<\/svg>\s*$/i, "").trim();
+}
+
+function readViewBox(raw = "") {
+  const match = String(raw).match(/viewBox\s*=\s*["']([^"']+)["']/i);
+  return match?.[1] || "0 0 24 24";
+}
+
+const fileIcons = Object.fromEntries(
+  Object.entries(svgModules).map(([path, raw]) => {
+    const fileName = path.split("/").pop() || "";
+    const iconName = fileName.replace(/\.svg$/i, "");
+    return [
+      iconName,
+      {
+        viewBox: readViewBox(raw),
+        svg: stripSvgWrapper(raw)
+      }
+    ];
+  })
+);
+
+export default {
+  ...builtinIcons,
+  ...fileIcons
 };
