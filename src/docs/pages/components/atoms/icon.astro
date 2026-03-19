@@ -85,21 +85,24 @@ const styleVars = [
 
   <Preview title="Registry icons" code={registryCode}>
     <section class="registry-table-wrap">
-    <h2>All Registry Icons</h2>
-    <div class="registry-grid">
-      {
-        allRegistryNames.map((name) => (
-          <div class="registry-item">
-            <IconComponent name={name} label={`${name} icon`} size="lg" style="--icon-size:50px" />
-            <div class="registry-name">{name}</div>
-          </div>
-        ))
-      }
-    </div>
-  </section>
+      <h2>All Registry Icons</h2>
+      <div class="registry-grid">
+        {
+          allRegistryNames.map((name) => (
+            <div class="registry-item">
+              <IconComponent
+                name={name}
+                label={`${name} icon`}
+                size="lg"
+                style="--icon-size:50px"
+              />
+              <div class="registry-name">{name}</div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
   </Preview>
-
-  
 
   <Preview title="Alert icons" code={alertIconsCode}>
     <div class="row">
@@ -165,7 +168,7 @@ const styleVars = [
     align-items: center;
   }
 
-  .registry-table-wrap {  
+  .registry-table-wrap {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);

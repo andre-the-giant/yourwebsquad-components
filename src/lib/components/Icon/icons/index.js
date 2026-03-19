@@ -62,7 +62,10 @@ const svgModules = import.meta.glob("../svg/*.svg", {
 });
 
 function stripSvgWrapper(raw = "") {
-  return String(raw).replace(/<svg\b[^>]*>/i, "").replace(/<\/svg>\s*$/i, "").trim();
+  return String(raw)
+    .replace(/<svg\b[^>]*>/i, "")
+    .replace(/<\/svg>\s*$/i, "")
+    .trim();
 }
 
 function readViewBox(raw = "") {
