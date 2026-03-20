@@ -17,7 +17,11 @@ export async function loadFormDefinition({ formId, form } = {}) {
       .then((entries) =>
         entries.find((item) => {
           const id = item.id ?? "";
-          const stem = id.split("/").pop()?.replace(/\.json$/i, "") ?? "";
+          const stem =
+            id
+              .split("/")
+              .pop()
+              ?.replace(/\.json$/i, "") ?? "";
           return id === formId || stem === formId;
         })
       )
@@ -27,6 +31,10 @@ export async function loadFormDefinition({ formId, form } = {}) {
     throw new Error(`Form "${formId}" not found in content collection "forms".`);
   }
 
-  const fileId = (resolvedEntry.id ?? formId).split("/").pop()?.replace(/\.json$/i, "") ?? formId;
+  const fileId =
+    (resolvedEntry.id ?? formId)
+      .split("/")
+      .pop()
+      ?.replace(/\.json$/i, "") ?? formId;
   return normalizeFormDefinition(resolvedEntry.data, { fileId });
 }
