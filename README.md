@@ -122,12 +122,13 @@ export default defineConfig({
 2. Define a `forms` content collection in your project:
 
 ```ts
-// src/content/config.ts
+// src/content.config.ts
 import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
 import { formCollectionSchema } from "yourwebsquad-components/forms-content-schema";
 
 const forms = defineCollection({
-  type: "data",
+  loader: glob({ pattern: "**/*.json", base: "./src/content/forms" }),
   schema: formCollectionSchema
 });
 

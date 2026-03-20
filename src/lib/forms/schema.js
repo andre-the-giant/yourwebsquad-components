@@ -154,8 +154,8 @@ const fieldSchema = z
   });
 
 const emailSchema = z.object({
-  to: z.union([z.string().email(), z.array(z.string().email())]),
-  from: z.string().email().optional(),
+  to: z.union([z.email(), z.array(z.email())]),
+  from: z.email().optional(),
   replyToField: z
     .string()
     .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, "replyToField must match a field name")

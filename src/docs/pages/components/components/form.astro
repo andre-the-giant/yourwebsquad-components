@@ -32,8 +32,10 @@ const stylingSnippet = `<Form
   resetStyle="--button-outline-fg: #0ea5e9; --button-outline-border: #0ea5e9;"
 />`;
 
-const contentSnippet = `// src/content/config.ts
-import { defineCollection, z } from "astro:content";
+const contentSnippet = `// src/content.config.ts
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const option = z.object({
   value: z.string(),
@@ -41,7 +43,7 @@ const option = z.object({
 });
 
 const forms = defineCollection({
-  type: "data",
+  loader: glob({ pattern: "**/*.json", base: "./src/content/forms" }),
   schema: z.object({
     id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     title: z.union([z.string(), z.record(z.string(), z.string())]),
@@ -66,7 +68,7 @@ const forms = defineCollection({
       })
     ),
     email: z.object({
-      to: z.union([z.string().email(), z.array(z.string().email())]),
+      to: z.union([z.email(), z.array(z.email())]),
       subject: z.union([z.string(), z.record(z.string(), z.string())]),
       intro: z.union([z.string(), z.record(z.string(), z.string())]).optional()
     }),

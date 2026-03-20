@@ -1,4 +1,6 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const optionSchema = z.object({
   value: z.string(),
@@ -91,8 +93,8 @@ const fieldSchema = z
   });
 
 const emailSchema = z.object({
-  to: z.union([z.string().email(), z.array(z.string().email())]),
-  from: z.string().email().optional(),
+  to: z.union([z.email(), z.array(z.email())]),
+  from: z.email().optional(),
   replyToField: z.string().optional(),
   subject: z.union([z.string(), z.record(z.string(), z.string())]),
   intro: z.union([z.string(), z.record(z.string(), z.string())]).optional()
@@ -115,7 +117,7 @@ const securitySchema = z.object({
 });
 
 const forms = defineCollection({
-  type: "data",
+  loader: glob({ pattern: "**/*.json", base: "./src/content/forms" }),
   schema: z.object({
     id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     title: z.union([z.string(), z.record(z.string(), z.string())]),
