@@ -496,6 +496,9 @@ $allowedIncoming = $allowedNames;
 foreach ($allowedNames as $name) {
     $allowedIncoming[] = $name . '[]';
 }
+$allowedIncoming[] = '__ywsTestRecipient';
+$allowedIncoming[] = '__ywsTestSubjectPrefix';
+$allowedIncoming[] = '__ywsTestBodyPrefix';
 
 $incomingNames = array_unique(array_merge(array_keys($_POST), array_keys($_FILES)));
 $unexpected = array_diff($incomingNames, $allowedIncoming);
@@ -587,7 +590,18 @@ if (empty($recipients)) {
     respond(500, ['ok' => false, 'message' => 'Mail configuration error.']);
 }
 
+$testRecipientRaw = trim((string)($_SERVER['HTTP_X_YWS_TEST_RECIPIENT'] ?? ($_POST['__ywsTestRecipient'] ?? '')));
+if ($testRecipientRaw !== '' && filter_var($testRecipientRaw, FILTER_VALIDATE_EMAIL)) {
+    $recipients = [$testRecipientRaw];
+}
+
+$subjectPrefix = trim((string)($_SERVER['HTTP_X_YWS_TEST_SUBJECT_PREFIX'] ?? ($_POST['__ywsTestSubjectPrefix'] ?? '')));
+$bodyPrefix = trim((string)($_SERVER['HTTP_X_YWS_TEST_BODY_PREFIX'] ?? ($_POST['__ywsTestBodyPrefix'] ?? '')));
+
 $subject = interpolate($emailCfg['subject'] ?? ('Form ' . $config['id']), $clean);
+if ($subjectPrefix !== '') {
+    $subject = $subjectPrefix . $subject;
+}
 
 $lines = [];
 if (!empty($emailCfg['intro'])) {
@@ -599,6 +613,9 @@ foreach ($config['fields'] as $field) {
     $lines[] = ($field['label'] ?? $field['name']) . ': ' . ($value === '' ? '(blank)' : $value);
 }
 $body = implode("\\n", $lines);
+if ($bodyPrefix !== '') {
+    $body = $bodyPrefix . "\\n\\n" . $body;
+}
 
 $attachments = [];
 foreach ($uploadsByField as $files) {

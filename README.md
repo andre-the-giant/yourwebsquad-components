@@ -230,6 +230,10 @@ During `astro build`, the integration emits `/build/api/<formId>/index.php` with
 - Phone fields (`type: "tel"`) get a default server validation pattern `^[0-9+()\\-\\s]{6,20}$` if none is provided.
 - Upload fields (`type: "upload"`) default to `imagesOnly: true`, reject dangerous/script-like file extensions and MIME types, and attach validated uploads to the outgoing email.
 - Upload UI text is localizable via `noFileText`, `browseLabel`, `removeLabel`, `filesSelectedText`, and `previewUnavailableText`.
+- Test-send overrides are supported via request headers (or fallback POST fields):
+  - Recipient: `X-YWS-Test-Recipient` (or `__ywsTestRecipient`)
+  - Subject prefix: `X-YWS-Test-Subject-Prefix` (or `__ywsTestSubjectPrefix`)
+  - Body prefix: `X-YWS-Test-Body-Prefix` (or `__ywsTestBodyPrefix`)
 
 ### Client usage tips
 
