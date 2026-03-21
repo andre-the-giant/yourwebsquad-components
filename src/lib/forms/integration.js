@@ -17,7 +17,7 @@ export default function yourwebsquadForms(options = {}) {
     hooks: {
       "astro:build:start": async ({ logger }) => {
         const root = process.cwd();
-        const formsDir = path.join(root, "src", "content", "forms");
+        const formsDir = path.join(root, "src", "forms");
         let entries = [];
         try {
           const files = await fs.readdir(formsDir);
@@ -35,7 +35,7 @@ export default function yourwebsquadForms(options = {}) {
         }
 
         if (!entries.length) {
-          logger.warn('[forms] No entries found in "src/content/forms". Skipping PHP generation.');
+          logger.warn('[forms] No entries found in "src/forms". Skipping PHP generation.');
           forms = [];
           return;
         }

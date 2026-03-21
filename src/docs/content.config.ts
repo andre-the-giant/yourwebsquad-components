@@ -117,7 +117,7 @@ const securitySchema = z.object({
 });
 
 const forms = defineCollection({
-  loader: glob({ pattern: "**/*.json", base: "./src/content/forms" }),
+  loader: glob({ pattern: "**/*.json", base: "./src/forms" }),
   schema: z.object({
     id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     title: z.union([z.string(), z.record(z.string(), z.string())]),

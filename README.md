@@ -128,14 +128,14 @@ import { glob } from "astro/loaders";
 import { formCollectionSchema } from "yourwebsquad-components/forms-content-schema";
 
 const forms = defineCollection({
-  loader: glob({ pattern: "**/*.json", base: "./src/content/forms" }),
+  loader: glob({ pattern: "**/*.json", base: "./src/forms" }),
   schema: formCollectionSchema
 });
 
 export const collections = { forms };
 ```
 
-3. Add form entries in `src/content/forms/*.json`:
+3. Add form entries in `src/forms/*.json`:
 
 ```json
 {

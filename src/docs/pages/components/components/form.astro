@@ -43,7 +43,7 @@ const option = z.object({
 });
 
 const forms = defineCollection({
-  loader: glob({ pattern: "**/*.json", base: "./src/content/forms" }),
+  loader: glob({ pattern: "**/*.json", base: "./src/forms" }),
   schema: z.object({
     id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     title: z.union([z.string(), z.record(z.string(), z.string())]),
@@ -268,7 +268,7 @@ const props = [
   <Preview title="Sample form entry" code={sampleForm} lang="json">
     <div class="column">
       <p>
-        Place JSON files in <code>src/content/forms/</code>. Build will emit <code
+        Place JSON files in <code>src/forms/</code>. Build will emit <code
           >/build/api/&lt;id&gt;/index.php</code
         >.
       </p>
