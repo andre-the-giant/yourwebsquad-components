@@ -72,12 +72,15 @@ const rawRating = Number.isFinite(rating) ? rating : 0;
 const clampedRating = clamp(rawRating, 0, resolvedMax);
 const resolvedRating = toOneDecimal(clampedRating);
 const isIntegerRating = Number.isInteger(rawRating);
-const ratingLabel = isIntegerRating ? String(Math.trunc(resolvedRating)) : resolvedRating.toFixed(1);
+const ratingLabel = isIntegerRating
+  ? String(Math.trunc(resolvedRating))
+  : resolvedRating.toFixed(1);
 const ratio = resolvedMax > 0 ? resolvedRating / resolvedMax : 0;
 const ratingPercent = toOneDecimal(ratio * 100);
 
 const resolvedId = id ?? `star-rating-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedSize = typeof starSize === "string" && starSize.trim() ? starSize.trim() : sizeMap[size] ?? sizeMap.md;
+const resolvedSize =
+  typeof starSize === "string" && starSize.trim() ? starSize.trim() : (sizeMap[size] ?? sizeMap.md);
 const resolvedSrText =
   typeof srText === "string" && srText.trim().length
     ? srText.trim()
@@ -102,38 +105,49 @@ const selectedIcon = icons[String(iconName)] ?? defaultStarIcon;
 <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
   <div class="star-rating__inner">
     <div class="star-rating__stars" aria-hidden="true">
-      {Array.from({ length: resolvedMax }).map((_, index) => {
-        const fillLevel = clamp(resolvedRating - index, 0, 1);
-        const fillWidth = toOneDecimal(fillLevel * 100);
-        const clipId = `${resolvedId}-star-clip-${index}`;
-        return (
-          <svg
-            class="star-rating__star"
-            viewBox={selectedIcon.viewBox || defaultStarIcon.viewBox}
-            fill={selectedIcon.fillColor ?? defaultStarIcon.fillColor}
-            stroke={selectedIcon.strokeColor ?? defaultStarIcon.strokeColor}
-            stroke-width={selectedIcon.strokeWidth ?? defaultStarIcon.strokeWidth}
-            stroke-linecap={selectedIcon.strokeLinecap ?? defaultStarIcon.strokeLinecap}
-            stroke-linejoin={selectedIcon.strokeLinejoin ?? defaultStarIcon.strokeLinejoin}
-            role="presentation"
-            aria-hidden="true"
-          >
-            <defs>
-              <clipPath id={clipId}>
-                <rect x="0" y="0" width={`${fillWidth}%`} height="100%" />
-              </clipPath>
-            </defs>
-            <g class="star-rating__star-base" set:html={selectedIcon.svg || defaultStarIcon.svg} />
-            <g
-              class="star-rating__star-fill"
-              clip-path={`url(#${clipId})`}
-              set:html={selectedIcon.svg || defaultStarIcon.svg}
-            />
-          </svg>
-        );
-      })}
+      {
+        Array.from({ length: resolvedMax }).map((_, index) => {
+          const fillLevel = clamp(resolvedRating - index, 0, 1);
+          const fillWidth = toOneDecimal(fillLevel * 100);
+          const clipId = `${resolvedId}-star-clip-${index}`;
+          return (
+            <svg
+              class="star-rating__star"
+              viewBox={selectedIcon.viewBox || defaultStarIcon.viewBox}
+              fill={selectedIcon.fillColor ?? defaultStarIcon.fillColor}
+              stroke={selectedIcon.strokeColor ?? defaultStarIcon.strokeColor}
+              stroke-width={selectedIcon.strokeWidth ?? defaultStarIcon.strokeWidth}
+              stroke-linecap={selectedIcon.strokeLinecap ?? defaultStarIcon.strokeLinecap}
+              stroke-linejoin={selectedIcon.strokeLinejoin ?? defaultStarIcon.strokeLinejoin}
+              role="presentation"
+              aria-hidden="true"
+            >
+              <defs>
+                <clipPath id={clipId}>
+                  <rect x="0" y="0" width={`${fillWidth}%`} height="100%" />
+                </clipPath>
+              </defs>
+              <g
+                class="star-rating__star-base"
+                set:html={selectedIcon.svg || defaultStarIcon.svg}
+              />
+              <g
+                class="star-rating__star-fill"
+                clip-path={`url(#${clipId})`}
+                set:html={selectedIcon.svg || defaultStarIcon.svg}
+              />
+            </svg>
+          );
+        })
+      }
     </div>
-    {showValue && <span class="star-rating__value" aria-hidden="true">{resolvedValueText}</span>}
+    {
+      showValue && (
+        <span class="star-rating__value" aria-hidden="true">
+          {resolvedValueText}
+        </span>
+      )
+    }
     <span class="sr-only">{resolvedSrText}</span>
   </div>
 </section>
