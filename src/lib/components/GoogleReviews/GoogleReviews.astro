@@ -1,6 +1,7 @@
 ---
 import { validateProps } from "../../utils/props.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import StarRating from "../StarRating/StarRating.astro";
 
 const nonEmptyString = (label) => (value) =>
   (typeof value === "string" && value.trim().length > 0) || `${label} must be a non-empty string`;
@@ -208,7 +209,6 @@ const averageRating =
       ) / 10
     : null);
 const total = totalReviews ?? reviews.length;
-const summaryStars = Math.round(averageRating ?? 0);
 
 if (isStrict && (!reviews.length || averageRating === null)) {
   throw new Error(
@@ -356,21 +356,15 @@ const titleId = `${resolvedId}-title`;
             <span class="rating-value" aria-hidden="true">
               {averageRating?.toFixed?.(1) ?? "—"}
             </span>
-            <span class="stars" aria-hidden="true">
-              {Array.from({ length: 5 }).map((_, idx) => (
-                <svg
-                  class={idx < summaryStars ? "filled" : ""}
-                  viewBox="0 0 20 20"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
-                </svg>
-              ))}
-            </span>
-            <span class="sr-only">
-              Average rating {averageRating?.toFixed?.(1) ?? "—"} out of 5 based on {total} reviews
-            </span>
+            <StarRating
+              class="stars"
+              rating={averageRating ?? 0}
+              max={5}
+              starSize="15px"
+              filledColor="var(--googlereviews-star-color)"
+              emptyColor="var(--googlereviews-star-muted)"
+              srText={`Average rating ${averageRating?.toFixed?.(1) ?? "—"} out of 5 based on ${total} reviews`}
+            />
             <span class="count">({total})</span>
           </div>
         </div>
@@ -404,19 +398,15 @@ const titleId = `${resolvedId}-title`;
                     <div class="time">{review?.relative_time_description ?? "Recent"}</div>
                   </div>
                 </div>
-                <div class="stars" aria-hidden="true">
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <svg
-                      class={idx < Math.round(review?.rating ?? 0) ? "filled" : ""}
-                      viewBox="0 0 20 20"
-                      role="presentation"
-                      aria-hidden="true"
-                    >
-                      <path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />
-                    </svg>
-                  ))}
-                </div>
-                <div class="sr-only">Rated {review?.rating ?? 0} out of 5 stars</div>
+                <StarRating
+                  class="stars"
+                  rating={review?.rating ?? 0}
+                  max={5}
+                  starSize="15px"
+                  filledColor="var(--googlereviews-star-color)"
+                  emptyColor="var(--googlereviews-star-muted)"
+                  srText={`Rated ${review?.rating ?? 0} out of 5 stars`}
+                />
                 <p class="reviewcontent" style={`--line-clamp: ${resolvedTruncateLines};`}>
                   {review?.text}
                 </p>

@@ -21,3 +21,4 @@ export { default as ComparisonSlider } from "./components/ComparisonSlider/Compa
 export { default as GoogleReviews } from "./components/GoogleReviews/GoogleReviews.astro";
 export { default as Pipeda } from "./components/Pipeda/Pipeda.astro";
 export { default as PipedaSettings } from "./components/Pipeda/PipedaSettings.astro";
+export { default as StarRating } from "./components/StarRating/StarRating.astro";

@@ -154,5 +154,11 @@ export const components = [
     href: "/components/components/pipeda",
     description: "PIPEDA-oriented cookie banner and privacy-page settings component",
     group: "components"
+  },
+  {
+    name: "StarRating",
+    href: "/components/molecules/star-rating",
+    description: "A star rating system in pure CSS",
+    group: "molecules"
   }
 ];

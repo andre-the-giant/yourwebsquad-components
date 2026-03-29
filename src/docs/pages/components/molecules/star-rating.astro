@@ -1,0 +1,162 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import StarRating from "@lib/components/StarRating/StarRating.astro";
+
+const propsTable = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline style string and CSS variable overrides." },
+  { name: "rating", type: "number", default: "0", description: "Current rating value." },
+  { name: "max", type: "number", default: "5", description: "Total number of stars to render." },
+  {
+    name: "size",
+    type: '"xs" | "sm" | "md" | "lg" | "xl" | "xxl"',
+    default: '"md"',
+    description: "Token-based star size."
+  },
+  {
+    name: "starSize",
+    type: "string",
+    description: "Fixed star size override (for example: 28px, 1.75rem)."
+  },
+  {
+    name: "iconName",
+    type: "string",
+    default: '"star"',
+    description: "Icon name from the icon registry (example: duck, fish, rabbit)."
+  },
+  {
+    name: "filledColor",
+    type: "string",
+    default: '"#f4b400"',
+    description: "Color used for the filled star area."
+  },
+  {
+    name: "emptyColor",
+    type: "string",
+    default: '"#d9d9d9"',
+    description: "Color used for the unfilled star area."
+  },
+  {
+    name: "showValue",
+    type: "boolean",
+    default: "false",
+    description: "Show visible value text next to stars."
+  },
+  {
+    name: "srTemplate",
+    type: "string",
+    default: '"Rated {rating} out of {max}"',
+    description: "Screen-reader text template. Supports {rating} and {max}."
+  },
+  {
+    name: "srText",
+    type: "string",
+    description: "Direct screen-reader text override."
+  },
+  {
+    name: "valueTemplate",
+    type: "string",
+    default: '"{rating}/{max}"',
+    description: "Visible value template when showValue is enabled."
+  },
+  {
+    name: "valueText",
+    type: "string",
+    description: "Direct visible value override."
+  }
+];
+
+const defaultCode = "<StarRating />";
+const integerCode = "<StarRating rating={4} />";
+const fractionalCode = "<StarRating rating={4.3} />";
+const customMaxCode = "<StarRating rating={7.4} max={10} />";
+const tokenSizesCode = `<StarRating rating={4.2} size="xs" />
+<StarRating rating={4.2} size="sm" />
+<StarRating rating={4.2} size="md" />
+<StarRating rating={4.2} size="lg" />
+<StarRating rating={4.2} size="xl" />
+<StarRating rating={4.2} size="xxl" />`;
+const fixedSizeCode = '<StarRating rating={4.3} starSize="30px" />';
+const customColorsCode =
+  '<StarRating rating={3.7} filledColor="#0b57d0" emptyColor="#d5e0ff" />';
+const visibleValueCode = "<StarRating rating={4.3} showValue={true} />";
+const localizedSrCode =
+  '<StarRating rating={4.3} srTemplate="Note de {rating} sur {max}" showValue={true} />';
+const duckIconCode = '<StarRating rating={3.5} iconName="duck" size="xxl" />';
+---
+
+<DocLayout
+  title="StarRating"
+  description="Accessible display-only rating stars with configurable size, colors, and SR text."
+  items={components}
+>
+  <PropsTable props={propsTable} />
+
+  <div class="preview-grid">
+    <Preview title="Default" code={defaultCode}>
+      <StarRating />
+    </Preview>
+
+    <Preview title="Integer Rating" code={integerCode}>
+      <StarRating rating={4} />
+    </Preview>
+
+    <Preview title="Fractional Rating (0.1)" code={fractionalCode}>
+      <StarRating rating={4.3} />
+    </Preview>
+
+    <Preview title="Custom Max" code={customMaxCode}>
+      <StarRating rating={7.4} max={10} />
+    </Preview>
+
+    <Preview title="Token Sizes" code={tokenSizesCode}>
+      <div class="sizes-row">
+        <StarRating rating={4.2} size="xs" />
+        <StarRating rating={4.2} size="sm" />
+        <StarRating rating={4.2} size="md" />
+        <StarRating rating={4.2} size="lg" />
+        <StarRating rating={4.2} size="xl" />
+        <StarRating rating={4.2} size="xxl" />
+      </div>
+    </Preview>
+
+    <Preview title="Fixed Size" code={fixedSizeCode}>
+      <StarRating rating={4.3} starSize="30px" />
+    </Preview>
+
+    <Preview title="Custom Colors" code={customColorsCode}>
+      <StarRating rating={3.7} filledColor="#0b57d0" emptyColor="#d5e0ff" />
+    </Preview>
+
+    <Preview title="Visible Value" code={visibleValueCode}>
+      <StarRating rating={4.3} showValue={true} />
+    </Preview>
+
+    <Preview title="Localized SR Text" code={localizedSrCode}>
+      <StarRating rating={4.5} srTemplate="Note de {rating} sur {max}" showValue={true} />
+    </Preview>
+
+    <Preview title="Registry Icon (Duck)" code={duckIconCode}>
+      <StarRating rating={3.5} iconName="duck" size="xxl" />
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .sizes-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+  }
+</style>

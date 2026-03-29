@@ -1,0 +1,198 @@
+---
+import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import icons from "../Icon/icons/index.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" },
+  rating: { type: "number" },
+  max: { type: "number" },
+  size: { type: "string" },
+  starSize: { type: "string" },
+  iconName: { type: "string" },
+  filledColor: { type: "string" },
+  emptyColor: { type: "string" },
+  showValue: { type: "boolean" },
+  srTemplate: { type: "string" },
+  srText: { type: "string" },
+  valueTemplate: { type: "string" },
+  valueText: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  rating = 0,
+  max = 5,
+  size = "md",
+  starSize,
+  iconName = "star",
+  filledColor = "#f4b400",
+  emptyColor = "#d9d9d9",
+  showValue = false,
+  srTemplate = "Rated {rating} out of {max}",
+  srText,
+  valueTemplate = "{rating}/{max}",
+  valueText,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "StarRating" });
+
+const defaultStarIcon = {
+  viewBox: "0 0 20 20",
+  svg: '<path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L10 15.5 4.8 17.6l1-5.8L1.6 7.7l5.8-.8L10 1.6z" />',
+  fillColor: "currentColor",
+  strokeColor: "none",
+  strokeWidth: "0",
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+};
+
+const sizeMap = {
+  xs: "0.75rem",
+  sm: "0.95rem",
+  md: "1.1rem",
+  lg: "1.3rem",
+  xl: "1.6rem",
+  xxl: "2rem"
+};
+
+const clamp = (value, min, maxValue) => Math.min(Math.max(value, min), maxValue);
+const toOneDecimal = (value) => Math.round(value * 10) / 10;
+const template = (tpl, values) =>
+  String(tpl).replace(/\{(rating|max)\}/g, (token, key) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : token
+  );
+
+const rawMax = Number.isFinite(max) ? max : 5;
+const resolvedMax = Math.max(1, Math.trunc(rawMax));
+const rawRating = Number.isFinite(rating) ? rating : 0;
+const clampedRating = clamp(rawRating, 0, resolvedMax);
+const resolvedRating = toOneDecimal(clampedRating);
+const isIntegerRating = Number.isInteger(rawRating);
+const ratingLabel = isIntegerRating ? String(Math.trunc(resolvedRating)) : resolvedRating.toFixed(1);
+const ratio = resolvedMax > 0 ? resolvedRating / resolvedMax : 0;
+const ratingPercent = toOneDecimal(ratio * 100);
+
+const resolvedId = id ?? `star-rating-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedSize = typeof starSize === "string" && starSize.trim() ? starSize.trim() : sizeMap[size] ?? sizeMap.md;
+const resolvedSrText =
+  typeof srText === "string" && srText.trim().length
+    ? srText.trim()
+    : template(srTemplate, { rating: ratingLabel, max: resolvedMax });
+const resolvedValueText =
+  typeof valueText === "string" && valueText.trim().length
+    ? valueText.trim()
+    : template(valueTemplate, { rating: ratingLabel, max: resolvedMax });
+
+const styleVars = {
+  "--star-rating-size": resolvedSize,
+  "--star-rating-filled-color": filledColor,
+  "--star-rating-empty-color": emptyColor,
+  "--star-rating-percent": `${ratingPercent}%`
+};
+
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("star-rating", className);
+const selectedIcon = icons[String(iconName)] ?? defaultStarIcon;
+---
+
+<section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+  <div class="star-rating__inner">
+    <div class="star-rating__stars" aria-hidden="true">
+      {Array.from({ length: resolvedMax }).map((_, index) => {
+        const fillLevel = clamp(resolvedRating - index, 0, 1);
+        const fillWidth = toOneDecimal(fillLevel * 100);
+        const clipId = `${resolvedId}-star-clip-${index}`;
+        return (
+          <svg
+            class="star-rating__star"
+            viewBox={selectedIcon.viewBox || defaultStarIcon.viewBox}
+            fill={selectedIcon.fillColor ?? defaultStarIcon.fillColor}
+            stroke={selectedIcon.strokeColor ?? defaultStarIcon.strokeColor}
+            stroke-width={selectedIcon.strokeWidth ?? defaultStarIcon.strokeWidth}
+            stroke-linecap={selectedIcon.strokeLinecap ?? defaultStarIcon.strokeLinecap}
+            stroke-linejoin={selectedIcon.strokeLinejoin ?? defaultStarIcon.strokeLinejoin}
+            role="presentation"
+            aria-hidden="true"
+          >
+            <defs>
+              <clipPath id={clipId}>
+                <rect x="0" y="0" width={`${fillWidth}%`} height="100%" />
+              </clipPath>
+            </defs>
+            <g class="star-rating__star-base" set:html={selectedIcon.svg || defaultStarIcon.svg} />
+            <g
+              class="star-rating__star-fill"
+              clip-path={`url(#${clipId})`}
+              set:html={selectedIcon.svg || defaultStarIcon.svg}
+            />
+          </svg>
+        );
+      })}
+    </div>
+    {showValue && <span class="star-rating__value" aria-hidden="true">{resolvedValueText}</span>}
+    <span class="sr-only">{resolvedSrText}</span>
+  </div>
+</section>
+
+<style>
+  .star-rating {
+    display: inline-flex;
+    max-width: 100%;
+    width: fit-content;
+  }
+
+  .star-rating__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: 100%;
+  }
+
+  .star-rating__stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .star-rating__star {
+    width: var(--star-rating-size, 1.1rem);
+    height: var(--star-rating-size, 1.1rem);
+    flex: 0 0 auto;
+    display: block;
+  }
+
+  .star-rating__star-base {
+    color: var(--star-rating-empty-color, #d9d9d9);
+  }
+
+  .star-rating__star-fill {
+    color: var(--star-rating-filled-color, #f4b400);
+  }
+
+  .star-rating__value {
+    font-size: 0.95em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+</style>

@@ -82,8 +82,9 @@ const fileIcons = Object.fromEntries(
       {
         viewBox: readViewBox(raw),
         svg: stripSvgWrapper(raw),
-        fillColor: "",
-        strokeColor: ""
+        // Imported file icons are mostly solid path artwork; inherit text color.
+        fillColor: "currentColor",
+        strokeColor: "none"
       }
     ];
   })
