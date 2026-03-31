@@ -30,7 +30,7 @@ const propsTable = [
     description: "CSS max width override for tooltip content (example: 16rem)."
   },
   {
-    name: "slot=\"trigger\"",
+    name: 'slot="trigger"',
     type: "slot",
     description:
       "Trigger element. Add data-tooltip-owner on the exact element to receive aria-describedby when needed."
@@ -75,9 +75,7 @@ const customOwnerCode = `<Tooltip text="More details about this icon" position="
     <Preview title="Rich Content" code={richContentCode}>
       <Tooltip position="right">
         <button slot="trigger" type="button">Password rules</button>
-        <span>
-          Use at least 12 characters, with one number and one symbol.
-        </span>
+        <span> Use at least 12 characters, with one number and one symbol. </span>
       </Tooltip>
     </Preview>
 
