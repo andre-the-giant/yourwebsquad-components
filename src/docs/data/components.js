@@ -160,5 +160,11 @@ export const components = [
     href: "/components/molecules/star-rating",
     description: "A star rating system in pure CSS",
     group: "molecules"
+  },
+  {
+    name: "Tooltip",
+    href: "/components/atoms/tooltip",
+    description: "A tooltip",
+    group: "atoms"
   }
 ];

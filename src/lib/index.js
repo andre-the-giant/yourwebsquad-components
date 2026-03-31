@@ -22,3 +22,4 @@ export { default as GoogleReviews } from "./components/GoogleReviews/GoogleRevie
 export { default as Pipeda } from "./components/Pipeda/Pipeda.astro";
 export { default as PipedaSettings } from "./components/Pipeda/PipedaSettings.astro";
 export { default as StarRating } from "./components/StarRating/StarRating.astro";
+export { default as Tooltip } from "./components/Tooltip/Tooltip.astro";

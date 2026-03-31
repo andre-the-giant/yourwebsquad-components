@@ -1,0 +1,124 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Tooltip from "@lib/components/Tooltip/Tooltip.astro";
+
+const propsTable = [
+  {
+    name: "id",
+    type: "string",
+    description: "Tooltip element id. Also used by aria-describedby linkage."
+  },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline style string and CSS variable overrides." },
+  {
+    name: "text",
+    type: "string",
+    description: "Tooltip text fallback when default slot content is not provided."
+  },
+  {
+    name: "position",
+    type: '"top" | "right" | "bottom" | "left"',
+    default: '"top"',
+    description: "Tooltip placement relative to the trigger."
+  },
+  {
+    name: "maxWidth",
+    type: "string",
+    description: "CSS max width override for tooltip content (example: 16rem)."
+  },
+  {
+    name: "slot=\"trigger\"",
+    type: "slot",
+    description:
+      "Trigger element. Add data-tooltip-owner on the exact element to receive aria-describedby when needed."
+  },
+  {
+    name: "slot (default)",
+    type: "slot",
+    description: "Tooltip content. Use instead of text when rich markup is needed."
+  }
+];
+
+const defaultCode = `<Tooltip text="Saves your changes">
+  <button slot="trigger" type="button">Save</button>
+</Tooltip>`;
+
+const richContentCode = `<Tooltip position="right">
+  <button slot="trigger" type="button">Password rules</button>
+  <span>
+    Use at least 12 characters, with one number and one symbol.
+  </span>
+</Tooltip>`;
+
+const customOwnerCode = `<Tooltip text="More details about this icon" position="bottom">
+  <span slot="trigger" class="icon-trigger" tabindex="0" data-tooltip-owner aria-label="More information">i</span>
+</Tooltip>`;
+---
+
+<DocLayout
+  title="Tooltip"
+  description="Accessible tooltip that opens on hover/focus, stays open on hover, and closes on Escape."
+  items={components}
+>
+  <PropsTable props={propsTable} />
+
+  <div class="preview-grid">
+    <Preview title="Default" code={defaultCode}>
+      <Tooltip text="Saves your changes">
+        <button slot="trigger" type="button">Save</button>
+      </Tooltip>
+    </Preview>
+
+    <Preview title="Rich Content" code={richContentCode}>
+      <Tooltip position="right">
+        <button slot="trigger" type="button">Password rules</button>
+        <span>
+          Use at least 12 characters, with one number and one symbol.
+        </span>
+      </Tooltip>
+    </Preview>
+
+    <Preview title="Any Element Trigger" code={customOwnerCode}>
+      <Tooltip text="More details about this icon" position="bottom">
+        <span
+          slot="trigger"
+          class="icon-trigger"
+          tabindex="0"
+          data-tooltip-owner
+          aria-label="More information"
+        >
+          i
+        </span>
+      </Tooltip>
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .icon-trigger {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid #666;
+    border-radius: 999px;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: help;
+    user-select: none;
+  }
+
+  .icon-trigger:focus-visible {
+    outline: 2px solid #0b57d0;
+    outline-offset: 2px;
+  }
+</style>
