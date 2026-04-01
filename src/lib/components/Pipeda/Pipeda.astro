@@ -163,7 +163,7 @@ const resolvedClass = mergeClasses("pipeda", className);
         </fieldset>
 
         <div class="pipeda-banner__actions">
-          <Button type="button" size="lg" data-pipeda-save>{resolvedStrings.okLabel}</Button>
+          <Button type="submit" size="lg" data-pipeda-save>{resolvedStrings.okLabel}</Button>
           <Button type="button" size="lg" data-pipeda-close>
             {resolvedStrings.closeLabel}
           </Button>
@@ -290,29 +290,21 @@ const resolvedClass = mergeClasses("pipeda", className);
 
       form.addEventListener("submit", (event) => {
         event.preventDefault();
-      });
-
-      const saveButtons = Array.from(form.querySelectorAll("[data-pipeda-save]"));
-      saveButtons.forEach((button) => {
-        if (!(button instanceof HTMLElement)) return;
-        button.addEventListener("click", (event) => {
-          event.preventDefault();
-          const nextPrefs = getPrefsFromForm(form);
-          const saved = writeStoredConsent(nextPrefs);
-          applyPrefsToForm(form, nextPrefs);
-          if (saved) {
-            loadAllowedVendors(vendors, saved.prefs);
-            setBannerVisible(banner, false);
-            window.dispatchEvent(
-              new CustomEvent("yws:pipeda:change", {
-                detail: {
-                  prefs: saved.prefs,
-                  payload: saved
-                }
-              })
-            );
-          }
-        });
+        const nextPrefs = getPrefsFromForm(form);
+        const saved = writeStoredConsent(nextPrefs);
+        applyPrefsToForm(form, nextPrefs);
+        if (saved) {
+          loadAllowedVendors(vendors, saved.prefs);
+          setBannerVisible(banner, false);
+          window.dispatchEvent(
+            new CustomEvent("yws:pipeda:change", {
+              detail: {
+                prefs: saved.prefs,
+                payload: saved
+              }
+            })
+          );
+        }
       });
 
       const closeButtons = Array.from(form.querySelectorAll("[data-pipeda-close]"));
