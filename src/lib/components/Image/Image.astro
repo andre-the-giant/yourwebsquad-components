@@ -78,6 +78,8 @@ const schema = {
   format: { type: "string" },
   quality: { type: "number" },
   widths: { type: "array" },
+  width: { type: "number" },
+  height: { type: "number" },
   alt: { type: "string" },
   fetchpriority: { type: "string" },
   loading: { type: "string" },
@@ -94,6 +96,8 @@ const {
   format = "webp",
   quality = 60,
   widths = [640, 960, 1280, 1600, 1920],
+  width,
+  height,
   alt = "",
   fetchpriority = "high",
   loading = "lazy",
@@ -104,6 +108,7 @@ const {
 
 const resolvedSrc = resolveSrcValue(src) ?? resolveSrcValue(defaultSrc) ?? defaultSrc;
 const resolvedId = id ?? "image-" + Math.random().toString(36).slice(2, 9);
+const isRemoteSrc = typeof resolvedSrc === "string" && /^(?:https?:)?\/\//i.test(resolvedSrc);
 
 const imageDefaults = {
   format,
@@ -112,8 +117,11 @@ const imageDefaults = {
   widths,
   fetchpriority,
   loading,
-  width: 160,
-  height: 90
+  ...(typeof width === "number" ? { width } : {}),
+  ...(typeof height === "number" ? { height } : {}),
+  ...(typeof width !== "number" && typeof height !== "number" && isRemoteSrc
+    ? { width: 160, height: 90 }
+    : {})
 };
 
 const styleVars = {
