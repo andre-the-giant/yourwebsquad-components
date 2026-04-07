@@ -64,33 +64,31 @@ const resolvedClass = mergeClasses("modal", className);
   {...rest}
 >
   <div class="modal__panel" data-modal-panel>
-    <button
-      type="button"
-      class="modal__close"
-      aria-label={closeLabel}
-      data-modal-close
-      autofocus
-    >
+    <button type="button" class="modal__close" aria-label={closeLabel} data-modal-close autofocus>
       <span aria-hidden="true">&times;</span>
     </button>
 
-    {hasTitle ? (
-      <div class="modal__header">
-        <h2 id={titleId} class="modal__title">
-          <slot name="title">{title}</slot>
-        </h2>
-      </div>
-    ) : null}
+    {
+      hasTitle ? (
+        <div class="modal__header">
+          <h2 id={titleId} class="modal__title">
+            <slot name="title">{title}</slot>
+          </h2>
+        </div>
+      ) : null
+    }
 
     <div class="modal__body">
       <slot />
     </div>
 
-    {Astro.slots.has("footer") ? (
-      <footer class="modal__footer">
-        <slot name="footer" />
-      </footer>
-    ) : null}
+    {
+      Astro.slots.has("footer") ? (
+        <footer class="modal__footer">
+          <slot name="footer" />
+        </footer>
+      ) : null
+    }
   </div>
 </dialog>
 
@@ -186,7 +184,8 @@ const resolvedClass = mergeClasses("modal", className);
   };
 
   const handleTriggerClick = (event) => {
-    const trigger = event.target instanceof Element ? event.target.closest("[data-modal-open]") : null;
+    const trigger =
+      event.target instanceof Element ? event.target.closest("[data-modal-open]") : null;
     if (!(trigger instanceof HTMLElement)) return;
 
     const dialog = getDialogById(trigger.dataset.modalOpen);

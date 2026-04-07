@@ -6,9 +6,21 @@ import { components } from "@docs/data/components.js";
 import Modal from "@lib/components/Modal/Modal.astro";
 
 const propsTable = [
-  { name: "id", type: "string", description: "Required for external triggers and programmatic control." },
-  { name: "title", type: "string", description: "Fallback heading text when no `title` slot is provided." },
-  { name: "ariaLabel", type: "string", description: "Accessible name used when the modal has no visible title." },
+  {
+    name: "id",
+    type: "string",
+    description: "Required for external triggers and programmatic control."
+  },
+  {
+    name: "title",
+    type: "string",
+    description: "Fallback heading text when no `title` slot is provided."
+  },
+  {
+    name: "ariaLabel",
+    type: "string",
+    description: "Accessible name used when the modal has no visible title."
+  },
   { name: "closeLabel", type: "string", description: "Accessible label for the close button." },
   { name: "open", type: "boolean", description: "Open the modal on initial page load." },
   { name: "class", type: "string", description: "Additional class names for the dialog root." },
@@ -16,15 +28,47 @@ const propsTable = [
 ];
 
 const styleVars = [
-  { name: "--modal-width", type: "string", description: "Overall dialog width. Default: `min(100%, 42rem)`." },
-  { name: "--modal-max-height", type: "string", description: "Maximum dialog height. Default: `min(85vh, 48rem)`." },
-  { name: "--modal-padding", type: "string", description: "Inner spacing for the modal panel. Default: `1.5rem`." },
+  {
+    name: "--modal-width",
+    type: "string",
+    description: "Overall dialog width. Default: `min(100%, 42rem)`."
+  },
+  {
+    name: "--modal-max-height",
+    type: "string",
+    description: "Maximum dialog height. Default: `min(85vh, 48rem)`."
+  },
+  {
+    name: "--modal-padding",
+    type: "string",
+    description: "Inner spacing for the modal panel. Default: `1.5rem`."
+  },
   { name: "--modal-radius", type: "string", description: "Dialog corner radius. Default: `0`." },
-  { name: "--modal-surface", type: "string", description: "Dialog background color. Default: `#fff`." },
-  { name: "--modal-text", type: "string", description: "Text color inside the modal. Default: `#111827`." },
-  { name: "--modal-border", type: "string", description: "Dialog border color. Default: `rgb(17 24 39 / 0.08)`." },
-  { name: "--modal-shadow", type: "string", description: "Dialog shadow. Default: `0 1.5rem 4rem -2rem rgb(17 24 39 / 0.55)`." },
-  { name: "--modal-backdrop", type: "string", description: "Backdrop color behind the modal. Default: `rgb(17 24 39 / 0.6)`." }
+  {
+    name: "--modal-surface",
+    type: "string",
+    description: "Dialog background color. Default: `#fff`."
+  },
+  {
+    name: "--modal-text",
+    type: "string",
+    description: "Text color inside the modal. Default: `#111827`."
+  },
+  {
+    name: "--modal-border",
+    type: "string",
+    description: "Dialog border color. Default: `rgb(17 24 39 / 0.08)`."
+  },
+  {
+    name: "--modal-shadow",
+    type: "string",
+    description: "Dialog shadow. Default: `0 1.5rem 4rem -2rem rgb(17 24 39 / 0.55)`."
+  },
+  {
+    name: "--modal-backdrop",
+    type: "string",
+    description: "Backdrop color behind the modal. Default: `rgb(17 24 39 / 0.6)`."
+  }
 ];
 
 const triggerCode = `<button type="button" data-modal-open="modal-trigger-demo">Open modal</button>
@@ -88,8 +132,8 @@ const programmaticCode = `<button type="button" data-programmatic-open>Open prog
 }));`}</code></pre>
 
   <p>
-    Use the default slot for the modal body, the optional <code>title</code> slot to replace the
-    heading markup, and the optional <code>footer</code> slot for action buttons.
+    Use the default slot for the modal body, the optional <code>title</code> slot to replace the heading
+    markup, and the optional <code>footer</code> slot for action buttons.
   </p>
 
   <div class="preview-grid">
@@ -100,12 +144,16 @@ const programmaticCode = `<button type="button" data-programmatic-open>Open prog
 
       <Modal id="modal-trigger-demo" title="Book a consultation">
         <p>
-          This modal opens from an external button, traps focus while open, and restores focus to the
-          opener when it closes.
+          This modal opens from an external button, traps focus while open, and restores focus to
+          the opener when it closes.
         </p>
 
         <Fragment slot="footer">
-          <button type="button" class="modal-demo-trigger" data-modal-close-target="modal-trigger-demo">
+          <button
+            type="button"
+            class="modal-demo-trigger"
+            data-modal-close-target="modal-trigger-demo"
+          >
             Cancel
           </button>
           <button type="button" class="modal-demo-trigger">Continue</button>
