@@ -1,0 +1,36 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Modal from "@lib/components/Modal/Modal.astro";
+
+const propsTable = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." }
+];
+
+const defaultCode = "<Modal />";
+const customCode = '<Modal id="modal-sample" />';
+---
+
+<DocLayout title="Modal" description="A modal component" items={components}>
+  <PropsTable props={propsTable} />
+
+  <div class="preview-grid">
+    <Preview title="Default" code={defaultCode}>
+      <Modal />
+    </Preview>
+
+    <Preview title="Custom" code={customCode}>
+      <Modal id="modal-sample" />
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+</style>

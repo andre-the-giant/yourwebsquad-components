@@ -1,0 +1,50 @@
+---
+/*
+Props:
+- title?: string // TODO: document props
+- content?: { shape }
+Notes:
+- Update schema + props to match your component API.
+*/
+import { validateProps } from "../../utils/props.js";
+
+const schema = {
+  id: { type: "string" },
+  class: { type: "string" },
+  style: { type: "string" }
+};
+
+const {
+  id,
+  class: className,
+  style,
+  ...rest
+} = validateProps(schema, Astro.props, { component: "Modal" });
+
+const resolvedId = id ?? "modal-" + Math.random().toString(36).slice(2, 9);
+const styleVars = {
+  // "--modal-bg": "var(--color-bg)"
+};
+
+const inlineStyle = Object.entries(styleVars)
+  .filter(([, value]) => value !== undefined)
+  .map(([key, value]) => key + ": " + value)
+  .join("; ");
+
+const resolvedStyle = [inlineStyle, style].filter(Boolean).join("; ");
+const resolvedClass = `modal ${className ?? ""}`.trim();
+---
+
+<section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+  <slot>
+    <!-- TODO: replace with component structure -->
+    <p>Modal content goes here.</p>
+  </slot>
+</section>
+
+<style>
+  .modal {
+    display: block;
+    width: 100%;
+  }
+</style>

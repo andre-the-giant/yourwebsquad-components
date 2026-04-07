@@ -166,5 +166,11 @@ export const components = [
     href: "/components/atoms/tooltip",
     description: "A tooltip",
     group: "atoms"
+  },
+  {
+    name: "Modal",
+    href: "/components/components/modal",
+    description: "A modal component",
+    group: "components"
   }
 ];
