@@ -6,31 +6,194 @@ import { components } from "@docs/data/components.js";
 import Modal from "@lib/components/Modal/Modal.astro";
 
 const propsTable = [
-  { name: "id", type: "string", description: "Optional id for the root element." },
-  { name: "class", type: "string", description: "Additional class names." }
+  { name: "id", type: "string", description: "Required for external triggers and programmatic control." },
+  { name: "title", type: "string", description: "Fallback heading text when no `title` slot is provided." },
+  { name: "ariaLabel", type: "string", description: "Accessible name used when the modal has no visible title." },
+  { name: "closeLabel", type: "string", description: "Accessible label for the close button." },
+  { name: "open", type: "boolean", description: "Open the modal on initial page load." },
+  { name: "class", type: "string", description: "Additional class names for the dialog root." },
+  { name: "style", type: "string", description: "Inline style or CSS variable overrides." }
 ];
 
-const defaultCode = "<Modal />";
-const customCode = '<Modal id="modal-sample" />';
+const styleVars = [
+  { name: "--modal-width", type: "string", description: "Overall dialog width. Default: `min(100%, 42rem)`." },
+  { name: "--modal-max-height", type: "string", description: "Maximum dialog height. Default: `min(85vh, 48rem)`." },
+  { name: "--modal-padding", type: "string", description: "Inner spacing for the modal panel. Default: `1.5rem`." },
+  { name: "--modal-radius", type: "string", description: "Dialog corner radius. Default: `0`." },
+  { name: "--modal-surface", type: "string", description: "Dialog background color. Default: `#fff`." },
+  { name: "--modal-text", type: "string", description: "Text color inside the modal. Default: `#111827`." },
+  { name: "--modal-border", type: "string", description: "Dialog border color. Default: `rgb(17 24 39 / 0.08)`." },
+  { name: "--modal-shadow", type: "string", description: "Dialog shadow. Default: `0 1.5rem 4rem -2rem rgb(17 24 39 / 0.55)`." },
+  { name: "--modal-backdrop", type: "string", description: "Backdrop color behind the modal. Default: `rgb(17 24 39 / 0.6)`." }
+];
+
+const triggerCode = `<button type="button" data-modal-open="modal-trigger-demo">Open modal</button>
+
+<Modal id="modal-trigger-demo" title="Book a consultation">
+  <p>Modal content goes here.</p>
+</Modal>`;
+
+const linkCode = `<a href="#modal-link-demo" data-modal-open="modal-link-demo">Open from a link</a>
+
+<Modal id="modal-link-demo" title="Accessibility">
+  <p>Focus returns to the activating link when the modal closes.</p>
+</Modal>`;
+
+const programmaticCode = `<button type="button" data-programmatic-open>Open programmatically</button>
+
+<script>
+  document.querySelector("[data-programmatic-open]")?.addEventListener("click", () => {
+    window.dispatchEvent(new CustomEvent("modal:open", {
+      detail: { id: "modal-programmatic-demo" }
+    }));
+  });
+</script>`;
 ---
 
-<DocLayout title="Modal" description="A modal component" items={components}>
+<DocLayout
+  title="Modal"
+  description="Accessible modal dialog built on the native dialog element with external triggers and custom-event control."
+  items={components}
+>
+  <p>
+    Modal uses the native <code>dialog</code> element and opens with <code>showModal()</code>. The
+    close button is the first tabbable control, focus is kept in the dialog while it is open, the
+    backdrop and <code>Escape</code> close it, and focus returns to the opener on close.
+  </p>
+
   <PropsTable props={propsTable} />
+  <PropsTable props={styleVars} title="Style Variables" />
+
+  <h2>Usage</h2>
+
+  <p>
+    Give the modal an <code>id</code>, then open it from any external button or link with
+    <code>data-modal-open="that-id"</code>. To close it from another control, use
+    <code>data-modal-close-target="that-id"</code>.
+  </p>
+
+  <pre><code>{`<button type="button" data-modal-open="newsletter-modal">Open modal</button>
+
+<Modal id="newsletter-modal" title="Join the newsletter">
+  <p>Stay posted on new releases.</p>
+</Modal>`}</code></pre>
+
+  <p>
+    You can also control the modal programmatically with window events. The component listens for
+    <code>modal:open</code>, <code>modal:close</code>, and <code>modal:toggle</code>.
+  </p>
+
+  <pre><code>{`window.dispatchEvent(new CustomEvent("modal:open", {
+  detail: { id: "newsletter-modal" }
+}));`}</code></pre>
+
+  <p>
+    Use the default slot for the modal body, the optional <code>title</code> slot to replace the
+    heading markup, and the optional <code>footer</code> slot for action buttons.
+  </p>
 
   <div class="preview-grid">
-    <Preview title="Default" code={defaultCode}>
-      <Modal />
+    <Preview title="Button Trigger" code={triggerCode}>
+      <button type="button" class="modal-demo-trigger" data-modal-open="modal-trigger-demo">
+        Open modal
+      </button>
+
+      <Modal id="modal-trigger-demo" title="Book a consultation">
+        <p>
+          This modal opens from an external button, traps focus while open, and restores focus to the
+          opener when it closes.
+        </p>
+
+        <Fragment slot="footer">
+          <button type="button" class="modal-demo-trigger" data-modal-close-target="modal-trigger-demo">
+            Cancel
+          </button>
+          <button type="button" class="modal-demo-trigger">Continue</button>
+        </Fragment>
+      </Modal>
     </Preview>
 
-    <Preview title="Custom" code={customCode}>
-      <Modal id="modal-sample" />
+    <Preview title="Link Trigger" code={linkCode}>
+      <a href="#modal-link-demo" data-modal-open="modal-link-demo">Open from a link</a>
+
+      <Modal id="modal-link-demo" title="Accessibility behavior">
+        <p>
+          Closing this dialog returns focus to the link that opened it. You can also dismiss it with
+          the backdrop or the Escape key.
+        </p>
+      </Modal>
+    </Preview>
+
+    <Preview title="Programmatic Control" code={programmaticCode}>
+      <div class="modal-demo-actions">
+        <button type="button" class="modal-demo-trigger" data-programmatic-open>
+          Open programmatically
+        </button>
+        <button type="button" class="modal-demo-trigger" data-programmatic-close>
+          Close programmatically
+        </button>
+      </div>
+
+      <Modal id="modal-programmatic-demo" title="Programmatic modal">
+        <p>
+          Dispatch a custom event on <code>window</code> to open, close, or toggle the modal from any
+          script.
+        </p>
+      </Modal>
     </Preview>
   </div>
 </DocLayout>
+
+<script>
+  const openButton = document.querySelector("[data-programmatic-open]");
+  const closeButton = document.querySelector("[data-programmatic-close]");
+
+  openButton?.addEventListener("click", () => {
+    window.dispatchEvent(
+      new CustomEvent("modal:open", {
+        detail: { id: "modal-programmatic-demo" }
+      })
+    );
+  });
+
+  closeButton?.addEventListener("click", () => {
+    window.dispatchEvent(
+      new CustomEvent("modal:close", {
+        detail: { id: "modal-programmatic-demo" }
+      })
+    );
+  });
+</script>
 
 <style>
   .preview-grid {
     display: grid;
     gap: var(--space-4);
+  }
+
+  .modal-demo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .modal-demo-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 400;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .modal-demo-trigger:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
   }
 </style>

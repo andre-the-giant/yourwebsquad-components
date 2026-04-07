@@ -1,50 +1,340 @@
 ---
 /*
 Props:
-- title?: string // TODO: document props
-- content?: { shape }
-Notes:
-- Update schema + props to match your component API.
+- id?: string
+- class?: string
+- style?: string
+- title?: string
+- ariaLabel?: string
+- closeLabel?: string
+- open?: boolean
 */
 import { validateProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
 const schema = {
   id: { type: "string" },
   class: { type: "string" },
-  style: { type: "string" }
+  style: { type: "string" },
+  title: { type: "string" },
+  ariaLabel: { type: "string" },
+  closeLabel: { type: "string" },
+  open: { type: "boolean" }
 };
 
 const {
   id,
   class: className,
   style,
+  title,
+  ariaLabel = "Modal dialog",
+  closeLabel = "Close modal",
+  open = false,
   ...rest
 } = validateProps(schema, Astro.props, { component: "Modal" });
 
-const resolvedId = id ?? "modal-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? `modal-${Math.random().toString(36).slice(2, 9)}`;
+const titleId = `${resolvedId}-title`;
+const hasTitle = Boolean(title) || Astro.slots.has("title");
+
 const styleVars = {
-  // "--modal-bg": "var(--color-bg)"
+  "--modal-width": "min(100%, 42rem)",
+  "--modal-max-height": "min(85vh, 48rem)",
+  "--modal-padding": "1.5rem",
+  "--modal-radius": "0",
+  "--modal-surface": "#fff",
+  "--modal-text": "#111827",
+  "--modal-border": "rgb(17 24 39 / 0.08)",
+  "--modal-shadow": "0 1.5rem 4rem -2rem rgb(17 24 39 / 0.55)",
+  "--modal-backdrop": "rgb(17 24 39 / 0.6)"
 };
 
-const inlineStyle = Object.entries(styleVars)
-  .filter(([, value]) => value !== undefined)
-  .map(([key, value]) => key + ": " + value)
-  .join("; ");
-
-const resolvedStyle = [inlineStyle, style].filter(Boolean).join("; ");
-const resolvedClass = `modal ${className ?? ""}`.trim();
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("modal", className);
 ---
 
-<section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
-  <slot>
-    <!-- TODO: replace with component structure -->
-    <p>Modal content goes here.</p>
-  </slot>
-</section>
+<dialog
+  id={resolvedId}
+  class={resolvedClass}
+  style={resolvedStyle || undefined}
+  aria-labelledby={hasTitle ? titleId : undefined}
+  aria-label={hasTitle ? undefined : ariaLabel}
+  data-modal-root
+  data-modal-initial-open={open ? "true" : "false"}
+  {...rest}
+>
+  <div class="modal__panel" data-modal-panel>
+    <button
+      type="button"
+      class="modal__close"
+      aria-label={closeLabel}
+      data-modal-close
+      autofocus
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+
+    {hasTitle ? (
+      <div class="modal__header">
+        <h2 id={titleId} class="modal__title">
+          <slot name="title">{title}</slot>
+        </h2>
+      </div>
+    ) : null}
+
+    <div class="modal__body">
+      <slot />
+    </div>
+
+    {Astro.slots.has("footer") ? (
+      <footer class="modal__footer">
+        <slot name="footer" />
+      </footer>
+    ) : null}
+  </div>
+</dialog>
+
+<script>
+  const OPEN_EVENT = "modal:open";
+  const CLOSE_EVENT = "modal:close";
+  const TOGGLE_EVENT = "modal:toggle";
+
+  const modalState = window.__ywsModalState ?? new WeakMap();
+  window.__ywsModalState = modalState;
+
+  const onReady = (callback) => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", callback, { once: true });
+      return;
+    }
+
+    callback();
+  };
+
+  const canFocus = (element) =>
+    element instanceof HTMLElement &&
+    !element.hasAttribute("disabled") &&
+    element.getAttribute("aria-hidden") !== "true" &&
+    !element.inert;
+
+  const restoreFocus = (dialog) => {
+    const opener = modalState.get(dialog)?.opener;
+    if (canFocus(opener) && opener?.isConnected) {
+      opener.focus();
+    }
+  };
+
+  const closeModal = (dialog) => {
+    if (!(dialog instanceof HTMLDialogElement) || !dialog.open) return;
+    dialog.close();
+  };
+
+  const closeOtherOpenDialogs = (dialogToKeep) => {
+    document.querySelectorAll("dialog[open][data-modal-root]").forEach((dialog) => {
+      if (!(dialog instanceof HTMLDialogElement)) return;
+      if (dialog === dialogToKeep) return;
+      closeModal(dialog);
+    });
+  };
+
+  const openModal = (dialog, opener) => {
+    if (!(dialog instanceof HTMLDialogElement)) return;
+
+    if (dialog.open) return;
+
+    closeOtherOpenDialogs(dialog);
+    modalState.set(dialog, {
+      opener: canFocus(opener) ? opener : document.activeElement
+    });
+    dialog.showModal();
+  };
+
+  const getDialogById = (id) => {
+    const value = String(id ?? "").trim();
+    if (!value) return null;
+    const node = document.getElementById(value);
+    return node instanceof HTMLDialogElement ? node : null;
+  };
+
+  const initDialog = (dialog) => {
+    if (!(dialog instanceof HTMLDialogElement)) return;
+    if (dialog.dataset.modalReady === "true") return;
+
+    dialog.dataset.modalReady = "true";
+
+    const closeButton = dialog.querySelector("[data-modal-close]");
+    if (closeButton instanceof HTMLElement) {
+      closeButton.addEventListener("click", () => closeModal(dialog));
+    }
+
+    dialog.addEventListener("click", (event) => {
+      if (event.target !== dialog) return;
+      closeModal(dialog);
+    });
+
+    dialog.addEventListener("close", () => {
+      restoreFocus(dialog);
+    });
+
+    dialog.addEventListener("cancel", () => {
+      restoreFocus(dialog);
+    });
+
+    if (dialog.dataset.modalInitialOpen === "true") {
+      openModal(dialog, document.activeElement);
+    }
+  };
+
+  const handleTriggerClick = (event) => {
+    const trigger = event.target instanceof Element ? event.target.closest("[data-modal-open]") : null;
+    if (!(trigger instanceof HTMLElement)) return;
+
+    const dialog = getDialogById(trigger.dataset.modalOpen);
+    if (!dialog) return;
+
+    event.preventDefault();
+    openModal(dialog, trigger);
+  };
+
+  const handleCloseTriggerClick = (event) => {
+    const trigger =
+      event.target instanceof Element ? event.target.closest("[data-modal-close-target]") : null;
+    if (!(trigger instanceof HTMLElement)) return;
+
+    const dialog = getDialogById(trigger.dataset.modalCloseTarget);
+    if (!dialog) return;
+
+    event.preventDefault();
+    closeModal(dialog);
+  };
+
+  const handleEventRequest = (event, action) => {
+    const detail = event instanceof CustomEvent ? event.detail : null;
+    const dialog = getDialogById(detail?.id);
+    if (!dialog) return;
+
+    if (action === "open") {
+      openModal(dialog, document.activeElement);
+      return;
+    }
+
+    if (action === "close") {
+      closeModal(dialog);
+      return;
+    }
+
+    if (dialog.open) {
+      closeModal(dialog);
+    } else {
+      openModal(dialog, document.activeElement);
+    }
+  };
+
+  onReady(() => {
+    document.querySelectorAll("dialog[data-modal-root]").forEach(initDialog);
+    if (window.__ywsModalControllerReady === true) return;
+
+    window.__ywsModalControllerReady = true;
+
+    document.addEventListener("click", handleTriggerClick);
+    document.addEventListener("click", handleCloseTriggerClick);
+    window.addEventListener(OPEN_EVENT, (event) => handleEventRequest(event, "open"));
+    window.addEventListener(CLOSE_EVENT, (event) => handleEventRequest(event, "close"));
+    window.addEventListener(TOGGLE_EVENT, (event) => handleEventRequest(event, "toggle"));
+  });
+</script>
 
 <style>
   .modal {
-    display: block;
-    width: 100%;
+    width: var(--modal-width);
+    max-width: calc(100vw - 2rem);
+    max-height: var(--modal-max-height);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--modal-border);
+    border-radius: var(--modal-radius);
+    background: var(--modal-surface);
+    color: var(--modal-text);
+    box-shadow: var(--modal-shadow);
+    overflow: hidden;
+  }
+
+  .modal::backdrop {
+    background: var(--modal-backdrop);
+    backdrop-filter: blur(0.25rem);
+  }
+
+  .modal__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    max-height: var(--modal-max-height);
+    padding: var(--modal-padding);
+    gap: 1rem;
+  }
+
+  .modal__close {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--modal-border);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    line-height: 1;
+  }
+
+  .modal__close span {
+    font-size: 1.5rem;
+  }
+
+  .modal__header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .modal__title {
+    margin: 0;
+    font-size: clamp(1.375rem, 2vw, 1.75rem);
+    line-height: 1.2;
+  }
+
+  .modal__body {
+    overflow: auto;
+  }
+
+  .modal__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .modal__close:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 0.2rem;
+  }
+
+  @media (max-width: 40rem) {
+    .modal {
+      max-width: calc(100vw - 1rem);
+    }
+
+    .modal__panel {
+      padding: 1rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .modal {
+      scroll-behavior: auto;
+    }
   }
 </style>
