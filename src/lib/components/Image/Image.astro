@@ -48,6 +48,15 @@ function findLocalAsset(target = "") {
   return null;
 }
 
+// Parse intrinsic dimensions encoded in a remote image filename, e.g. a Sanity
+// CDN URL like `…-1333x2000.jpg`. Returns null when not present, so the image
+// keeps its real aspect ratio instead of a fixed fallback.
+function parseRemoteDims(url) {
+  if (typeof url !== "string") return null;
+  const match = url.match(/-(\d+)x(\d+)\.\w+/);
+  return match ? { width: Number(match[1]), height: Number(match[2]) } : null;
+}
+
 function resolveSrcValue(value) {
   if (!value) return null;
 
@@ -110,6 +119,13 @@ const resolvedSrc = resolveSrcValue(src) ?? resolveSrcValue(defaultSrc) ?? defau
 const resolvedId = id ?? "image-" + Math.random().toString(36).slice(2, 9);
 const isRemoteSrc = typeof resolvedSrc === "string" && /^(?:https?:)?\/\//i.test(resolvedSrc);
 
+// When a remote image has no explicit dimensions, try to read its real size
+// from the URL so it keeps its true aspect ratio (falls back to 16:9).
+const remoteDims =
+  typeof width !== "number" && typeof height !== "number" && isRemoteSrc
+    ? parseRemoteDims(resolvedSrc)
+    : null;
+
 const imageDefaults = {
   format,
   sizes,
@@ -120,14 +136,21 @@ const imageDefaults = {
   ...(typeof width === "number" ? { width } : {}),
   ...(typeof height === "number" ? { height } : {}),
   ...(typeof width !== "number" && typeof height !== "number" && isRemoteSrc
-    ? { width: 160, height: 90 }
+    ? (remoteDims ?? { width: 160, height: 90 })
     : {})
 };
+
+const resolvedAspectRatio =
+  typeof width === "number" && typeof height === "number"
+    ? `${width}/${height}`
+    : remoteDims
+      ? `${remoteDims.width}/${remoteDims.height}`
+      : "16/9";
 
 const styleVars = {
   "--image-object-fit": "cover",
   "--image-object-position": "center",
-  "--image-aspect-ratio": "16/9"
+  "--image-aspect-ratio": resolvedAspectRatio
 };
 
 const resolvedStyle = makeStyleVars(styleVars, style);
