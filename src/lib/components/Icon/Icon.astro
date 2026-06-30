@@ -135,7 +135,7 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
 ---
 
 <svg
-  {...({
+  {...{
     id: resolvedId,
     class: resolvedClass,
     width: iconSize,
@@ -150,7 +150,7 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
     "aria-hidden": resolvedLabel ? undefined : "true",
     "aria-label": resolvedLabel,
     style: resolvedStyle || undefined
-  } as any)}
+  } as any}
 >
   {resolvedLabel && <title>{resolvedLabel}</title>}
   <g set:html={innerSvg} />

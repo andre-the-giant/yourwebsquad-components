@@ -115,11 +115,7 @@ if (formId || form) {
   normalizedForm = await loadFormDefinition({ formId, form });
 }
 
-const formHtmlId =
-  id ??
-  (normalizedForm?.id
-    ? `form-${normalizedForm.id}`
-    : nextId("form"));
+const formHtmlId = id ?? (normalizedForm?.id ? `form-${normalizedForm.id}` : nextId("form"));
 const resolvedAction = actionProp ?? normalizedForm?.endpoint;
 const resolvedTitle = normalizedForm ? resolveLocalized(normalizedForm.title, locale) : undefined;
 

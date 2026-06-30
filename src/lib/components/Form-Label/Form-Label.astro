@@ -43,12 +43,7 @@ const resolvedClass = mergeClasses("form-label", className);
 
 {
   tag === "span" ? (
-    <span
-      id={resolvedId}
-      class={resolvedClass}
-      style={resolvedStyle || undefined}
-      {...rest}
-    >
+    <span id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
       {visuallyHidden ? <span class="sr-only">{label}</span> : label}
       {required ? <span class="required">*</span> : null}
     </span>

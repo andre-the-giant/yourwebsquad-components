@@ -12,7 +12,7 @@ fixes and correct handling of WCAG 1.4.13 in Tooltip).
 But six months of organic growth has accumulated debt that now blocks the next stage:
 
 - **No type safety.** Component contracts are enforced by a hand-rolled runtime
-  validator (`src/lib/utils/props.js`) that *throws on render* — one bad prop can crash
+  validator (`src/lib/utils/props.js`) that _throws on render_ — one bad prop can crash
   a whole static build. There is no editor autocomplete for consumers.
 - **A duplicated, partly-broken export layer.** Every component has a passthrough
   `index.astro` (`<Component {...props} />`) that, in several cases, **drops slotted
@@ -30,11 +30,11 @@ component import names stable so consuming projects need minimal changes.
 
 ### Decisions locked with the user
 
-| Area | Decision |
-|------|----------|
+| Area         | Decision                                                                                                                                           |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Props/typing | **Zod schemas** — single source of truth → infer TS types + runtime validation. Unifies with the existing `forms-content-schema.js` (already zod). |
-| Theming | **Tokens cleanup + make theme-ready. Do NOT ship a dark theme yet.** |
-| Distribution | **Stay private, git/path-based** (keep `bumpitup` + git tags). No registry/publish work. |
+| Theming      | **Tokens cleanup + make theme-ready. Do NOT ship a dark theme yet.**                                                                               |
+| Distribution | **Stay private, git/path-based** (keep `bumpitup` + git tags). No registry/publish work.                                                           |
 
 ---
 
@@ -42,37 +42,37 @@ component import names stable so consuming projects need minimal changes.
 
 ### Architecture / cross-cutting
 
-| # | Issue | Severity | Evidence |
-|---|-------|----------|----------|
-| A1 | Hand-rolled runtime `validateProps` that **throws** instead of TS/zod types | High | `src/lib/utils/props.js`; used in every component |
-| A2 | Passthrough `index.astro` wrappers — redundant, and **drop slotted children** | High | `Form/index.astro` = `<Form {...props} />` with no `<slot/>` |
-| A3 | Two inconsistent public APIs: `index.js` barrel vs `exports["./*"]` subpath | Medium | `src/lib/index.js` mixes `Button.astro` and `index.astro` sources |
-| A4 | No tests, no ESLint, no `astro check`, no a11y automation in CI | High | `package.json`, `.github/workflows/main.yml` (build + FTP only) |
-| A5 | `Math.random()` IDs everywhere → non-reproducible builds, collision risk on the very IDs used for label↔input wiring | Medium | all components, e.g. `Modal.astro:37` |
-| A6 | Atomic-design taxonomy exists only in `docs/`, not `lib/` (flat); third tier mis-named "components" → self-referential `docs/pages/components/components` | Low | `scripts/create-component.js` groups, `src/docs/pages/components/` |
-| A7 | Inconsistent component API styles (flat props vs `content={{…}}` objects) — leftover from a refactor | Medium | `Link.astro` passes `content={{name}}` to `Icon` which expects flat `name` |
-| A8 | CI deploys docs via FTP with `dangerous-clean-slate: true`, no quality gate before deploy | Medium | `.github/workflows/main.yml` |
+| #   | Issue                                                                                                                                                     | Severity | Evidence                                                                   |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------- |
+| A1  | Hand-rolled runtime `validateProps` that **throws** instead of TS/zod types                                                                               | High     | `src/lib/utils/props.js`; used in every component                          |
+| A2  | Passthrough `index.astro` wrappers — redundant, and **drop slotted children**                                                                             | High     | `Form/index.astro` = `<Form {...props} />` with no `<slot/>`               |
+| A3  | Two inconsistent public APIs: `index.js` barrel vs `exports["./*"]` subpath                                                                               | Medium   | `src/lib/index.js` mixes `Button.astro` and `index.astro` sources          |
+| A4  | No tests, no ESLint, no `astro check`, no a11y automation in CI                                                                                           | High     | `package.json`, `.github/workflows/main.yml` (build + FTP only)            |
+| A5  | `Math.random()` IDs everywhere → non-reproducible builds, collision risk on the very IDs used for label↔input wiring                                      | Medium   | all components, e.g. `Modal.astro:37`                                      |
+| A6  | Atomic-design taxonomy exists only in `docs/`, not `lib/` (flat); third tier mis-named "components" → self-referential `docs/pages/components/components` | Low      | `scripts/create-component.js` groups, `src/docs/pages/components/`         |
+| A7  | Inconsistent component API styles (flat props vs `content={{…}}` objects) — leftover from a refactor                                                      | Medium   | `Link.astro` passes `content={{name}}` to `Icon` which expects flat `name` |
+| A8  | CI deploys docs via FTP with `dangerous-clean-slate: true`, no quality gate before deploy                                                                 | Medium   | `.github/workflows/main.yml`                                               |
 
 ### Component-level a11y / bugs
 
-| # | Component | Issue | WCAG / type |
-|---|-----------|-------|-------------|
-| C1 | **Link** | Passes `content={{name:"external"}}` to Icon (API is flat `name`) → renders fallback "spark" icon, not an external-link glyph | **Functional bug** |
-| C2 | **Image** | `alt=""` **default** → every image decorative-by-default; guaranteed missing alt across projects | 1.1.1 |
-| C3 | **Image** | `fetchpriority="high"` AND `loading="lazy"` defaults on every image; contradictory, hurts LCP/CWV | Perf |
-| C4 | **Image** | Baked-in remote `picsum.photos` placeholder as default `src` | Smell/privacy |
-| C5 | **Accordion** | No-JS = content unreachable (panels collapsed in CSS, expansion only in client JS) | 1.3.1 / robustness |
-| C6 | **Accordion** | Closed panels get `aria-hidden="true"` but their links stay focusable → focusable-inside-aria-hidden | 4.1.2 |
-| C7 | **Button** | `disabled` on the anchor (`href`) variant only sets `aria-disabled` — link still focusable & follows href | 4.1.2 / behavior |
-| C8 | **Form-Label** | `visuallyHidden` + `tag="span"` sets `aria-hidden` on the wrapper → label hidden from SR too | 1.3.1 / 4.1.2 |
-| C9 | **Form-Error** | Sets both `role="alert"` and `aria-live="polite"` (contradictory) | 4.1.3 |
-| C10 | **Forms** | No composed `Field` — consumer manually syncs `helpId`/`errorId`/`ariaInvalid`/`aria-describedby` across 3 components | 1.3.1 / 3.3.1 |
-| C11 | **Alert** | `soft` tone uses raw hue as text color on 7% tint → warning/success ≈ 3.4:1 | 1.4.3 |
-| C12 | **Tooltip** | Relies on `:focus-within`; if `trigger` slot content isn't focusable, no keyboard/SR access | 2.1.1 |
-| C13 | **Modal**, **Tooltip** | Hardcoded hex (`#fff`, `#111827`, `#111`) bypass tokens → can't theme | Theming |
-| C14 | **Icon** | `sanitizeSvgString()` strips only fill/stroke/style, not `<script>`/`on*`, then `set:html` → stored-XSS risk if `svg`/`svgPath` ever come from a CMS | **Security** |
+| #   | Component              | Issue                                                                                                                                                | WCAG / type        |
+| --- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| C1  | **Link**               | Passes `content={{name:"external"}}` to Icon (API is flat `name`) → renders fallback "spark" icon, not an external-link glyph                        | **Functional bug** |
+| C2  | **Image**              | `alt=""` **default** → every image decorative-by-default; guaranteed missing alt across projects                                                     | 1.1.1              |
+| C3  | **Image**              | `fetchpriority="high"` AND `loading="lazy"` defaults on every image; contradictory, hurts LCP/CWV                                                    | Perf               |
+| C4  | **Image**              | Baked-in remote `picsum.photos` placeholder as default `src`                                                                                         | Smell/privacy      |
+| C5  | **Accordion**          | No-JS = content unreachable (panels collapsed in CSS, expansion only in client JS)                                                                   | 1.3.1 / robustness |
+| C6  | **Accordion**          | Closed panels get `aria-hidden="true"` but their links stay focusable → focusable-inside-aria-hidden                                                 | 4.1.2              |
+| C7  | **Button**             | `disabled` on the anchor (`href`) variant only sets `aria-disabled` — link still focusable & follows href                                            | 4.1.2 / behavior   |
+| C8  | **Form-Label**         | `visuallyHidden` + `tag="span"` sets `aria-hidden` on the wrapper → label hidden from SR too                                                         | 1.3.1 / 4.1.2      |
+| C9  | **Form-Error**         | Sets both `role="alert"` and `aria-live="polite"` (contradictory)                                                                                    | 4.1.3              |
+| C10 | **Forms**              | No composed `Field` — consumer manually syncs `helpId`/`errorId`/`ariaInvalid`/`aria-describedby` across 3 components                                | 1.3.1 / 3.3.1      |
+| C11 | **Alert**              | `soft` tone uses raw hue as text color on 7% tint → warning/success ≈ 3.4:1                                                                          | 1.4.3              |
+| C12 | **Tooltip**            | Relies on `:focus-within`; if `trigger` slot content isn't focusable, no keyboard/SR access                                                          | 2.1.1              |
+| C13 | **Modal**, **Tooltip** | Hardcoded hex (`#fff`, `#111827`, `#111`) bypass tokens → can't theme                                                                                | Theming            |
+| C14 | **Icon**               | `sanitizeSvgString()` strips only fill/stroke/style, not `<script>`/`on*`, then `set:html` → stored-XSS risk if `svg`/`svgPath` ever come from a CMS | **Security**       |
 
-> Note: items C5–C14 are mostly *subtle* — the components are well-built. The recurring
+> Note: items C5–C14 are mostly _subtle_ — the components are well-built. The recurring
 > root causes are A1 (no type contract), A5 (random IDs), and hardcoded colors (C13).
 
 ---
@@ -81,7 +81,8 @@ component import names stable so consuming projects need minimal changes.
 
 Ordered by dependency. Each is independently shippable behind the v3 milestone.
 
-### WS1 — Typing & validation (zod)  *(foundation)*
+### WS1 — Typing & validation (zod) _(foundation)_
+
 - Add a shared helper `src/lib/utils/props.js` → replace `validateProps` with
   `parseProps(schema, Astro.props, { component })` that calls `schema.safeParse()` and,
   on failure, **`console.warn`s in dev and coerces to defaults** rather than throwing
@@ -94,10 +95,10 @@ Ordered by dependency. Each is independently shippable behind the v3 milestone.
   const Schema = z.object({
     id: z.string().optional(),
     class: z.string().optional(),
-    variant: z.enum(["solid","outline","ghost"]).default("solid"),
+    variant: z.enum(["solid", "outline", "ghost"]).default("solid")
     // ...
   });
-  export type Props = z.infer<typeof Schema>;   // consumer autocomplete
+  export type Props = z.infer<typeof Schema>; // consumer autocomplete
   const { variant, ...rest } = parseProps(Schema, Astro.props, { component: "Button" });
   ---
   ```
@@ -106,6 +107,7 @@ Ordered by dependency. Each is independently shippable behind the v3 milestone.
 - Enable real type-checking: add `astro check` to scripts and CI (WS5).
 
 ### WS2 — Structure & exports
+
 - **Delete the passthrough `index.astro` wrappers** (fixes A2 slot-dropping). Point the
   `exports` map and `lib/index.js` at the single real `Component.astro` for every
   component. One source per component.
@@ -115,7 +117,7 @@ Ordered by dependency. Each is independently shippable behind the v3 milestone.
 - Optional (low risk, high clarity): rename the third atomic tier `components → organisms`
   in the scaffolder + docs; mirror atoms/molecules/organisms folders inside `lib/components`.
 
-### WS3 — Token cleanup → theme contract for AI-driven theming  *(scope confirmed; deferred until after the zod migration)*
+### WS3 — Token cleanup → theme contract for AI-driven theming _(scope confirmed; deferred until after the zod migration)_
 
 **Audit finding (2026-06-29):** the architecture is already correct — `tokens.css` has a
 3-tier structure (primitive `--color-*-rgb` → semantic `--color-accent`/`--color-surface`
@@ -128,7 +130,7 @@ override block that Claude can generate and that can be contrast-validated mecha
 1. **Plug the color leaks** — route every component-local hardcoded color through the semantic
    layer. Concentrated in **ComparisonSlider** (~20 literals) and **GoogleReviews** (~30),
    plus **Modal**/**Tooltip** (`#fff`/`#111`) and shadow/overlay `rgba(0,0,0,…)` in
-   Form-Checkbox / Form-Upload / PhotoRoll. *Exception:* genuine Google-brand colors in
+   Form-Checkbox / Form-Upload / PhotoRoll. _Exception:_ genuine Google-brand colors in
    GoogleReviews stay hardcoded, clearly commented as brand (not themeable).
 2. **Complete the semantic layer** — introduce a feedback color set
    (`--color-danger/success/warning/info` + AA-safe `*-contrast`/text variants); make
@@ -149,17 +151,18 @@ axe contrast checks on the contract's fg/bg pairs, then iterates. One block rest
 components; contrast is mechanically verifiable.
 
 ### WS4 — Accessibility hardening (per-component fixes)
+
 - **Image**: make `alt` required in the schema (or require explicit `alt=""` +
   `decorative` flag); dev-warn when missing. Fix `fetchpriority`/`loading` defaults
   (default `loading="lazy"`, `fetchpriority="auto"`; expose a `priority` flag for the LCP
   image). Remove the baked-in `picsum` default. (C2/C3/C4)
-- **Accordion**: render panels open-by-default in CSS and *collapse via an `inert`/`hidden`
-  attribute toggled in JS*, so no-JS users see content and closed panels are not focusable.
+- **Accordion**: render panels open-by-default in CSS and _collapse via an `inert`/`hidden`
+  attribute toggled in JS_, so no-JS users see content and closed panels are not focusable.
   Encourage `<h3><button>` trigger structure in docs. (C5/C6)
 - **Button**: when `disabled` + `href`, render a `<button>` (or omit `href` +
   `tabindex="-1"` + `aria-disabled`) so it can't be activated. (C7)
 - **Form-Label**: drop `aria-hidden` from the `visuallyHidden` span branch. (C8)
-- **Form-Error**: use `role="alert"` *or* `aria-live`, not both; default to a single
+- **Form-Error**: use `role="alert"` _or_ `aria-live`, not both; default to a single
   consistent live-region strategy. (C9)
 - **Alert**: give `soft` tone an accessible text token meeting 4.5:1 for all four types. (C11)
 - **Tooltip**: enforce/ensure a focusable trigger (auto-add `tabindex="0"` when the slot's
@@ -168,20 +171,23 @@ components; contrast is mechanically verifiable.
   `svg`/`svgPath` paths, or restrict those props to build-time/trusted input and document
   it. (C14)
 
-### WS5 — New composed Form `Field` (biggest forms win)  *(C10)*
+### WS5 — New composed Form `Field` (biggest forms win) _(C10)_
+
 - Add `FormField` that owns one generated id and auto-wires `<FormLabel>`, `<FormInput>`
   (or select/textarea/etc.), `<FormHelp>`, `<FormError>`: sets `for`, `aria-describedby`
   (help+error), and `aria-invalid` automatically when an error is present.
-- Keep the existing atomic Form-* components exported for advanced/manual composition.
+- Keep the existing atomic Form-\* components exported for advanced/manual composition.
 
-### WS6 — Deterministic IDs  *(A5)*
+### WS6 — Deterministic IDs _(A5)_
+
 - Replace `Math.random()` with a small `nextId(prefix)` util: a monotonic per-build
   counter (e.g. `form-input-1`) so builds are reproducible and snapshot/diff-stable, with
   consumer-supplied `id` always taking precedence. (Astro `.astro` components aren't
   hydrated, so there's no client mismatch concern — the wins are reproducibility +
   collision-safety on label↔control IDs.)
 
-### WS7 — Quality guardrails  *(A4/A8)*
+### WS7 — Quality guardrails _(A4/A8)_
+
 - **Unit**: Vitest — test each component's zod schema (valid/invalid/default cases) and
   pure utils.
 - **a11y**: `@axe-core/playwright` against the docs pages — one assertion per component,
@@ -193,7 +199,8 @@ components; contrast is mechanically verifiable.
 - **CI**: add a `quality` job (lint → check → test → axe) that must pass **before** the
   existing build/FTP-deploy job. Reconsider `dangerous-clean-slate: true`.
 
-### WS8 — Claude-assisted development workflow  *(your 3rd question)*
+### WS8 — Claude-assisted development workflow _(your 3rd question)_
+
 See dedicated section below.
 
 ---
@@ -240,7 +247,7 @@ You weren't sure whether/how to fold Claude into the component system. Highest-R
 ## Suggested sequencing (milestones)
 
 - **v3.0-alpha** — WS1 (zod helper + migrate ~3 pilot components: Button, Image, Form-Input)
-  + WS6 (`nextId`). Proves the pattern.
+  - WS6 (`nextId`). Proves the pattern.
 - **v3.0-beta** — WS2 (kill wrappers, unify exports) + WS3 (tokens) + WS7 (CI guardrails).
   Migrate remaining components to zod.
 - **v3.0** — WS4 (a11y fixes) + WS5 (FormField). Full axe pass green.

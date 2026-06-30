@@ -6,11 +6,20 @@ import { components } from "@docs/data/components.js";
 import FormField from "@lib/components/FormField/FormField.astro";
 
 const propsTable = [
-  { name: "type", type: "string", description: 'Control type: text/email/tel/number/textarea/select/checkbox/radio/date/upload (default "text").' },
+  {
+    name: "type",
+    type: "string",
+    description:
+      'Control type: text/email/tel/number/textarea/select/checkbox/radio/date/upload (default "text").'
+  },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Field label (rendered and wired with for/id)." },
   { name: "help", type: "string", description: "Help text; auto-wired into aria-describedby." },
-  { name: "error", type: "string", description: "Error text; renders an error and sets aria-invalid." },
+  {
+    name: "error",
+    type: "string",
+    description: "Error text; renders an error and sets aria-invalid."
+  },
   { name: "required", type: "boolean", description: "Marks the field required." },
   { name: "options", type: "{label,value}[]", description: "Options for select / radio." }
 ];

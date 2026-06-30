@@ -129,13 +129,19 @@ const blockClass = mergeClasses("form-field-block", className);
     </FormFieldset>
   ) : (
     <div class={blockClass}>
-      {isInput ? <FormInput type={type} value={fieldValue} placeholder={placeholder} {...control} /> : null}
-      {type === "textarea" ? <FormTextarea value={fieldValue} placeholder={placeholder} {...control} /> : null}
+      {isInput ? (
+        <FormInput type={type} value={fieldValue} placeholder={placeholder} {...control} />
+      ) : null}
+      {type === "textarea" ? (
+        <FormTextarea value={fieldValue} placeholder={placeholder} {...control} />
+      ) : null}
       {type === "select" ? (
         <FormSelect options={options} placeholder={placeholder} value={fieldValue} {...control} />
       ) : null}
       {type === "checkbox" ? <FormCheckbox checked={Boolean(value)} {...control} /> : null}
-      {type === "date" ? <FormDate value={fieldValue} placeholder={placeholder} {...control} /> : null}
+      {type === "date" ? (
+        <FormDate value={fieldValue} placeholder={placeholder} {...control} />
+      ) : null}
       {type === "upload" ? <FormUpload {...control} /> : null}
       {help ? <FormHelp id={helpId}>{help}</FormHelp> : null}
       {error ? <FormError id={errorId}>{error}</FormError> : null}
