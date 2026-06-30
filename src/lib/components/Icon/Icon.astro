@@ -117,7 +117,7 @@ if (svgPath) {
 } else if (svg) {
   innerSvg = sanitizeSvgString(svg);
 } else if (icons[String(resolvedName)]) {
-  const def = icons[String(resolvedName)];
+  const def = icons[String(resolvedName)] as Record<string, any>;
   innerSvg = sanitizeSvgString(def.svg || "");
   viewBox = def.viewBox || viewBox;
   if (def.fillColor !== undefined) iconFillColor = String(def.fillColor);
@@ -135,20 +135,22 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
 ---
 
 <svg
-  id={resolvedId}
-  class={resolvedClass}
-  width={iconSize}
-  height={iconSize}
-  viewBox={viewBox}
-  fill={iconFillColor || undefined}
-  stroke={iconStrokeColor || undefined}
-  stroke-width={iconStrokeWidth}
-  stroke-linecap={iconStrokeLinecap}
-  stroke-linejoin={iconStrokeLinejoin}
-  role={resolvedLabel ? "img" : "presentation"}
-  aria-hidden={resolvedLabel ? undefined : "true"}
-  aria-label={resolvedLabel}
-  style={resolvedStyle || undefined}
+  {...({
+    id: resolvedId,
+    class: resolvedClass,
+    width: iconSize,
+    height: iconSize,
+    viewBox: viewBox,
+    fill: iconFillColor || undefined,
+    stroke: iconStrokeColor || undefined,
+    "stroke-width": iconStrokeWidth,
+    "stroke-linecap": iconStrokeLinecap,
+    "stroke-linejoin": iconStrokeLinejoin,
+    role: resolvedLabel ? "img" : "presentation",
+    "aria-hidden": resolvedLabel ? undefined : "true",
+    "aria-label": resolvedLabel,
+    style: resolvedStyle || undefined
+  } as any)}
 >
   {resolvedLabel && <title>{resolvedLabel}</title>}
   <g set:html={innerSvg} />

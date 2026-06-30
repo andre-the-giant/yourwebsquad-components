@@ -1,0 +1,155 @@
+---
+/*
+FormField — a labelled form control composed with help + error text, with ALL
+ARIA wired from one generated id: the label's `for`, the control's `id`, the
+control's `aria-describedby` (help + error), the control's `aria-invalid` (when
+an error is present), and the help/error element ids all line up automatically.
+Delegates to the matching Form-* control by `type`.
+
+Props:
+- type?: "text" | "email" | "tel" | "number" | "password" | "url" | "search"
+       | "textarea" | "select" | "checkbox" | "radio" | "date" | "upload"  (default "text")
+- name?: string
+- label?: string
+- help?: string            — renders <FormHelp>, wired into aria-describedby
+- error?: string           — renders <FormError>, sets aria-invalid
+- required?: boolean
+- placeholder?: string
+- value?: string | number | boolean
+- options?: Array<{ label: string, value: string }>   — for select / radio
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import FormInput from "../Form-Input/Form-Input.astro";
+import FormTextarea from "../Form-Textarea/Form-Textarea.astro";
+import FormSelect from "../Form-Select/Form-Select.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+import FormRadio from "../Form-Radio/Form-Radio.astro";
+import FormDate from "../Form-Date/Form-Date.astro";
+import FormUpload from "../Form-Upload/Form-Upload.astro";
+import FormFieldset from "../Form-Fieldset/Form-Fieldset.astro";
+import FormHelp from "../Form-Help/Form-Help.astro";
+import FormError from "../Form-Error/Form-Error.astro";
+
+const INPUT_TYPES = new Set(["text", "email", "tel", "number", "password", "url", "search"]);
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  name: z.string().optional(),
+  type: z.string().default("text"),
+  label: z.string().optional(),
+  help: z.string().optional(),
+  error: z.string().optional(),
+  placeholder: z.string().optional(),
+  required: z.boolean().default(false),
+  value: z.union([z.string(), z.number(), z.boolean()]).optional(),
+  options: z.array(z.any()).optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  name,
+  type,
+  label,
+  help,
+  error,
+  placeholder,
+  required,
+  value,
+  options,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "FormField" });
+
+const baseId = id ?? nextId("field");
+const helpId = help ? `${baseId}-help` : undefined;
+const errorId = error ? `${baseId}-error` : undefined;
+const describedBy = [helpId, errorId].filter(Boolean).join(" ") || undefined;
+const invalid = Boolean(error);
+// Non-checkbox controls take string|number values; drop the boolean form.
+const fieldValue = typeof value === "boolean" ? undefined : value;
+
+// Shared wiring for the single-control variants. The controls build their own
+// aria-describedby from helpId + errorId, so we do NOT also pass ariaDescribedBy
+// here (that would duplicate the ids).
+const control = {
+  id: baseId,
+  name,
+  label,
+  required,
+  helpId,
+  errorId,
+  ariaInvalid: invalid,
+  ...rest
+};
+
+const isInput = INPUT_TYPES.has(type);
+const radioOptions = Array.isArray(options) ? options : [];
+const blockClass = mergeClasses("form-field-block", className);
+---
+
+{
+  type === "radio" ? (
+    <FormFieldset
+      id={baseId}
+      legend={label}
+      required={required}
+      helpId={helpId}
+      errorId={errorId}
+      class={className}
+    >
+      <div class="form-field-radios">
+        {radioOptions.map((opt, i) => (
+          <FormRadio
+            id={`${baseId}-${i}`}
+            name={name}
+            value={opt.value}
+            label={opt.label}
+            checked={value === opt.value}
+            required={required}
+            ariaDescribedBy={describedBy}
+          />
+        ))}
+      </div>
+      {help ? (
+        <FormHelp slot="help" id={helpId}>
+          {help}
+        </FormHelp>
+      ) : null}
+      {error ? (
+        <FormError slot="error" id={errorId}>
+          {error}
+        </FormError>
+      ) : null}
+    </FormFieldset>
+  ) : (
+    <div class={blockClass}>
+      {isInput ? <FormInput type={type} value={fieldValue} placeholder={placeholder} {...control} /> : null}
+      {type === "textarea" ? <FormTextarea value={fieldValue} placeholder={placeholder} {...control} /> : null}
+      {type === "select" ? (
+        <FormSelect options={options} placeholder={placeholder} value={fieldValue} {...control} />
+      ) : null}
+      {type === "checkbox" ? <FormCheckbox checked={Boolean(value)} {...control} /> : null}
+      {type === "date" ? <FormDate value={fieldValue} placeholder={placeholder} {...control} /> : null}
+      {type === "upload" ? <FormUpload {...control} /> : null}
+      {help ? <FormHelp id={helpId}>{help}</FormHelp> : null}
+      {error ? <FormError id={errorId}>{error}</FormError> : null}
+    </div>
+  )
+}
+
+<style>
+  .form-field-block {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .form-field-radios {
+    display: grid;
+    gap: var(--space-2);
+  }
+</style>

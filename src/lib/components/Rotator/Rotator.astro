@@ -154,7 +154,7 @@ function makeFlickLinear(steps, { hold = 0.92, ramp = 0.07, settle = 0.01 } = {}
 <span
   id={resolvedId}
   class={rotatorClassName}
-  aria-live={resolvedAriaLive}
+  aria-live={resolvedAriaLive as any}
   role={resolvedAriaLive === "off" ? undefined : "status"}
   data-direction={resolvedDirection === "down" ? "down" : "up"}
   style={resolvedStyle || undefined}

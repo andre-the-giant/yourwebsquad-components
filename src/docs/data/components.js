@@ -172,5 +172,11 @@ export const components = [
     href: "/components/components/modal",
     description: "A modal component",
     group: "components"
+  },
+  {
+    name: "FormField",
+    href: "/components/components/formfield",
+    description: "Composed, fully-wired form field (label + control + help + error)",
+    group: "components"
   }
 ];

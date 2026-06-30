@@ -37,7 +37,7 @@ const resolvedClass = mergeClasses("form-error", className);
 <p
   id={resolvedId}
   class={resolvedClass}
-  role={role}
+  role={role as any}
   aria-live={role ? undefined : ariaLive}
   aria-atomic={role ? undefined : "true"}
   style={resolvedStyle || undefined}

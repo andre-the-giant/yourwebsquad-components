@@ -29,8 +29,8 @@ const Schema = z.looseObject({
   href: z.string().optional(),
   target: z.string().optional(),
   rel: z.string().optional(),
-  variant: z.string().optional(),
-  size: z.string().optional(),
+  variant: z.enum(["solid", "outline", "ghost"]).optional(),
+  size: z.enum(["xs", "sm", "md", "lg"]).optional(),
   disabled: z.boolean().optional(),
   screenreader: z.string().optional()
 });

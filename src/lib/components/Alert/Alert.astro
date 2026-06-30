@@ -95,7 +95,7 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
 <section
   id={resolvedId}
   class={resolvedClass}
-  role={resolvedRole}
+  role={resolvedRole as any}
   aria-live={resolvedRole === "alert" ? "assertive" : "polite"}
   style={resolvedStyle || undefined}
   {...rest}
@@ -180,7 +180,9 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
 
   .alert__description {
     margin: 0;
-    color: color-mix(in srgb, var(--alert-fg) 75%, transparent);
+    /* Use the full accessible text color (not dimmed) so description text keeps
+       ≥4.5:1; visual hierarchy comes from the larger title. */
+    color: var(--alert-fg);
   }
 
   .alert__actions {

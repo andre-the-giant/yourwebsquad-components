@@ -24,3 +24,4 @@ export { default as PipedaSettings } from "./components/Pipeda/PipedaSettings.as
 export { default as StarRating } from "./components/StarRating/StarRating.astro";
 export { default as Tooltip } from "./components/Tooltip/Tooltip.astro";
 export { default as Modal } from "./components/Modal/Modal.astro";
+export { default as FormField } from "./components/FormField/FormField.astro";

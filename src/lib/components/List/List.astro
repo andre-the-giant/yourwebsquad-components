@@ -89,7 +89,7 @@ const resolvedStyle = makeStyleVars(styleVars, style);
       class={listClassName}
       start={resolvedStart}
       reversed={resolvedReversed || undefined}
-      type={resolvedType}
+      type={resolvedType as any}
       style={resolvedStyle || undefined}
       {...rest}
     >

@@ -103,7 +103,7 @@ const styleVars = {
 
 const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("star-rating", className);
-const selectedIcon = icons[String(iconName)] ?? defaultStarIcon;
+const selectedIcon = (icons[String(iconName)] ?? defaultStarIcon) as Record<string, any>;
 ---
 
 <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>

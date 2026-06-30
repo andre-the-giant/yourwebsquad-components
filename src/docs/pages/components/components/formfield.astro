@@ -1,0 +1,75 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import FormField from "@lib/components/FormField/FormField.astro";
+
+const propsTable = [
+  { name: "type", type: "string", description: 'Control type: text/email/tel/number/textarea/select/checkbox/radio/date/upload (default "text").' },
+  { name: "name", type: "string", description: "Form field name." },
+  { name: "label", type: "string", description: "Field label (rendered and wired with for/id)." },
+  { name: "help", type: "string", description: "Help text; auto-wired into aria-describedby." },
+  { name: "error", type: "string", description: "Error text; renders an error and sets aria-invalid." },
+  { name: "required", type: "boolean", description: "Marks the field required." },
+  { name: "options", type: "{label,value}[]", description: "Options for select / radio." }
+];
+
+const withHelp = `<FormField name="email" type="email" label="Email"
+  help="We'll never share it." required />`;
+const withError = `<FormField name="name" label="Full name"
+  error="This field is required." required />`;
+const selectCode = `<FormField name="plan" type="select" label="Plan"
+  options={[{ label: "Free", value: "free" }, { label: "Pro", value: "pro" }]} />`;
+const radioCode = `<FormField name="size" type="radio" label="Size"
+  options={[{ label: "S", value: "s" }, { label: "M", value: "m" }]} />`;
+---
+
+<DocLayout
+  title="FormField"
+  description="Composed, fully-wired form field (label + control + help + error)"
+  items={components}
+>
+  <PropsTable props={propsTable} />
+
+  <div class="preview-grid">
+    <Preview title="With label + help" code={withHelp}>
+      <FormField name="email" type="email" label="Email" help="We'll never share it." required />
+    </Preview>
+
+    <Preview title="With error (aria-invalid)" code={withError}>
+      <FormField name="name" label="Full name" error="This field is required." required />
+    </Preview>
+
+    <Preview title="Select" code={selectCode}>
+      <FormField
+        name="plan"
+        type="select"
+        label="Plan"
+        options={[
+          { label: "Free", value: "free" },
+          { label: "Pro", value: "pro" }
+        ]}
+      />
+    </Preview>
+
+    <Preview title="Radio group" code={radioCode}>
+      <FormField
+        name="size"
+        type="radio"
+        label="Size"
+        options={[
+          { label: "Small", value: "s" },
+          { label: "Medium", value: "m" }
+        ]}
+      />
+    </Preview>
+  </div>
+</DocLayout>
+
+<style>
+  .preview-grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+</style>

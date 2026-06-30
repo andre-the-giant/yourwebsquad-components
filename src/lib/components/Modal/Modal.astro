@@ -118,7 +118,7 @@ const resolvedClass = mergeClasses("modal", className);
   const restoreFocus = (dialog) => {
     const opener = modalState.get(dialog)?.opener;
     if (canFocus(opener) && opener?.isConnected) {
-      opener.focus();
+      (opener as HTMLElement).focus();
     }
   };
 

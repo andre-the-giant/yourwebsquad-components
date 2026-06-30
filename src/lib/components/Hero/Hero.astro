@@ -46,8 +46,8 @@ const resolvedId = id ?? nextId("hero");
 const resolvedTitle = title ?? null;
 const resolvedBody = body ?? null;
 const resolvedClip = clip ?? null;
-const resolvedCtaHref = cta?.href ?? null;
-const resolvedCtaLabel = cta?.label ?? null;
+const resolvedCtaHref = (cta?.href ?? null) as string | null;
+const resolvedCtaLabel = (cta?.label ?? null) as string | null;
 const isCta = Boolean(resolvedCtaHref && resolvedCtaLabel);
 const resolvedImage = img ?? null;
 

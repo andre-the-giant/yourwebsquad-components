@@ -271,7 +271,7 @@ const resolvedVendors = Array.isArray(vendors) ? vendors : [];
       });
 
       window.addEventListener("yws:pipeda:change", (event) => {
-        const detail = event?.detail;
+        const detail = (event as CustomEvent)?.detail;
         if (!detail || typeof detail !== "object") return;
         const incomingPrefs = detail.prefs;
         if (!incomingPrefs || typeof incomingPrefs !== "object") return;

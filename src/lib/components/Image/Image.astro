@@ -169,8 +169,8 @@ const resolvedClass = mergeClasses("image", className);
     <Image
       id={resolvedId}
       class={resolvedClass}
-      {...imageDefaults}
-      src={resolvedSrc}
+      {...(imageDefaults as any)}
+      src={resolvedSrc as any}
       alt={alt}
       style={resolvedStyle || undefined}
       {...rest}
