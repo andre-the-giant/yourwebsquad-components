@@ -159,7 +159,10 @@ const config = {
         relatedTargets.forEach((target) => {
           setPanelHeight(target);
           target.dataset.accordionState = isOpen ? "open" : "closed";
-          target.setAttribute("aria-hidden", isOpen ? "false" : "true");
+          // `inert` removes closed content from tab order AND the a11y tree —
+          // replaces aria-hidden, which left interactive children focusable.
+          if (isOpen) target.removeAttribute("inert");
+          else target.setAttribute("inert", "");
           target.classList.toggle(openClass, isOpen);
           target.style.setProperty("--accordion-transition", animate ? transition : "0s");
         });
@@ -264,13 +267,15 @@ const config = {
 
   :global([data-accordion-target]) {
     --accordion-transition: var(--accordion-transition, 180ms ease);
-    --accordion-target-height: 0px;
 
     display: block;
-    max-height: 0;
     overflow: hidden;
-    opacity: 0;
-    padding: 0;
+    /* Open by default so panel content is reachable without JS (progressive
+       enhancement). JS sets --accordion-target-height for the animated collapse
+       and adds data-accordion-state="closed" to the panels that start closed. */
+    max-height: var(--accordion-target-height, none);
+    opacity: 1;
+    padding: var(--accordion-panel-padding, 0);
     transition:
       max-height var(--accordion-transition),
       opacity var(--accordion-transition),
@@ -278,10 +283,10 @@ const config = {
     background: var(--accordion-panel-bg, transparent);
   }
 
-  :global([data-accordion-target][data-accordion-state="open"]) {
-    max-height: var(--accordion-target-height, 9999px);
-    opacity: 1;
-    padding: var(--accordion-panel-padding, 0);
+  :global([data-accordion-target][data-accordion-state="closed"]) {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
   }
 
   .accordion {

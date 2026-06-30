@@ -90,6 +90,11 @@ const resolvedClass = mergeClasses("tooltip", `tooltip--${resolvedPosition}`, cl
 
     if (owner) {
       setAriaDescribedBy(owner, tooltipId);
+      // Ensure the trigger is keyboard-focusable so the tooltip (shown on
+      // :focus-within) is reachable without a pointer (WCAG 2.1.1).
+      if (!owner.matches("a[href], button, input, select, textarea, [tabindex]")) {
+        owner.setAttribute("tabindex", "0");
+      }
     }
 
     root.addEventListener("keydown", (event) => {
@@ -128,9 +133,9 @@ const resolvedClass = mergeClasses("tooltip", `tooltip--${resolvedPosition}`, cl
     width: max-content;
     padding: 0.4rem 0.55rem;
     border-radius: 0.375rem;
-    border: 1px solid rgb(255 255 255 / 0.2);
-    background: #111;
-    color: #fff;
+    border: 1px solid color-mix(in srgb, var(--tooltip-fg) 20%, transparent);
+    background: var(--tooltip-bg);
+    color: var(--tooltip-fg);
     font-size: 0.875rem;
     line-height: 1.35;
     box-shadow: 0 10px 30px -16px rgb(0 0 0 / 0.7);
@@ -159,7 +164,7 @@ const resolvedClass = mergeClasses("tooltip", `tooltip--${resolvedPosition}`, cl
     left: 50%;
     top: 100%;
     transform: translateX(-50%);
-    border-color: #111 transparent transparent transparent;
+    border-color: var(--tooltip-bg) transparent transparent transparent;
   }
 
   .tooltip--right .tooltip__content {
@@ -172,7 +177,7 @@ const resolvedClass = mergeClasses("tooltip", `tooltip--${resolvedPosition}`, cl
     right: 100%;
     top: 50%;
     transform: translateY(-50%);
-    border-color: transparent #111 transparent transparent;
+    border-color: transparent var(--tooltip-bg) transparent transparent;
   }
 
   .tooltip--bottom .tooltip__content {
@@ -185,7 +190,7 @@ const resolvedClass = mergeClasses("tooltip", `tooltip--${resolvedPosition}`, cl
     left: 50%;
     bottom: 100%;
     transform: translateX(-50%);
-    border-color: transparent transparent #111 transparent;
+    border-color: transparent transparent var(--tooltip-bg) transparent;
   }
 
   .tooltip--left .tooltip__content {
@@ -198,7 +203,7 @@ const resolvedClass = mergeClasses("tooltip", `tooltip--${resolvedPosition}`, cl
     left: 100%;
     top: 50%;
     transform: translateY(-50%);
-    border-color: transparent transparent transparent #111;
+    border-color: transparent transparent transparent var(--tooltip-bg);
   }
 
   .tooltip:hover .tooltip__content,

@@ -34,8 +34,8 @@ const {
   size = "md",
   starSize,
   iconName = "star",
-  filledColor = "#f4b400",
-  emptyColor = "#d9d9d9",
+  filledColor = "var(--star-filled)",
+  emptyColor = "var(--star-empty)",
   showValue = false,
   srTemplate = "Rated {rating} out of {max}",
   srText,
@@ -190,11 +190,11 @@ const selectedIcon = icons[String(iconName)] ?? defaultStarIcon;
   }
 
   .star-rating__star-base {
-    color: var(--star-rating-empty-color, #d9d9d9);
+    color: var(--star-rating-empty-color, var(--star-empty));
   }
 
   .star-rating__star-fill {
-    color: var(--star-rating-filled-color, #f4b400);
+    color: var(--star-rating-filled-color, var(--star-filled));
   }
 
   .star-rating__value {

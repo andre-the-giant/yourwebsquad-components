@@ -304,25 +304,26 @@ const styleVars = {
   "--googlereviews-padding": "1.5rem",
   "--googlereviews-shadow": "0 8px 20px rgba(0, 0, 0, 0.05)",
   "--googlereviews-max-width": "100%",
-  "--googlereviews-title-color": "#3e3e3e",
-  "--googlereviews-score-color": "#111",
-  "--googlereviews-count-color": "#5f6368",
-  "--googlereviews-star-color": "#f4b400",
-  "--googlereviews-star-muted": "#d9d9d9",
+  "--googlereviews-title-color": "var(--color-fg)",
+  "--googlereviews-score-color": "var(--color-fg)",
+  "--googlereviews-count-color": "var(--color-muted)",
+  "--googlereviews-star-color": "var(--star-filled)",
+  "--googlereviews-star-muted": "var(--star-empty)",
+  // Google brand blue (intentional — matches the Google review button/link)
   "--googlereviews-button-bg": "#0b57d0",
   "--googlereviews-button-color": "#fff",
   "--googlereviews-button-radius": "999px",
   "--googlereviews-button-shadow": "0 8px 16px rgba(66, 133, 244, 0.35)",
-  "--googlereviews-card-bg": "#fff",
+  "--googlereviews-card-bg": "var(--color-surface)",
   "--googlereviews-card-radius": "12px",
   "--googlereviews-card-shadow": "0 10px 20px rgba(0, 0, 0, 0.08)",
   "--googlereviews-card-width": "clamp(240px, 28vw, 320px)",
   "--googlereviews-card-gap": "1rem",
   "--googlereviews-avatar-size": "38px",
   "--googlereviews-avatar-font": "var(--font-header, inherit)",
-  "--googlereviews-text-color": "#3e3e3e",
+  "--googlereviews-text-color": "var(--color-fg)",
   "--googlereviews-link-color": "#0b57d0",
-  "--googlereviews-focus-color": "#0b57d0"
+  "--googlereviews-focus-color": "var(--color-focus)"
 };
 
 const resolvedStyle = makeStyleVars(styleVars, style);
@@ -609,12 +610,12 @@ const titleId = `${resolvedId}-title`;
 
   .name {
     font-weight: 700;
-    color: #111;
+    color: var(--color-fg);
     font-size: 0.95rem;
   }
 
   .time {
-    color: #5f6368;
+    color: var(--color-muted);
     font-size: 0.85rem;
   }
 

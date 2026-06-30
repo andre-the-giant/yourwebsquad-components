@@ -1,5 +1,33 @@
+/* =============================================================================
+   yourwebsquad-components — design tokens
+
+   Three layers:
+     1. THEME CONTRACT  — semantic tokens; the ONLY things a theme overrides
+     2. Scale tokens    — typography / spacing / radius (not color-themed)
+     3. Component tokens — derive from the contract; never hardcode raw values
+
+   To add a theme, override the §1 CONTRACT tokens inside a
+   `[data-theme="name"]` block (see the dark theme at the bottom). Components
+   inherit automatically because every component token in §3 resolves back to a
+   contract token. Rule: components reference §1/§3 tokens only — never hex.
+
+   Contract tokens (override all of these to define a complete theme):
+     Surfaces/text : --color-bg(-rgb) --color-fg(-rgb) --color-surface
+                     --color-border --color-muted
+     Brand         : --color-accent --color-accent-contrast --color-accent-muted
+                     --color-focus
+     Effects       : --color-shadow --color-scrim
+     Inverse       : --color-inverse-surface --color-inverse-fg
+     Feedback      : --color-{info,success,warning,danger}-rgb   (base hue)
+                     --color-{info,success,warning,danger}-text   (≥4.5:1 on surface)
+   ============================================================================= */
+
 :root {
   color-scheme: light;
+
+  /* ── §1  THEME CONTRACT  (override these — and only these — per theme) ────── */
+
+  /* Surfaces & text */
   --color-bg-rgb: 244, 245, 247;
   --color-fg-rgb: 22, 24, 27;
   --color-bg: rgb(var(--color-bg-rgb));
@@ -7,19 +35,32 @@
   --color-surface: rgb(255, 255, 255);
   --color-border: rgb(220, 223, 228);
   --color-muted: rgb(107, 114, 128);
+
+  /* Brand / interactive */
   --color-accent: rgb(47, 95, 164);
   --color-accent-contrast: rgb(255, 255, 255);
   --color-accent-muted: rgb(230, 236, 246);
   --color-focus: rgb(47, 95, 164);
+
+  /* Effects */
   --color-shadow: rgba(0, 0, 0, 0.08);
+  --color-scrim: rgba(17, 24, 39, 0.6); /* modal backdrop, image overlays */
 
-  /* Alert tokens (RGB to allow mixing with alpha) */
-  --alert-info-rgb: 47, 95, 164;
-  --alert-success-rgb: 34, 139, 81;
-  --alert-warning-rgb: 217, 119, 6;
-  --alert-error-rgb: 201, 42, 42;
-  --alert-text-rgb: var(--color-fg-rgb);
+  /* Inverse surface (tooltips and other inverted chrome) */
+  --color-inverse-surface: rgb(17, 17, 17);
+  --color-inverse-fg: rgb(255, 255, 255);
 
+  /* Feedback hues — base (icon/border/solid) + accessible text (≥4.5:1 on surface) */
+  --color-info-rgb: 47, 95, 164;
+  --color-success-rgb: 34, 139, 81;
+  --color-warning-rgb: 217, 119, 6;
+  --color-danger-rgb: 201, 42, 42;
+  --color-info-text: rgb(38, 79, 138);
+  --color-success-text: rgb(21, 105, 60);
+  --color-warning-text: rgb(124, 74, 6);
+  --color-danger-text: rgb(185, 28, 28);
+
+  /* ── §2  Scale tokens  (typography / spacing / radius — not color-themed) ── */
   --font-body: "Roboto", "Helvetica Neue", Arial, sans-serif;
   --font-display: "Bangers", "Trebuchet MS", "Arial Black", cursive;
   --font-mono:
@@ -48,7 +89,16 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
 
-  /* Form tokens */
+  /* ── §3  Component tokens  (derive from §1 — do not hardcode raw values) ─── */
+
+  /* Feedback aliases (Alert reads --alert-*-rgb; resolve to the contract hues) */
+  --alert-info-rgb: var(--color-info-rgb);
+  --alert-success-rgb: var(--color-success-rgb);
+  --alert-warning-rgb: var(--color-warning-rgb);
+  --alert-error-rgb: var(--color-danger-rgb);
+  --alert-text-rgb: var(--color-fg-rgb);
+
+  /* Form */
   --form-width: 100%;
   --form-field-gap: var(--space-2);
   --form-label-font-size: var(--size-sm);
@@ -58,9 +108,9 @@
   --form-input-bg: var(--color-surface);
   --form-input-focus: var(--color-focus);
   --form-help-color: var(--color-muted);
-  --form-error-color: #c92a2a;
+  --form-error-color: var(--color-danger-text);
 
-  /* Button tokens */
+  /* Button */
   --button-font: var(--font-display);
   --button-solid-bg: var(--color-accent);
   --button-solid-fg: var(--color-accent-contrast);
@@ -78,11 +128,31 @@
   --button-ghost-hover-fg: var(--color-accent);
   --button-focus: var(--color-focus);
   --button-disabled-opacity: 0.6;
+
+  /* Modal */
+  --modal-surface: var(--color-surface);
+  --modal-text: var(--color-fg);
+  --modal-border: var(--color-border);
+  --modal-shadow: 0 1.5rem 4rem -2rem var(--color-shadow);
+  --modal-backdrop: var(--color-scrim);
+
+  /* Tooltip (inverted surface) */
+  --tooltip-bg: var(--color-inverse-surface);
+  --tooltip-fg: var(--color-inverse-fg);
+
+  /* Star rating */
+  --star-filled: rgb(244, 180, 0);
+  --star-empty: var(--color-border);
 }
 
+/* =============================================================================
+   Dark theme — overrides ONLY the §1 contract; everything in §3 follows.
+   This is the reference theme that proves the contract is complete & leak-free.
+   ============================================================================= */
 [data-theme="dark"] {
   color-scheme: dark;
 
+  /* Surfaces & text */
   --color-bg-rgb: 15, 17, 21;
   --color-fg-rgb: 238, 241, 246;
   --color-bg: rgb(var(--color-bg-rgb));
@@ -90,9 +160,28 @@
   --color-surface: rgb(22, 26, 32);
   --color-border: rgb(42, 48, 57);
   --color-muted: rgb(154, 164, 181);
+
+  /* Brand / interactive */
   --color-accent: rgb(124, 167, 255);
   --color-accent-contrast: rgb(12, 16, 36);
   --color-accent-muted: rgb(19, 32, 54);
   --color-focus: rgb(124, 167, 255);
+
+  /* Effects */
   --color-shadow: rgba(0, 0, 0, 0.45);
+  --color-scrim: rgba(0, 0, 0, 0.7);
+
+  /* Inverse flips to a light surface with dark text */
+  --color-inverse-surface: rgb(233, 236, 242);
+  --color-inverse-fg: rgb(17, 17, 17);
+
+  /* Feedback — brighter hues + lighter text for dark surfaces */
+  --color-info-rgb: 124, 167, 255;
+  --color-success-rgb: 74, 201, 126;
+  --color-warning-rgb: 240, 169, 75;
+  --color-danger-rgb: 240, 113, 113;
+  --color-info-text: rgb(150, 185, 255);
+  --color-success-text: rgb(110, 214, 154);
+  --color-warning-text: rgb(245, 184, 110);
+  --color-danger-text: rgb(248, 150, 150);
 }

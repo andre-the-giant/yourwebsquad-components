@@ -13,7 +13,7 @@ const Schema = z.looseObject({
   class: z.string().optional(),
   style: z.string().optional(),
   text: z.string().optional(),
-  role: z.string().default("alert"),
+  role: z.string().optional(),
   ariaLive: z.enum(["polite", "assertive", "off"]).default("polite")
 });
 
@@ -38,7 +38,8 @@ const resolvedClass = mergeClasses("form-error", className);
   id={resolvedId}
   class={resolvedClass}
   role={role}
-  aria-live={ariaLive}
+  aria-live={role ? undefined : ariaLive}
+  aria-atomic={role ? undefined : "true"}
   style={resolvedStyle || undefined}
   {...rest}
 >

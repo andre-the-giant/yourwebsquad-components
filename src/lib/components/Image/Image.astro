@@ -72,8 +72,6 @@ function resolveSrcValue(value) {
   return candidate;
 }
 
-const defaultSrc = "https://picsum.photos/320/180";
-
 const Schema = z.looseObject({
   id: z.string().optional(),
   class: z.string().optional(),
@@ -84,13 +82,16 @@ const Schema = z.looseObject({
   width: z.number().optional(),
   height: z.number().optional(),
   alt: z.string().default(""),
-  fetchpriority: z.string().default("high"),
+  fetchpriority: z.string().default("auto"),
+  priority: z.boolean().default(false),
   loading: z.enum(["lazy", "eager"]).default("lazy"),
   sizes: z.string().default("100vw"),
-  src: z.union([z.string(), z.looseObject({})]).default(defaultSrc)
+  src: z.union([z.string(), z.looseObject({})]).optional()
 });
 
-type Props = z.input<typeof Schema>;
+// `alt` and `src` are required for consumers (runtime stays resilient, but the
+// type forces callers to supply them). Use alt="" for decorative images.
+type Props = z.input<typeof Schema> & { alt: string; src: string | Record<string, unknown> };
 
 const {
   id,
@@ -103,13 +104,25 @@ const {
   height,
   alt,
   fetchpriority,
+  priority,
   loading,
   sizes,
   src,
   ...rest
 } = parseProps(Schema, Astro.props, { component: "Image" });
 
-const resolvedSrc = resolveSrcValue(src) ?? resolveSrcValue(defaultSrc) ?? defaultSrc;
+if (import.meta.env.DEV) {
+  if (Astro.props.alt === undefined)
+    console.warn('[Image] missing required `alt`. Use alt="" for decorative images.');
+  if (Astro.props.src === undefined)
+    console.warn("[Image] missing required `src`; nothing will render.");
+}
+
+// LCP / above-the-fold images: pass `priority` to load eagerly at high fetch priority.
+const effLoading = priority ? "eager" : loading;
+const effFetchpriority = priority ? "high" : fetchpriority;
+
+const resolvedSrc = resolveSrcValue(src);
 const resolvedId = id ?? nextId("image");
 const isRemoteSrc = typeof resolvedSrc === "string" && /^(?:https?:)?\/\//i.test(resolvedSrc);
 
@@ -125,8 +138,8 @@ const imageDefaults = {
   sizes,
   quality,
   widths,
-  fetchpriority,
-  loading,
+  fetchpriority: effFetchpriority,
+  loading: effLoading,
   ...(typeof width === "number" ? { width } : {}),
   ...(typeof height === "number" ? { height } : {}),
   ...(typeof width !== "number" && typeof height !== "number" && isRemoteSrc
@@ -151,15 +164,19 @@ const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("image", className);
 ---
 
-<Image
-  id={resolvedId}
-  class={resolvedClass}
-  {...imageDefaults}
-  src={resolvedSrc}
-  alt={alt}
-  style={resolvedStyle || undefined}
-  {...rest}
-/>
+{
+  resolvedSrc ? (
+    <Image
+      id={resolvedId}
+      class={resolvedClass}
+      {...imageDefaults}
+      src={resolvedSrc}
+      alt={alt}
+      style={resolvedStyle || undefined}
+      {...rest}
+    />
+  ) : null
+}
 
 <style>
   .image {

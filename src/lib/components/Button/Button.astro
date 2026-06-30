@@ -55,10 +55,12 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
     <a
       id={resolvedId}
       class={resolvedClass}
-      href={resolvedHref}
+      href={disabled ? undefined : resolvedHref}
       target={resolvedTarget}
       rel={resolvedRel}
+      role={disabled ? "link" : undefined}
       aria-disabled={disabled ? "true" : undefined}
+      tabindex={disabled ? "-1" : undefined}
       style={resolvedStyle || undefined}
       {...rest}
     >

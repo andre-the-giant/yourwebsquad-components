@@ -34,7 +34,7 @@ const resolvedClass = `compare ${className ?? ""}`.trim();
 const resolvedStyle = [
   "--pos: 50%",
   "--comparison-height: 24rem",
-  "--comparison-border: 3px solid #111",
+  "--comparison-border: 3px solid var(--color-fg)",
   "--comparison-before-bg: #f5ede0",
   "--comparison-before-color: #0f172a",
   "--comparison-after-bg: #0f322a",
@@ -95,9 +95,9 @@ const defaultAfter = "I'm the right section";
     width: 100%;
     max-width: 960px;
     height: var(--comparison-height, 24rem);
-    border: var(--comparison-border, 3px solid #111);
+    border: var(--comparison-border, 3px solid var(--color-fg));
     overflow: hidden;
-    background: #111;
+    background: var(--color-fg);
   }
   .compare > * {
     grid-area: 1 / 1;
@@ -163,7 +163,7 @@ const defaultAfter = "I'm the right section";
     opacity: 0;
   }
   input[type="range"]:focus-visible {
-    outline: 2px solid #111;
+    outline: 2px solid var(--color-focus);
     outline-offset: 4px;
     opacity: 0.2;
   }

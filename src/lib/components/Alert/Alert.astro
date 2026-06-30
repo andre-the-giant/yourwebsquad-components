@@ -142,6 +142,7 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
     --alert-bg: var(--color-surface);
     --alert-border: var(--color-border);
     --alert-tone: var(--alert-info-rgb);
+    --alert-text: var(--color-info-text);
     --alert-strong: rgba(var(--alert-tone), 0.16);
     --alert-soft: rgba(var(--alert-tone), 0.08);
 
@@ -196,18 +197,22 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
 
   .alert--info {
     --alert-tone: var(--alert-info-rgb);
+    --alert-text: var(--color-info-text);
   }
 
   .alert--success {
     --alert-tone: var(--alert-success-rgb);
+    --alert-text: var(--color-success-text);
   }
 
   .alert--warning {
     --alert-tone: var(--alert-warning-rgb);
+    --alert-text: var(--color-warning-text);
   }
 
   .alert--error {
     --alert-tone: var(--alert-error-rgb);
+    --alert-text: var(--color-danger-text);
   }
 
   .alert--solid {
@@ -219,13 +224,13 @@ const hasActions = resolvedActions.length > 0 || Astro.slots.has("actions");
   .alert--soft {
     --alert-bg: rgba(var(--alert-tone), 0.07);
     --alert-border: rgba(var(--alert-tone), 0.3);
-    --alert-fg: rgb(var(--alert-tone));
+    --alert-fg: var(--alert-text);
   }
 
   .alert--outline {
     --alert-bg: transparent;
     --alert-border: rgba(var(--alert-tone), 0.4);
-    --alert-fg: rgb(var(--alert-tone));
+    --alert-fg: var(--alert-text);
     border: 1px solid var(--alert-border);
   }
 

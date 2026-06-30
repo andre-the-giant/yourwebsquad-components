@@ -92,6 +92,13 @@ function sanitizeSvgString(raw = "") {
   let s = String(raw).trim();
   // remove outer <svg ...> if present
   s = s.replace(/<svg[^>]*>/i, "").replace(/<\/svg>/i, "");
+  // Defense-in-depth: strip scripts, event handlers, and risky elements.
+  // NOTE: `svg` / `svgPath` are for TRUSTED, author-authored icon markup only —
+  // never pass user- or CMS-controlled input here.
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, "");
+  s = s.replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "");
+  s = s.replace(/\son\w+\s*=\s*("|')[\s\S]*?\1/gi, "");
+  s = s.replace(/(?:href|xlink:href)\s*=\s*("|')\s*javascript:[\s\S]*?\1/gi, "");
   // remove style/fill/stroke attributes on inner elements
   s = s.replace(/\s(?:style|fill|stroke)=("|').*?\1/gi, "");
   return s;

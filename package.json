@@ -16,7 +16,7 @@
     "bumpitup": "node ./scripts/bumpitup.js"
   },
   "dependencies": {
-    "astro": "^6.1.4",
+    "astro": "7.0.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
