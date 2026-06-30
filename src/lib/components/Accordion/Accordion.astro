@@ -15,18 +15,22 @@ Data attributes (behavior only; styling optional):
 - Group (single-open): data-accordion-group="group-name" on trigger/panel
 - Default open: data-accordion-open="true" on trigger/panel, or use defaultOpen prop
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  scope: { type: "string" },
-  defaultOpen: { type: ["string", "array"] },
-  animate: { type: "boolean" },
-  transition: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  scope: z.string().optional(),
+  defaultOpen: z.union([z.string(), z.array(z.any())]).optional(),
+  animate: z.boolean().optional(),
+  transition: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -37,9 +41,9 @@ const {
   animate = true,
   transition = "180ms ease",
   ...rest
-} = validateProps(schema, Astro.props, { component: "Accordion" });
+} = parseProps(Schema, Astro.props, { component: "Accordion" });
 
-const resolvedId = id ?? "accordion-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("accordion");
 const normalizeDefaultOpen = (value) => {
   if (Array.isArray(value)) return value.filter((item) => typeof item === "string" && item.length);
   return typeof value === "string" && value.length ? [value] : [];

@@ -1,15 +1,19 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  text: { type: "string" },
-  position: { type: "string" },
-  maxWidth: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  text: z.string().optional(),
+  position: z.string().optional(),
+  maxWidth: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -19,11 +23,11 @@ const {
   position = "top",
   maxWidth,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Tooltip" });
+} = parseProps(Schema, Astro.props, { component: "Tooltip" });
 
 const allowedPositions = new Set(["top", "right", "bottom", "left"]);
 const resolvedPosition = allowedPositions.has(position) ? position : "top";
-const resolvedId = id ?? `tooltip-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedId = id ?? nextId("tooltip");
 
 const styleVars = {
   "--tooltip-max-width": maxWidth

@@ -1,5 +1,7 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars } from "../../utils/style.js";
 import Icon from "../Icon/Icon.astro";
 import Button from "../Button/Button.astro";
@@ -19,19 +21,21 @@ Props:
 Notes:
 - rel defaults to "noreferrer" when target is "_blank".
 */
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  label: { type: "string" },
-  href: { type: "string" },
-  target: { type: "string" },
-  rel: { type: "string" },
-  variant: { type: "string" },
-  size: { type: "string" },
-  disabled: { type: "boolean" },
-  screenreader: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  label: z.string().optional(),
+  href: z.string().optional(),
+  target: z.string().optional(),
+  rel: z.string().optional(),
+  variant: z.string().optional(),
+  size: z.string().optional(),
+  disabled: z.boolean().optional(),
+  screenreader: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -46,8 +50,8 @@ const {
   disabled = false,
   screenreader,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Link" });
-const resolvedId = id ?? "link-" + Math.random().toString(36).slice(2, 9);
+} = parseProps(Schema, Astro.props, { component: "Link" });
+const resolvedId = id ?? nextId("link");
 const resolvedLabel = label;
 const resolvedHref = href;
 const resolvedTarget = target;
@@ -74,7 +78,7 @@ const accessibleLabel = screenreader ?? resolvedLabel;
   {
     isExternal && (
       <Icon
-        content={{ name: "external" }}
+        name="external"
         size={size === "sm" ? "sm" : "md"}
         label={accessibleLabel ? `${accessibleLabel} (opens in new tab)` : undefined}
       />

@@ -1,19 +1,23 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Alert from "../Alert/Alert.astro";
 import Button from "../Button/Button.astro";
 import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  locale: { type: "string" },
-  title: { type: "string" },
-  strings: { type: "object" },
-  vendors: { type: "array" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  locale: z.string().optional(),
+  title: z.string().optional(),
+  strings: z.looseObject({}).optional(),
+  vendors: z.array(z.any()).optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -24,7 +28,7 @@ const {
   strings,
   vendors = [],
   ...rest
-} = validateProps(schema, Astro.props, { component: "PipedaSettings" });
+} = parseProps(Schema, Astro.props, { component: "PipedaSettings" });
 
 const DEFAULT_STRINGS = {
   en: {
@@ -69,7 +73,7 @@ const resolvedStrings = { ...localeDefaults, ...stringOverrides };
 const resolvedTitle =
   typeof title === "string" && title.trim() ? title.trim() : resolvedStrings.title;
 
-const resolvedId = id ?? "pipeda-settings-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("pipeda-settings");
 const ids = {
   settings: `${resolvedId}-settings`,
   necessaryDesc: `${resolvedId}-necessary-desc`,

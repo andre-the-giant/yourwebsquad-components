@@ -1,62 +1,52 @@
 ---
 /*
-Props:
-- label?: string
-- href?: string
-- target?: string
-- rel?: string
-- variant?: "solid" | "outline" | "ghost"
-- size?: "xs" | "sm" | "md" | "lg"
-- type?: "button" | "submit" | "reset"
-- disabled?: boolean
-- id?: string
-- class?: string
-- style?: string
-- screenreader?: string
-Notes:
-- rel defaults to "noreferrer" when target is "_blank".
+Button — renders an <a> when `href` is set, otherwise a <button>.
+Props are validated with zod (see Schema). `rel` defaults to "noreferrer"
+when `target` is "_blank".
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  label: { type: "string" },
-  href: { type: "string" },
-  target: { type: "string" },
-  rel: { type: "string" },
-  variant: { type: "string" },
-  size: { type: "string" },
-  type: { type: "string" },
-  disabled: { type: "boolean" },
-  screenreader: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  label: z.string().default("Button"),
+  href: z.string().optional(),
+  target: z.string().optional(),
+  rel: z.string().optional(),
+  variant: z.enum(["solid", "outline", "ghost"]).default("solid"),
+  size: z.enum(["xs", "sm", "md", "lg"]).default("md"),
+  type: z.enum(["button", "submit", "reset"]).default("button"),
+  disabled: z.boolean().default(false),
+  screenreader: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
   class: className,
   style,
-  label = "Button",
+  label,
   href,
   target,
   rel,
-  variant = "solid",
-  size = "md",
-  type = "button",
-  disabled = false,
+  variant,
+  size,
+  type,
+  disabled,
   screenreader,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Button" });
+} = parseProps(Schema, Astro.props, { component: "Button" });
 
-const resolvedId = id ?? "button-" + Math.random().toString(36).slice(2, 9);
-const resolvedLabel = label;
+const resolvedId = id ?? nextId("button");
 const resolvedHref = href;
 const resolvedTarget = target;
 const resolvedRel = rel ?? (resolvedTarget === "_blank" ? "noreferrer" : undefined);
-const styleVars = {};
-const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedStyle = makeStyleVars({}, style);
 const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${size}`, className);
 ---
 
@@ -72,7 +62,7 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
       style={resolvedStyle || undefined}
       {...rest}
     >
-      <slot>{resolvedLabel}</slot>
+      <slot>{label}</slot>
       {screenreader && <span class="sr-only">{screenreader}</span>}
     </a>
   ) : (
@@ -84,7 +74,7 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
       style={resolvedStyle || undefined}
       {...rest}
     >
-      <slot>{resolvedLabel}</slot>
+      <slot>{label}</slot>
       {screenreader && <span class="sr-only">{screenreader}</span>}
     </button>
   )

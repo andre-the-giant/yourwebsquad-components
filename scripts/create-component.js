@@ -103,7 +103,6 @@ async function run() {
 
   // Component .astro
   const compFile = path.join(libDir, `${Folder}.astro`);
-  const compIndex = path.join(libDir, `index.astro`);
 
   const compTemplate = `---
 /*
@@ -113,33 +112,32 @@ Props:
 Notes:
 - Update schema + props to match your component API.
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
   class: className,
   style,
   ...rest
-} = validateProps(schema, Astro.props, { component: "${Folder}" });
+} = parseProps(Schema, Astro.props, { component: "${Folder}" });
 
-const resolvedId = id ?? "${slugName}-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("${slugName}");
 const styleVars = {
   // "--${slugName}-bg": "var(--color-bg)"
 };
-
-const inlineStyle = Object.entries(styleVars)
-  .filter(([, value]) => value !== undefined)
-  .map(([key, value]) => key + ": " + value)
-  .join("; ");
-
-const resolvedStyle = [inlineStyle, style].filter(Boolean).join("; ");
-const resolvedClass = \`${slugName} \${className ?? ""}\`.trim();
+const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedClass = mergeClasses("${slugName}", className);
 ---
 
 <section id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
@@ -157,13 +155,8 @@ const resolvedClass = \`${slugName} \${className ?? ""}\`.trim();
 </style>
 `;
 
-  const indexTemplate = `---\nimport ${Folder} from "./${Folder}.astro";\nconst props = Astro.props;\n---\n\n<${Folder} {...props}>\n  <slot />\n</${Folder}>\n`;
-
   if (await writeIfNotExists(compFile, compTemplate)) {
     formatTargets.push(compFile);
-  }
-  if (await writeIfNotExists(compIndex, indexTemplate)) {
-    formatTargets.push(compIndex);
   }
 
   // Docs page in group

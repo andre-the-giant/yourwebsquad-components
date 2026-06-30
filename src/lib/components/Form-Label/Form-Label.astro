@@ -1,53 +1,43 @@
 ---
 /*
-Props:
-- id?: string           // id for the label element itself (useful for aria)
-- forId?: string        // value for `for` attribute to associate with control
-- label?: string
-- required?: boolean
-- visuallyHidden?: boolean
-- tag?: "label" | "span"
-- descriptionId?: string // id of help/error to include in aria-describedby linking
-- class?: string
-- style?: string
-Notes:
-- Renders a `<label>` by default but can render a `<span>` when used inside other labels.
+Form-Label — renders a <label> by default, or a <span> when nested inside
+another label. Props are validated with zod (see Schema).
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  forId: { type: "string" },
-  label: { type: "string" },
-  required: { type: "boolean" },
-  visuallyHidden: { type: "boolean" },
-  tag: { type: "string" },
-  descriptionId: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  forId: z.string().optional(),
+  label: z.string().optional(),
+  required: z.boolean().default(false),
+  visuallyHidden: z.boolean().default(false),
+  tag: z.enum(["label", "span"]).default("label"),
+  descriptionId: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
   forId,
   label,
-  required = false,
-  visuallyHidden = false,
-  tag = "label",
+  required,
+  visuallyHidden,
+  tag,
   descriptionId,
   class: className,
   style,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Form-Label" });
+} = parseProps(Schema, Astro.props, { component: "Form-Label" });
 
-const resolvedLabel = label;
-const resolvedId = id ?? `form-label-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedId = id ?? nextId("form-label");
 const described = descriptionId ?? undefined;
-const styleVars = {
-  // "--form-label-color": "var(--color-fg-muted)"
-};
-const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedStyle = makeStyleVars({}, style);
 const resolvedClass = mergeClasses("form-label", className);
 ---
 
@@ -60,7 +50,7 @@ const resolvedClass = mergeClasses("form-label", className);
       style={resolvedStyle || undefined}
       {...rest}
     >
-      {visuallyHidden ? <span class="sr-only">{resolvedLabel}</span> : resolvedLabel}
+      {visuallyHidden ? <span class="sr-only">{label}</span> : label}
       {required ? <span class="required">*</span> : null}
     </span>
   ) : (
@@ -72,7 +62,7 @@ const resolvedClass = mergeClasses("form-label", className);
       style={resolvedStyle || undefined}
       {...rest}
     >
-      {visuallyHidden ? <span class="sr-only">{resolvedLabel}</span> : resolvedLabel}
+      {visuallyHidden ? <span class="sr-only">{label}</span> : label}
       {required ? <span class="required">*</span> : null}
     </label>
   )

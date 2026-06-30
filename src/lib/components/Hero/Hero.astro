@@ -10,21 +10,25 @@ Props:
 - class?: string
 - style?: string
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Image from "../Image/Image.astro";
 import Link from "../Link/Link.astro";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  title: { type: "string" },
-  body: { type: "string" },
-  cta: { type: "object" },
-  img: { type: "string" },
-  clip: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  title: z.string().optional(),
+  body: z.string().optional(),
+  cta: z.looseObject({}).optional(),
+  img: z.string().optional(),
+  clip: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -36,9 +40,9 @@ const {
   img,
   clip,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Hero" });
+} = parseProps(Schema, Astro.props, { component: "Hero" });
 
-const resolvedId = id ?? "hero-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("hero");
 const resolvedTitle = title ?? null;
 const resolvedBody = body ?? null;
 const resolvedClip = clip ?? null;

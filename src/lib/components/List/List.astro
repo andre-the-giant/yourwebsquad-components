@@ -1,5 +1,7 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Icon from "../Icon/Icon.astro";
 
@@ -20,20 +22,22 @@ Props:
 Notes:
 - direct props only; no content merges
 */
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  as: { type: "string" },
-  items: { type: "array" },
-  icon: { type: "string" },
-  showIcon: { type: "boolean" },
-  gap: { type: "string" },
-  lineHeight: { type: "string" },
-  start: { type: ["number", "string"] },
-  reversed: { type: "boolean" },
-  type: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  as: z.string().optional(),
+  items: z.array(z.any()).optional(),
+  icon: z.string().optional(),
+  showIcon: z.boolean().optional(),
+  gap: z.string().optional(),
+  lineHeight: z.string().optional(),
+  start: z.union([z.number(), z.string()]).optional(),
+  reversed: z.boolean().optional(),
+  type: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -50,7 +54,7 @@ const {
   reversed,
   type,
   ...rest
-} = validateProps(schema, Astro.props, { component: "List" });
+} = parseProps(Schema, Astro.props, { component: "List" });
 
 const resolvedAs = (as ?? "ul").toLowerCase() === "ol" ? "ol" : "ul";
 const resolvedItems = Array.isArray(items) ? items : [];
@@ -61,7 +65,7 @@ const resolvedLineHeight = lineHeight ?? "var(--line-normal)";
 const resolvedStart = start;
 const resolvedReversed = reversed ?? false;
 const resolvedType = type;
-const resolvedId = id ?? "list-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("list");
 const listClassName = mergeClasses("list", `list--${resolvedAs}`, className);
 const hasCustomItems = Astro.slots.has("default");
 

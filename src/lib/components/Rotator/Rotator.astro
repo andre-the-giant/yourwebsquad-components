@@ -13,20 +13,24 @@ Props:
 - slot "default": optional list of <span> children used when items are not provided
 Notes: spreads ...rest on outer <span>; clip path string expected like `m0,0.5 v0.5 h0.089 (...) -0.013 c0,-0.003,0 h-1`.
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  items: { type: "array" },
-  interval: { type: "string" },
-  speed: { type: "string" },
-  size: { type: "string" },
-  direction: { type: "string" },
-  ariaLive: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z.array(z.any()).optional(),
+  interval: z.string().optional(),
+  speed: z.string().optional(),
+  size: z.string().optional(),
+  direction: z.string().optional(),
+  ariaLive: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -39,7 +43,7 @@ const {
   direction,
   ariaLive,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Rotator" });
+} = parseProps(Schema, Astro.props, { component: "Rotator" });
 
 const hasItemsArray = Array.isArray(items);
 const hasSlot = Astro.slots.has("default");
@@ -85,7 +89,7 @@ const normalizeItem = (item) => {
 };
 const resolvedItems = (itemsSource.length ? itemsSource : defaultItems).map(normalizeItem);
 
-const resolvedId = id ?? "rotator-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("rotator");
 const resolvedInterval = interval ?? "1.2s";
 const resolvedSpeed = speed ?? "0.1s";
 const resolvedDirection = direction ?? "up";

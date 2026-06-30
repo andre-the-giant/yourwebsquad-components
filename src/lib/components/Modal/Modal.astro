@@ -9,18 +9,22 @@ Props:
 - closeLabel?: string
 - open?: boolean
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  title: { type: "string" },
-  ariaLabel: { type: "string" },
-  closeLabel: { type: "string" },
-  open: { type: "boolean" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  title: z.string().optional(),
+  ariaLabel: z.string().optional(),
+  closeLabel: z.string().optional(),
+  open: z.boolean().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -31,9 +35,9 @@ const {
   closeLabel = "Close modal",
   open = false,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Modal" });
+} = parseProps(Schema, Astro.props, { component: "Modal" });
 
-const resolvedId = id ?? `modal-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedId = id ?? nextId("modal");
 const titleId = `${resolvedId}-title`;
 const hasTitle = Boolean(title) || Astro.slots.has("title");
 

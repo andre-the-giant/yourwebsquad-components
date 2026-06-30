@@ -1,27 +1,34 @@
 # Utils usage (pattern)
 
-Use this snippet in components:
+Components define their prop contract with a **zod schema** and parse it with
+`parseProps` (validates + applies defaults, warns instead of throwing). Derive a
+local `type Props` from the same schema so consumers get autocomplete.
 
 ```astro
 ---
-import { validateProps } from "../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../utils/props.js";
+import { nextId } from "../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" }
-  // ...component-specific props
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional()
+  // ...component-specific props, e.g.
+  // variant: z.enum(["solid", "outline", "ghost"]).default("solid")
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
   class: className,
   style,
   ...rest
-} = validateProps(schema, Astro.props, { component: "ComponentName" });
+} = parseProps(Schema, Astro.props, { component: "ComponentName" });
 
-const resolvedId = id ?? "component-name-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("component-name");
 const styleVars = {
   // "--component-bg": "var(--color-bg)",
 };
@@ -31,6 +38,12 @@ const resolvedClass = mergeClasses("component-name", className);
 ---
 ```
 
-- Keep schemas strict; validation throws on invalid props.
-- Prefer CSS vars in `styleVars` so consumers can override per instance.
+- Use `z.looseObject` (not `z.object`) so unknown attributes (`data-*`, `aria-*`)
+  pass through to `...rest`.
+- `parseProps` is resilient: on an invalid prop it warns in dev and falls back to
+  defaults instead of throwing, so one bad prop can't crash a static build.
+- Colors come from **tokens only** — never hardcode hex; reference semantic CSS vars
+  (e.g. `var(--color-accent)`) so themes can restyle the component.
+- Use `nextId(prefix)` for generated ids (deterministic, reproducible) — never
+  `Math.random()`.
 - Keep `class` as `className` to avoid collisions.

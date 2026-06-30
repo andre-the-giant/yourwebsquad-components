@@ -1,48 +1,36 @@
 ---
 /*
-Props:
-- id?: string
-- name?: string
-- label?: string
-- placeholder?: string
-- value?: string
-- type?: string
-- disabled?: boolean
-- readonly?: boolean
-- required?: boolean
-- ariaLabel?: string
-- ariaDescribedBy?: string
-- ariaInvalid?: boolean
-- helpId?: string   // optional id for help text to wire into aria-describedby
-- errorId?: string  // optional id for error text to wire into aria-describedby
-- class?: string
-- style?: string
-Notes:
-- component auto-generates an id when none is provided
+Form-Input — labelled text input. Auto-generates an id when none is given and
+wires `aria-describedby` from any provided `helpId` / `errorId` / `ariaDescribedBy`.
+Props are validated with zod (see Schema).
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import FormLabel from "../Form-Label/Form-Label.astro";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  name: { type: "string" },
-  label: { type: "string" },
-  placeholder: { type: "string" },
-  value: { type: ["string", "number"] },
-  type: { type: "string" },
-  disabled: { type: "boolean" },
-  readonly: { type: "boolean" },
-  required: { type: "boolean" },
-  ariaLabel: { type: "string" },
-  ariaDescribedBy: { type: "string" },
-  ariaInvalid: { type: "boolean" },
-  helpId: { type: "string" },
-  errorId: { type: "string" },
-  ariaControls: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  name: z.string().optional(),
+  label: z.string().optional(),
+  placeholder: z.string().optional(),
+  value: z.union([z.string(), z.number()]).optional(),
+  type: z.string().default("text"),
+  disabled: z.boolean().default(false),
+  readonly: z.boolean().default(false),
+  required: z.boolean().default(false),
+  ariaLabel: z.string().optional(),
+  ariaDescribedBy: z.string().optional(),
+  ariaInvalid: z.boolean().default(false),
+  helpId: z.string().optional(),
+  errorId: z.string().optional(),
+  ariaControls: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -52,38 +40,32 @@ const {
   label,
   placeholder,
   value,
-  type = "text",
-  disabled = false,
-  readonly = false,
-  required = false,
+  type,
+  disabled,
+  readonly,
+  required,
   ariaLabel,
   ariaDescribedBy,
-  ariaInvalid = false,
+  ariaInvalid,
   helpId,
   errorId,
   ariaControls,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Form-Input" });
+} = parseProps(Schema, Astro.props, { component: "Form-Input" });
 
-const resolvedLabel = label;
-const resolvedId = id ?? `form-input-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedPlaceholder = placeholder;
-const resolvedValue = value;
+const resolvedId = id ?? nextId("form-input");
 
 const describedIds = [ariaDescribedBy, helpId, errorId].filter(Boolean).join(" ");
-const styleVars = {
-  // "--form-input-padding": "0.5rem 0.75rem"
-};
-const resolvedStyle = makeStyleVars(styleVars, style);
+const resolvedStyle = makeStyleVars({}, style);
 const resolvedClass = mergeClasses("form-field", className);
 ---
 
 <div class={resolvedClass} style={resolvedStyle || undefined}>
   {
-    resolvedLabel ? (
+    label ? (
       <FormLabel
         forId={resolvedId}
-        label={resolvedLabel}
+        label={label}
         required={required}
         descriptionId={describedIds}
       />
@@ -95,8 +77,8 @@ const resolvedClass = mergeClasses("form-field", className);
     id={resolvedId}
     name={name}
     type={type}
-    placeholder={resolvedPlaceholder}
-    value={resolvedValue}
+    placeholder={placeholder}
+    value={value}
     disabled={disabled}
     readonly={readonly}
     required={required}

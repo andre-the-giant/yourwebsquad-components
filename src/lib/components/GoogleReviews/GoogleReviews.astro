@@ -1,37 +1,31 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import StarRating from "../StarRating/StarRating.astro";
 
-const nonEmptyString = (label) => (value) =>
-  (typeof value === "string" && value.trim().length > 0) || `${label} must be a non-empty string`;
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  placeId: z.string().min(1, "placeId must be a non-empty string"),
+  apiKey: z.string().min(1, "apiKey must be a non-empty string"),
+  locale: z.string().optional(),
+  sort: z.enum(["newest", "most_relevant", "both"]).optional(),
+  maxReviews: z.number().min(1).max(20).optional(),
+  title: z.string().optional(),
+  writeReviewLabel: z.string().optional(),
+  moreReviewsLabel: z.string().optional(),
+  readMoreLabel: z.string().optional(),
+  truncateLines: z.number().min(1).max(12).optional(),
+  showSchema: z.boolean().optional(),
+  strict: z.boolean().optional(),
+  translate: z.boolean().optional(),
+  schema: z.union([z.looseObject({}), z.array(z.any())]).optional()
+});
 
-const clampNumber = (min, max) => (value) =>
-  (typeof value === "number" && !Number.isNaN(value) && value >= min && value <= max) ||
-  `must be between ${min} and ${max}`;
-
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  placeId: { type: "string", required: true, validate: nonEmptyString("placeId") },
-  apiKey: { type: "string", required: true, validate: nonEmptyString("apiKey") },
-  locale: { type: "string" },
-  sort: {
-    type: "string",
-    validate: (value) => ["newest", "most_relevant", "both"].includes(value) || "invalid sort value"
-  },
-  maxReviews: { type: "number", validate: clampNumber(1, 20) },
-  title: { type: "string" },
-  writeReviewLabel: { type: "string" },
-  moreReviewsLabel: { type: "string" },
-  readMoreLabel: { type: "string" },
-  truncateLines: { type: "number", validate: clampNumber(1, 12) },
-  showSchema: { type: "boolean" },
-  strict: { type: "boolean" },
-  translate: { type: "boolean" },
-  schema: { type: ["object", "array"] }
-};
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -52,9 +46,9 @@ const {
   translate,
   schema: schemaOverride,
   ...rest
-} = validateProps(schema, Astro.props, { component: "GoogleReviews" });
+} = parseProps(Schema, Astro.props, { component: "GoogleReviews" });
 
-const resolvedId = id ?? "googlereviews-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("googlereviews");
 const resolvedLocale = typeof locale === "string" && locale.trim() ? locale.trim() : "en";
 const resolvedSort = ["newest", "most_relevant", "both"].includes(sort) ? sort : "newest";
 const clamp = (num, min, max, fallback) => {

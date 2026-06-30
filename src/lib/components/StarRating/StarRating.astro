@@ -1,25 +1,29 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import icons from "../Icon/icons/index.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  rating: { type: "number" },
-  max: { type: "number" },
-  size: { type: "string" },
-  starSize: { type: "string" },
-  iconName: { type: "string" },
-  filledColor: { type: "string" },
-  emptyColor: { type: "string" },
-  showValue: { type: "boolean" },
-  srTemplate: { type: "string" },
-  srText: { type: "string" },
-  valueTemplate: { type: "string" },
-  valueText: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  rating: z.number().optional(),
+  max: z.number().optional(),
+  size: z.string().optional(),
+  starSize: z.string().optional(),
+  iconName: z.string().optional(),
+  filledColor: z.string().optional(),
+  emptyColor: z.string().optional(),
+  showValue: z.boolean().optional(),
+  srTemplate: z.string().optional(),
+  srText: z.string().optional(),
+  valueTemplate: z.string().optional(),
+  valueText: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -38,7 +42,7 @@ const {
   valueTemplate = "{rating}/{max}",
   valueText,
   ...rest
-} = validateProps(schema, Astro.props, { component: "StarRating" });
+} = parseProps(Schema, Astro.props, { component: "StarRating" });
 
 const defaultStarIcon = {
   viewBox: "0 0 20 20",
@@ -78,7 +82,7 @@ const ratingLabel = isIntegerRating
 const ratio = resolvedMax > 0 ? resolvedRating / resolvedMax : 0;
 const ratingPercent = toOneDecimal(ratio * 100);
 
-const resolvedId = id ?? `star-rating-${Math.random().toString(36).slice(2, 9)}`;
+const resolvedId = id ?? nextId("star-rating");
 const resolvedSize =
   typeof starSize === "string" && starSize.trim() ? starSize.trim() : (sizeMap[size] ?? sizeMap.md);
 const resolvedSrText =

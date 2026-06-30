@@ -1,39 +1,35 @@
 ---
 /*
-Props:
-- id?: string
-- text?: string
-- class?: string
-- style?: string
-- role?: string
-- ariaLive?: "polite" | "assertive" | "off"
-Notes:
-- Intended to pair with `errorId` passed to form fields for aria-describedby.
+Form-Error — inline field error text. Pairs with `errorId` passed to a form
+field for aria-describedby. Props are validated with zod (see Schema).
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  text: { type: "string" },
-  role: { type: "string" },
-  ariaLive: { type: "string" }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  text: z.string().optional(),
+  role: z.string().default("alert"),
+  ariaLive: z.enum(["polite", "assertive", "off"]).default("polite")
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
   text,
   class: className,
   style,
-  role = "alert",
-  ariaLive = "polite",
+  role,
+  ariaLive,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Form-Error" });
+} = parseProps(Schema, Astro.props, { component: "Form-Error" });
 
-const resolvedId = id ?? `form-error-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedText = text;
+const resolvedId = id ?? nextId("form-error");
 const resolvedStyle = makeStyleVars({}, style);
 const resolvedClass = mergeClasses("form-error", className);
 ---
@@ -46,7 +42,7 @@ const resolvedClass = mergeClasses("form-error", className);
   style={resolvedStyle || undefined}
   {...rest}
 >
-  <slot>{resolvedText}</slot>
+  <slot>{text}</slot>
   {Astro.slots.has("suffix") ? <slot name="suffix" /> : null}
 </p>
 

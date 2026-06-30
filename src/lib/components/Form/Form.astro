@@ -1,19 +1,21 @@
 ---
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Button from "../Button/Button.astro";
-import FormInput from "../Form-Input/index.astro";
-import FormTextarea from "../Form-Textarea/index.astro";
-import FormSelect from "../Form-Select/index.astro";
-import FormCheckbox from "../Form-Checkbox/index.astro";
-import FormRadio from "../Form-Radio/index.astro";
-import FormDate from "../Form-Date/index.astro";
-import FormHidden from "../Form-Hidden/index.astro";
-import FormUpload from "../Form-Upload/index.astro";
-import FormFieldset from "../Form-Fieldset/index.astro";
-import FormError from "../Form-Error/index.astro";
-import FormHelp from "../Form-Help/index.astro";
-import Alert from "../Alert/index.astro";
+import FormInput from "../Form-Input/Form-Input.astro";
+import FormTextarea from "../Form-Textarea/Form-Textarea.astro";
+import FormSelect from "../Form-Select/Form-Select.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+import FormRadio from "../Form-Radio/Form-Radio.astro";
+import FormDate from "../Form-Date/Form-Date.astro";
+import FormHidden from "../Form-Hidden/Form-Hidden.astro";
+import FormUpload from "../Form-Upload/Form-Upload.astro";
+import FormFieldset from "../Form-Fieldset/Form-Fieldset.astro";
+import FormError from "../Form-Error/Form-Error.astro";
+import FormHelp from "../Form-Help/Form-Help.astro";
+import Alert from "../Alert/Alert.astro";
 import { loadFormDefinition } from "../../forms/loader.js";
 import { resolveLocalized } from "../../forms/schema.js";
 
@@ -47,34 +49,36 @@ Props:
 - style?: string
 */
 
-const schema = {
-  formId: { type: "string" },
-  form: { type: "object" },
-  locale: { type: "string" },
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  action: { type: "string" },
-  target: { type: "string" },
-  enctype: { type: "string" },
-  novalidate: { type: "boolean" },
-  preventEnterSubmit: { type: "boolean" },
-  submitLabel: { type: "string" },
-  submitVariant: { type: "string" },
-  submitSize: { type: "string" },
-  submitDisabled: { type: "boolean" },
-  submitClass: { type: "string" },
-  submitStyle: { type: "string" },
-  showReset: { type: "boolean" },
-  resetLabel: { type: "string" },
-  resetVariant: { type: "string" },
-  resetSize: { type: "string" },
-  resetDisabled: { type: "boolean" },
-  resetClass: { type: "string" },
-  resetStyle: { type: "string" },
-  validateOnSubmit: { type: "boolean" },
-  messages: { type: "object" }
-};
+const Schema = z.looseObject({
+  formId: z.string().optional(),
+  form: z.looseObject({}).optional(),
+  locale: z.string().optional(),
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  action: z.string().optional(),
+  target: z.string().optional(),
+  enctype: z.string().optional(),
+  novalidate: z.boolean().optional(),
+  preventEnterSubmit: z.boolean().optional(),
+  submitLabel: z.string().optional(),
+  submitVariant: z.string().optional(),
+  submitSize: z.string().optional(),
+  submitDisabled: z.boolean().optional(),
+  submitClass: z.string().optional(),
+  submitStyle: z.string().optional(),
+  showReset: z.boolean().optional(),
+  resetLabel: z.string().optional(),
+  resetVariant: z.string().optional(),
+  resetSize: z.string().optional(),
+  resetDisabled: z.boolean().optional(),
+  resetClass: z.string().optional(),
+  resetStyle: z.string().optional(),
+  validateOnSubmit: z.boolean().optional(),
+  messages: z.looseObject({}).optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   formId,
@@ -104,7 +108,7 @@ const {
   validateOnSubmit = true,
   messages,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Form" });
+} = parseProps(Schema, Astro.props, { component: "Form" });
 
 let normalizedForm = null;
 if (formId || form) {
@@ -115,7 +119,7 @@ const formHtmlId =
   id ??
   (normalizedForm?.id
     ? `form-${normalizedForm.id}`
-    : `form-${Math.random().toString(36).slice(2, 9)}`);
+    : nextId("form"));
 const resolvedAction = actionProp ?? normalizedForm?.endpoint;
 const resolvedTitle = normalizedForm ? resolveLocalized(normalizedForm.title, locale) : undefined;
 
@@ -132,7 +136,6 @@ const styleVars = {};
 const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("form", className);
 const ariaMap = new Map();
-const nextId = (prefix) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
 function registerField(name) {
   if (!ariaMap.has(name)) {

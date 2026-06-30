@@ -1,23 +1,21 @@
 ---
 /*
-Props:
-- id?: string
-- name?: string
-- value?: string
-- class?: string
-- style?: string
-Notes:
+Form-Hidden — hidden input. Props are validated with zod (see Schema).
 */
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  name: { type: "string" },
-  value: { type: ["string", "number"] }
-};
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  name: z.string().optional(),
+  value: z.union([z.string(), z.number()]).optional()
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
@@ -26,10 +24,9 @@ const {
   name,
   value,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Form-Hidden" });
+} = parseProps(Schema, Astro.props, { component: "Form-Hidden" });
 
-const resolvedId = id ?? `form-hidden-${Math.random().toString(36).slice(2, 9)}`;
-const resolvedName = name;
+const resolvedId = id ?? nextId("form-hidden");
 const resolvedValue = value ?? "";
 const resolvedStyle = makeStyleVars({}, style);
 const resolvedClass = mergeClasses(className);
@@ -38,7 +35,7 @@ const resolvedClass = mergeClasses(className);
 <input
   type="hidden"
   id={resolvedId}
-  name={resolvedName}
+  name={name}
   value={resolvedValue}
   class={resolvedClass || undefined}
   style={resolvedStyle || undefined}

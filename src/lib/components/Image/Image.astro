@@ -1,20 +1,12 @@
 ---
 /*
-Props:
-- format?: string
-- quality?: number
-- widths?: number[]
-- alt?: string
-- fetchpriority?: string
-- loading?: "lazy" | "eager"
-- sizes?: string
-- src?: string
-- id?: string
-- class?: string
-- style?: string
+Image — wraps astro:assets <Image> with local/remote src resolution and an
+inferred aspect ratio. Props are validated with zod (see Schema).
 */
 import { Image } from "astro:assets";
-import { validateProps } from "../../utils/props.js";
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 
 const localImages = import.meta.glob("/src/images/**/*", { eager: true });
@@ -80,43 +72,45 @@ function resolveSrcValue(value) {
   return candidate;
 }
 
-const schema = {
-  id: { type: "string" },
-  class: { type: "string" },
-  style: { type: "string" },
-  format: { type: "string" },
-  quality: { type: "number" },
-  widths: { type: "array" },
-  width: { type: "number" },
-  height: { type: "number" },
-  alt: { type: "string" },
-  fetchpriority: { type: "string" },
-  loading: { type: "string" },
-  sizes: { type: "string" },
-  src: { type: ["string", "object"] }
-};
-
 const defaultSrc = "https://picsum.photos/320/180";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  format: z.string().default("webp"),
+  quality: z.number().default(60),
+  widths: z.array(z.number()).default([640, 960, 1280, 1600, 1920]),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  alt: z.string().default(""),
+  fetchpriority: z.string().default("high"),
+  loading: z.enum(["lazy", "eager"]).default("lazy"),
+  sizes: z.string().default("100vw"),
+  src: z.union([z.string(), z.looseObject({})]).default(defaultSrc)
+});
+
+type Props = z.input<typeof Schema>;
 
 const {
   id,
   class: className,
   style,
-  format = "webp",
-  quality = 60,
-  widths = [640, 960, 1280, 1600, 1920],
+  format,
+  quality,
+  widths,
   width,
   height,
-  alt = "",
-  fetchpriority = "high",
-  loading = "lazy",
-  sizes = "100vw",
-  src = defaultSrc,
+  alt,
+  fetchpriority,
+  loading,
+  sizes,
+  src,
   ...rest
-} = validateProps(schema, Astro.props, { component: "Image" });
+} = parseProps(Schema, Astro.props, { component: "Image" });
 
 const resolvedSrc = resolveSrcValue(src) ?? resolveSrcValue(defaultSrc) ?? defaultSrc;
-const resolvedId = id ?? "image-" + Math.random().toString(36).slice(2, 9);
+const resolvedId = id ?? nextId("image");
 const isRemoteSrc = typeof resolvedSrc === "string" && /^(?:https?:)?\/\//i.test(resolvedSrc);
 
 // When a remote image has no explicit dimensions, try to read its real size
