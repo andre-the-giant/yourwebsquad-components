@@ -398,20 +398,119 @@ function parse_uploads(array $meta, ?array $entry, bool $required): array {
     return $result;
 }
 
-function build_mail_headers(array $config, array $values): array {
-    $from = $config['from'] ?? '';
-    $replyField = $config['replyToField'] ?? '';
-    $replyTo = $replyField && isset($values[$replyField]) ? $values[$replyField] : '';
+function find_ancestor_directory(string $startDir, array $targetNames, int $maxDepth = 8): ?string {
+    $current = realpath($startDir);
+    if ($current === false) {
+        return null;
+    }
 
-    $headers = [];
-    if ($from) {
-        $headers[] = 'From: ' . $from;
+    for ($depth = 0; $depth <= $maxDepth; $depth++) {
+        if (in_array(basename($current), $targetNames, true)) {
+            return $current;
+        }
+
+        $parent = dirname($current);
+        if ($parent === $current) {
+            break;
+        }
+
+        $current = $parent;
     }
-    if ($replyTo) {
-        $headers[] = 'Reply-To: ' . filter_var($replyTo, FILTER_SANITIZE_EMAIL);
+
+    return null;
+}
+
+function smtp_config(): array {
+    $host = '';
+    $port = 465;
+    $secure = 'ssl';
+    $user = '';
+    $pass = '';
+    $fromEmail = '';
+    $fromName = 'Website';
+
+    $siteRoot = find_ancestor_directory(__DIR__, ['public', 'test', 'www']);
+    if ($siteRoot === null) {
+        return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
     }
-    $headers[] = 'MIME-Version: 1.0';
-    return $headers;
+
+    $siteFolder = basename($siteRoot);
+    $serverRoot = $siteFolder === 'public' ? dirname($siteRoot) : $siteRoot;
+    $section = $siteFolder === 'www' ? 'production' : 'staging';
+
+    $envPath = $serverRoot . '/server.env.php';
+    if (!is_file($envPath)) {
+        return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
+    }
+
+    $values = require $envPath;
+    if (!is_array($values) || !isset($values[$section]) || !is_array($values[$section])) {
+        return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
+    }
+
+    $env = $values[$section];
+    $host = (string)($env['SMTP_HOST'] ?? '');
+    $port = (int)($env['SMTP_PORT'] ?? 465);
+    $secure = strtolower((string)($env['SMTP_SECURE'] ?? 'ssl'));
+    $user = (string)($env['SMTP_USER'] ?? '');
+    $pass = (string)($env['SMTP_PASS'] ?? '');
+    $fromEmail = (string)($env['SMTP_FROM_EMAIL'] ?? '');
+    $fromName = (string)($env['SMTP_FROM_NAME'] ?? 'Website');
+
+    return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
+}
+
+function smtp_send_raw(string $envelopeFrom, array $recipients, string $rawMessage): bool {
+    $smtp = smtp_config();
+
+    if ($smtp['host'] === '' || $smtp['user'] === '' || $smtp['pass'] === '' || empty($recipients)) {
+        error_log(sprintf(
+            '[form] SMTP not sent: incomplete config (host=%s user_set=%s pass_set=%s recipients=%d)',
+            $smtp['host'] !== '' ? $smtp['host'] : '(empty)',
+            $smtp['user'] !== '' ? 'yes' : 'no',
+            $smtp['pass'] !== '' ? 'yes' : 'no',
+            count($recipients)
+        ));
+        return false;
+    }
+
+    $stream = fopen('php://temp', 'r+');
+    if ($stream === false) {
+        error_log('[form] SMTP not sent: failed to open message buffer.');
+        return false;
+    }
+    fwrite($stream, $rawMessage);
+    rewind($stream);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => sprintf('%s://%s:%d', $smtp['secure'] === 'ssl' ? 'smtps' : 'smtp', $smtp['host'], $smtp['port']),
+        CURLOPT_USERNAME => $smtp['user'],
+        CURLOPT_PASSWORD => $smtp['pass'],
+        CURLOPT_MAIL_FROM => '<' . $envelopeFrom . '>',
+        CURLOPT_MAIL_RCPT => array_map(static fn (string $address): string => '<' . $address . '>', $recipients),
+        CURLOPT_UPLOAD => true,
+        CURLOPT_INFILE => $stream,
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_CONNECTTIMEOUT => 10
+    ]);
+
+    if ($smtp['secure'] === 'tls') {
+        curl_setopt($ch, CURLOPT_USE_SSL, CURLUSESSL_ALL);
+    }
+
+    $success = curl_exec($ch) !== false;
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+    fclose($stream);
+
+    if (!$success || $errno !== 0) {
+        error_log(sprintf('[form] SMTP send failed (host=%s port=%d): [%d] %s', $smtp['host'], $smtp['port'], $errno, $error));
+        return false;
+    }
+
+    return true;
 }
 
 function build_multipart_body(string $body, array $attachments, string $boundary): string {
@@ -442,11 +541,32 @@ function build_multipart_body(string $body, array $attachments, string $boundary
 }
 
 function send_form_mail(array $emailCfg, array $clean, array $recipients, string $subject, string $body, array $attachments): bool {
-    $headers = build_mail_headers($emailCfg, $clean);
+    $smtp = smtp_config();
+    $fromEmail = $smtp['fromEmail'] !== '' ? $smtp['fromEmail'] : (string)($emailCfg['from'] ?? '');
+    if ($fromEmail === '') {
+        error_log('[form] Not sent: missing SMTP_FROM_EMAIL.');
+        return false;
+    }
+
+    $replyField = $emailCfg['replyToField'] ?? '';
+    $replyTo = $replyField && isset($clean[$replyField]) ? $clean[$replyField] : '';
+
+    $headers = [
+        'MIME-Version: 1.0',
+        'From: ' . $smtp['fromName'] . ' <' . $fromEmail . '>',
+        'To: ' . implode(', ', $recipients),
+        'Subject: ' . $subject,
+        'Date: ' . date(DATE_RFC2822),
+        'Message-ID: <' . bin2hex(random_bytes(16)) . '@' . preg_replace('/^.*@/', '', $fromEmail) . '>'
+    ];
+    if ($replyTo) {
+        $headers[] = 'Reply-To: ' . (filter_var($replyTo, FILTER_SANITIZE_EMAIL) ?: $replyTo);
+    }
 
     if (empty($attachments)) {
         $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-        return @mail(implode(',', $recipients), $subject, $body, implode("\\r\\n", $headers));
+        $rawMessage = implode("\\r\\n", $headers) . "\\r\\n\\r\\n" . $body;
+        return smtp_send_raw($fromEmail, $recipients, $rawMessage);
     }
 
     try {
@@ -457,7 +577,8 @@ function send_form_mail(array $emailCfg, array $clean, array $recipients, string
 
     $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
     $message = build_multipart_body($body, $attachments, $boundary);
-    return @mail(implode(',', $recipients), $subject, $message, implode("\\r\\n", $headers));
+    $rawMessage = implode("\\r\\n", $headers) . "\\r\\n\\r\\n" . $message;
+    return smtp_send_raw($fromEmail, $recipients, $rawMessage);
 }
 
 $allowedHosts = ${allowedPhpArray};
