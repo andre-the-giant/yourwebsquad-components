@@ -435,7 +435,7 @@ function smtp_config(): array {
     }
 
     $siteFolder = basename($siteRoot);
-    $serverRoot = $siteFolder === 'public' ? dirname($siteRoot) : $siteRoot;
+    $serverRoot = dirname($siteRoot);
     $section = $siteFolder === 'www' ? 'production' : 'staging';
 
     $envPath = $serverRoot . '/server.env.php';
