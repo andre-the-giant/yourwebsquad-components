@@ -96,9 +96,15 @@ const resolvedClass = mergeClasses("modal", className);
   const OPEN_EVENT = "modal:open";
   const CLOSE_EVENT = "modal:close";
   const TOGGLE_EVENT = "modal:toggle";
+  const SCROLL_LOCK_CLASS = "yws-modal-open";
 
   const modalState = window.__ywsModalState ?? new WeakMap();
   window.__ywsModalState = modalState;
+
+  const syncScrollLock = () => {
+    const hasOpenModal = document.querySelector("dialog[data-modal-root][open]") !== null;
+    document.documentElement.classList.toggle(SCROLL_LOCK_CLASS, hasOpenModal);
+  };
 
   const onReady = (callback) => {
     if (document.readyState === "loading") {
@@ -145,6 +151,7 @@ const resolvedClass = mergeClasses("modal", className);
       opener: canFocus(opener) ? opener : document.activeElement
     });
     dialog.showModal();
+    syncScrollLock();
   };
 
   const getDialogById = (id) => {
@@ -172,6 +179,7 @@ const resolvedClass = mergeClasses("modal", className);
 
     dialog.addEventListener("close", () => {
       restoreFocus(dialog);
+      syncScrollLock();
     });
 
     dialog.addEventListener("cancel", () => {
@@ -244,6 +252,10 @@ const resolvedClass = mergeClasses("modal", className);
 </script>
 
 <style>
+  :global(html.yws-modal-open) {
+    overflow: hidden;
+  }
+
   .modal {
     width: var(--modal-width);
     max-width: calc(100vw - 2rem);
