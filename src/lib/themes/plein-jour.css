@@ -1,0 +1,794 @@
+/* =============================================================================
+   Plein jour — theme of yourwebsquad.com
+
+   Opt-in only:
+     import "yourwebsquad-components/tokens.css";
+     import "yourwebsquad-components/themes/plein-jour.css";
+     <html data-theme="plein-jour">
+
+   Every rule sits behind [data-theme="plein-jour"], so a site that does not set
+   this attribute renders exactly as before, even if it imports this file.
+
+   Fonts are not shipped here: the Satoshi licence forbids passing the files to
+   clients or contractors. The site loads Satoshi (500, 700, 900) and JetBrains
+   Mono (500) itself; the stacks below fall back to system fonts.
+
+   Magenta #FF0060 is 3.87:1 on white: use it for large text (24px and up, or
+   bold from 18.66px), fills and icons, never for small text.
+   ============================================================================= */
+
+html[data-theme="plein-jour"] {
+  color-scheme: light;
+
+  /* ── §1 Theme contract ───────────────────────────────────────────────────── */
+  --color-bg-rgb: 255, 255, 255;
+  --color-fg-rgb: 18, 19, 26;
+  --color-bg: rgb(var(--color-bg-rgb));
+  --color-fg: rgb(var(--color-fg-rgb));
+  --color-surface: rgb(242, 242, 244);
+  --color-border: rgb(217, 217, 222);
+  --color-muted: rgb(91, 91, 99);
+
+  --color-accent: rgb(255, 0, 96);
+  --color-accent-contrast: rgb(255, 255, 255);
+  --color-accent-muted: rgb(255, 230, 239);
+  --color-focus: rgb(18, 19, 26);
+
+  --color-shadow: transparent;
+  --color-scrim: rgba(18, 19, 26, 0.62);
+
+  --color-inverse-surface: rgb(18, 19, 26);
+  --color-inverse-fg: rgb(255, 255, 255);
+
+  --color-info-rgb: 18, 19, 26;
+  --color-success-rgb: 11, 107, 58;
+  --color-warning-rgb: 138, 84, 0;
+  --color-danger-rgb: 176, 0, 32;
+  --color-info-text: rgb(18, 19, 26);
+  --color-success-text: rgb(11, 107, 58);
+  --color-warning-text: rgb(138, 84, 0);
+  --color-danger-text: rgb(176, 0, 32);
+
+  /* ── §2 Scale ────────────────────────────────────────────────────────────── */
+  --font-body: "Satoshi", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Satoshi", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --weight-regular: 500;
+  --weight-medium: 500;
+  --weight-semibold: 700;
+  --weight-bold: 700;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  --type-heading-weight: 900;
+  --type-h1: clamp(2.75rem, 7.6vw, 6.5rem);
+  --type-h1-line: 0.96;
+  --type-h1-tracking: -0.035em;
+  --type-h2: clamp(2.125rem, 5vw, 4.25rem);
+  --type-h2-line: 1;
+  --type-h2-tracking: -0.03em;
+  --type-h3: clamp(1.5rem, 2.6vw, 2.125rem);
+  --type-h3-line: 1.1;
+  --type-h3-tracking: -0.02em;
+  --type-lead: clamp(1.3125rem, 2.1vw, 1.6875rem);
+
+  /* ── §3 Components ───────────────────────────────────────────────────────── */
+  --form-field-gap: 0.375rem;
+  --form-label-font-size: 1.0625rem;
+  --form-input-padding: 0.75rem 0.875rem;
+  --form-input-border: 2px solid var(--color-fg);
+  --form-input-border-radius: 0;
+  --form-input-bg: rgb(255, 255, 255);
+  --form-input-focus: var(--color-focus);
+  --color-fg-muted: var(--color-fg);
+
+  --button-font: var(--font-display);
+  --button-solid-bg: var(--color-accent);
+  --button-solid-fg: rgb(255, 255, 255);
+  --button-solid-border: transparent;
+  --button-solid-shadow: none;
+  --button-solid-hover-fg: var(--color-fg);
+  /* "outline" is the filled secondary button of this theme */
+  --button-outline-bg: var(--color-fg);
+  --button-outline-fg: rgb(255, 255, 255);
+  --button-outline-border: transparent;
+  --button-outline-hover-bg: var(--color-fg);
+  --button-outline-hover-fg: var(--color-fg);
+  --button-ghost-fg: var(--color-fg);
+  --button-focus: var(--color-focus);
+
+  --modal-surface: rgb(255, 255, 255);
+  --modal-border: transparent;
+  --modal-shadow: none;
+  --modal-radius: 0;
+
+  --plan-featured-muted: rgb(185, 185, 194);
+  --star-filled: var(--color-accent);
+
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+/* ── Base type ─────────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] *,
+html[data-theme="plein-jour"] *::before,
+html[data-theme="plein-jour"] *::after {
+  box-sizing: border-box;
+}
+
+html[data-theme="plein-jour"] body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+html[data-theme="plein-jour"] h1,
+html[data-theme="plein-jour"] h2,
+html[data-theme="plein-jour"] h3,
+html[data-theme="plein-jour"] h4,
+html[data-theme="plein-jour"] h5,
+html[data-theme="plein-jour"] h6 {
+  font-family: var(--font-display);
+}
+
+html[data-theme="plein-jour"] h1 {
+  font-size: var(--type-h1);
+  font-weight: 900;
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+html[data-theme="plein-jour"] h2 {
+  font-size: var(--type-h2);
+  font-weight: 900;
+  line-height: var(--type-h2-line);
+  letter-spacing: var(--type-h2-tracking);
+}
+
+html[data-theme="plein-jour"] h3 {
+  font-size: var(--type-h3);
+  font-weight: 900;
+  line-height: var(--type-h3-line);
+  letter-spacing: var(--type-h3-tracking);
+}
+
+html[data-theme="plein-jour"] h4 {
+  font-size: clamp(1.3125rem, 2vw, 1.625rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+html[data-theme="plein-jour"] h5 {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+html[data-theme="plein-jour"] h6 {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* Links in running text: underlined, with a magenta rule on hover */
+html[data-theme="plein-jour"] a:not(.button) {
+  color: inherit;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
+  transition:
+    text-decoration-color 150ms ease-out,
+    text-decoration-thickness 150ms ease-out;
+}
+
+html[data-theme="plein-jour"] a:not(.button):hover {
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 3px;
+}
+
+html[data-theme="plein-jour"] :is(a, button, summary, input, select, textarea):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* ── Button: "Surligné inversé" — full at rest, a single line on hover ──────── */
+html[data-theme="plein-jour"] .button {
+  min-height: 3.5rem;
+  padding: 0 1.625rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  transition:
+    background-size 150ms ease-out,
+    color 150ms ease-out;
+}
+
+html[data-theme="plein-jour"] .button--solid,
+html[data-theme="plein-jour"] .button--outline {
+  background-image: linear-gradient(var(--_button-fill), var(--_button-fill));
+  background-color: transparent;
+  background-position: left bottom;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="plein-jour"] .button--solid {
+  --_button-fill: var(--button-solid-bg);
+  color: var(--button-solid-fg);
+}
+
+html[data-theme="plein-jour"] .button--solid::after {
+  content: "→" / "";
+  transition: transform 150ms ease-out;
+}
+
+html[data-theme="plein-jour"] .button--outline {
+  --_button-fill: var(--button-outline-bg);
+  color: var(--button-outline-fg);
+}
+
+/* Full shorthand on purpose: Button's own :hover rule uses `background`, which
+   resets position and repeat, and the 5px line would then cover the whole button */
+html[data-theme="plein-jour"] .button--solid:hover,
+html[data-theme="plein-jour"] .button--outline:hover {
+  background: linear-gradient(var(--_button-fill), var(--_button-fill)) left bottom / 100% 5px
+    no-repeat;
+  transform: none;
+}
+
+html[data-theme="plein-jour"] .button--solid:hover {
+  color: var(--button-solid-hover-fg);
+}
+
+html[data-theme="plein-jour"] .button--solid:hover::after {
+  transform: translateX(3px);
+}
+
+html[data-theme="plein-jour"] .button--outline:hover {
+  color: var(--button-outline-hover-fg);
+}
+
+html[data-theme="plein-jour"] .button--ghost,
+html[data-theme="plein-jour"] .button--ghost:hover {
+  min-height: 2.75rem;
+  padding: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  transition:
+    text-decoration-color 150ms ease-out,
+    text-decoration-thickness 150ms ease-out;
+}
+
+html[data-theme="plein-jour"] .button--ghost:hover {
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 5px;
+}
+
+html[data-theme="plein-jour"] .button--lg {
+  min-height: 4rem;
+  padding: 0 1.875rem;
+  font-size: 1.375rem;
+}
+
+/* 19px Black is the smallest size where white on magenta counts as large text */
+html[data-theme="plein-jour"] .button--sm,
+html[data-theme="plein-jour"] .button--xs {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  font-size: 1.1875rem;
+  font-weight: 900;
+}
+
+html[data-theme="plein-jour"] .button:is(:disabled, [aria-disabled="true"]) {
+  --_button-fill: rgb(228, 228, 232);
+  color: var(--color-muted);
+  opacity: 1;
+  background-size: 100% 100%;
+}
+
+@media (max-width: 39.99rem) {
+  html[data-theme="plein-jour"] .button--lg {
+    width: 100%;
+    padding: 0 1.25rem;
+    font-size: 1.25rem;
+  }
+}
+
+/* ── Bands: buttons and text follow the background ─────────────────────────── */
+html[data-theme="plein-jour"] .band--inverse {
+  --color-muted: var(--plan-featured-muted);
+  --color-border: rgb(58, 59, 68);
+  --color-focus: rgb(255, 255, 255);
+  --button-solid-hover-fg: rgb(255, 255, 255);
+  --button-outline-bg: rgb(255, 255, 255);
+  --button-outline-fg: var(--color-inverse-surface);
+  --button-outline-hover-fg: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] .band--accent {
+  /* White on magenta is 3.87:1: running text has to count as large text */
+  font-size: 1.1875rem;
+  font-weight: 700;
+  --color-focus: rgb(18, 19, 26);
+  --button-solid-bg: rgb(255, 255, 255);
+  --button-solid-fg: rgb(18, 19, 26);
+  --button-solid-hover-fg: rgb(255, 255, 255);
+  --button-outline-bg: rgb(18, 19, 26);
+  --button-outline-fg: rgb(255, 255, 255);
+  --button-outline-hover-fg: rgb(18, 19, 26);
+}
+
+html[data-theme="plein-jour"] .plan--featured {
+  --color-focus: rgb(255, 255, 255);
+  --button-solid-hover-fg: rgb(255, 255, 255);
+}
+
+/* ── Forms ─────────────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] :is(.form-input, .form-select, .form-textarea) {
+  min-height: 3.5rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-fg);
+}
+
+html[data-theme="plein-jour"] .form-label {
+  font-weight: 700;
+}
+
+html[data-theme="plein-jour"] .form-error {
+  font-weight: 700;
+}
+
+html[data-theme="plein-jour"] :is(.form-input, .form-select, .form-textarea)[aria-invalid="true"] {
+  border-color: var(--color-danger-text);
+  border-width: 3px;
+}
+
+/* ── Modal ─────────────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .modal {
+  border: 0;
+  border-top: 0.5rem solid var(--color-accent);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-theme="plein-jour"] .modal::backdrop {
+  backdrop-filter: none;
+}
+
+html[data-theme="plein-jour"] .modal__close {
+  border: 0;
+  border-radius: 0;
+}
+
+html[data-theme="plein-jour"] .modal__close:hover {
+  box-shadow: inset 0 -5px 0 var(--color-accent);
+}
+
+html[data-theme="plein-jour"] .modal__title {
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* ── Motion ────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="plein-jour"] :is(.button, .button::after, a) {
+    transition: none;
+  }
+
+  html[data-theme="plein-jour"] .button--solid:hover::after {
+    transform: none;
+  }
+}
+
+/* ── Accordion ─────────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .accordion {
+  border-top: 2px solid currentColor;
+}
+
+html[data-theme="plein-jour"] .accordion [data-accordion] {
+  min-height: 2.75rem;
+  padding-block: 1rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(1.3125rem, 2.3vw, 1.875rem);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-align: start;
+}
+
+html[data-theme="plein-jour"] .accordion [data-accordion]:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 5px;
+}
+
+html[data-theme="plein-jour"] .accordion [data-accordion-target] {
+  --accordion-panel-padding: 0 0 1.25rem;
+}
+
+/* ── Alert: tone in the border and the icon, text stays in ink ──────────────── */
+html[data-theme="plein-jour"] .alert.alert {
+  --alert-bg: rgb(255, 255, 255);
+  --alert-fg: var(--color-fg);
+  border: 2px solid rgb(var(--alert-tone));
+  border-radius: 0;
+}
+
+html[data-theme="plein-jour"] .alert.alert--solid {
+  --alert-bg: rgb(var(--alert-tone));
+  --alert-fg: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] .alert .alert__icon {
+  color: rgb(var(--alert-tone));
+}
+
+html[data-theme="plein-jour"] .alert.alert--solid .alert__icon {
+  color: inherit;
+}
+
+html[data-theme="plein-jour"] .alert .alert__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* ── Comparison slider ─────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .compare {
+  --comparison-border: 2px solid var(--color-fg);
+  --comparison-before-bg: var(--color-surface) !important;
+  --comparison-before-color: var(--color-fg) !important;
+  --comparison-after-bg: var(--color-inverse-surface) !important;
+  --comparison-after-color: var(--color-inverse-fg) !important;
+}
+
+html[data-theme="plein-jour"] .compare .before,
+html[data-theme="plein-jour"] .compare .after {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* ── Form fields ───────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"]
+  :is(.form-input, .form-select, .form-textarea, .form-date, .form-upload) {
+  border-radius: 0;
+  font-family: var(--font-body);
+}
+
+html[data-theme="plein-jour"] .form-date {
+  min-height: 3.5rem;
+  font-size: 1.125rem;
+}
+
+html[data-theme="plein-jour"] .form-textarea {
+  min-height: 8.5rem;
+}
+
+html[data-theme="plein-jour"] .form-select {
+  appearance: none;
+  padding-inline-end: 3rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg) 50%),
+    linear-gradient(135deg, var(--color-fg) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.375rem) 50%,
+    calc(100% - 0.875rem) 50%;
+  background-size: 0.5rem 0.5rem;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="plein-jour"] :is(.form-input, .form-select, .form-textarea, .form-date):disabled {
+  border-color: rgb(138, 138, 147);
+  background-color: rgb(228, 228, 232);
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+html[data-theme="plein-jour"] .form-help {
+  font-size: 0.9375rem;
+}
+
+html[data-theme="plein-jour"] .form-error {
+  font-size: 0.9375rem;
+}
+
+html[data-theme="plein-jour"] .form-title {
+  font-family: var(--font-display);
+  font-size: var(--type-h3);
+  font-weight: 900;
+  letter-spacing: var(--type-h3-tracking);
+}
+
+html[data-theme="plein-jour"] .form-alert-link {
+  border: 2px solid var(--color-fg);
+  border-radius: 0;
+  background: var(--color-bg);
+  font-weight: 700;
+}
+
+html[data-theme="plein-jour"] .form-alert-link:hover {
+  transform: none;
+}
+
+/* Fieldset */
+html[data-theme="plein-jour"] .form-fieldset {
+  border: 2px solid var(--color-fg);
+  border-radius: 0;
+  padding: 1.25rem;
+  gap: 1rem;
+}
+
+html[data-theme="plein-jour"] .form-fieldset__legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+}
+
+html[data-theme="plein-jour"] .form-fieldset__body {
+  gap: 1rem;
+}
+
+/* Checkbox: a square switch in ink */
+html[data-theme="plein-jour"] .form-field .toggle {
+  --toggle-radius: 0 !important;
+  --toggle-unchecked: rgb(255, 255, 255) !important;
+  --toggle-checked: var(--color-fg) !important;
+  --toggle-thumb: var(--color-fg) !important;
+  --track-w: 3.25rem;
+  --track-h: 1.75rem;
+  box-shadow: inset 0 0 0 2px var(--color-fg);
+}
+
+html[data-theme="plein-jour"] .form-field .toggle::after {
+  box-shadow: none;
+}
+
+html[data-theme="plein-jour"] .form-field .toggle-input:checked + .toggle::after {
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] .toggle-input:focus-visible + .toggle {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+html[data-theme="plein-jour"] :is(.toggle-row, .radio-row) {
+  min-height: 2.75rem;
+}
+
+html[data-theme="plein-jour"] :is(.toggle-row, .radio-row) .label-text {
+  font-size: 1.125rem;
+}
+
+/* Radio */
+html[data-theme="plein-jour"] .radio {
+  --radio-color: var(--color-fg) !important;
+  --radio-size: 1.75rem !important;
+  border: 2px solid var(--color-fg);
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] .radio-input:checked + .radio {
+  background: var(--color-fg);
+}
+
+html[data-theme="plein-jour"] .radio::after {
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] .radio-input:focus-visible + .radio {
+  box-shadow: none;
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Upload */
+html[data-theme="plein-jour"] .form-upload-trigger,
+html[data-theme="plein-jour"] .form-upload-thumb__remove {
+  --form-upload-button-padding: 0 1rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--color-fg);
+  color: rgb(255, 255, 255);
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+html[data-theme="plein-jour"] .form-upload-trigger:hover,
+html[data-theme="plein-jour"] .form-upload-thumb__remove:hover {
+  filter: none;
+  box-shadow: inset 0 -5px 0 var(--color-accent);
+}
+
+html[data-theme="plein-jour"] .form-upload-thumb {
+  border: 2px solid var(--color-fg);
+}
+
+/* ── Google reviews ────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .googlereviews {
+  --googlereviews-radius: 0 !important;
+  --googlereviews-shadow: none !important;
+  --googlereviews-bg: var(--color-surface) !important;
+  --googlereviews-button-bg: var(--color-fg) !important;
+  --googlereviews-button-color: rgb(255, 255, 255) !important;
+  --googlereviews-button-radius: 0 !important;
+  --googlereviews-button-shadow: none !important;
+  --googlereviews-card-bg: rgb(255, 255, 255) !important;
+  --googlereviews-card-radius: 0 !important;
+  --googlereviews-card-shadow: none !important;
+  --googlereviews-link-color: var(--color-fg) !important;
+  --googlereviews-star-color: var(--color-accent) !important;
+}
+
+html[data-theme="plein-jour"] .googlereviews .title,
+html[data-theme="plein-jour"] .googlereviews .rating-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+html[data-theme="plein-jour"] .googlereviews .avatar {
+  border-radius: 0;
+}
+
+html[data-theme="plein-jour"] .googlereviews .button.review-button {
+  min-height: 2.75rem;
+  font-weight: 900;
+}
+
+html[data-theme="plein-jour"] .googlereviews .button.review-button:hover {
+  color: rgb(255, 255, 255);
+  transform: none;
+  box-shadow: inset 0 -5px 0 var(--color-accent);
+}
+
+html[data-theme="plein-jour"] .googlereviews .button.review-button::after {
+  content: none;
+}
+
+/* ── Hero: large title at the bottom left of the image ─────────────────────── */
+html[data-theme="plein-jour"] .hero {
+  --hero-gradient-start: rgba(18, 19, 26, 0.25) !important;
+  --hero-gradient-end: rgba(18, 19, 26, 0.8) !important;
+  aspect-ratio: auto;
+  min-height: clamp(28rem, 56vw, 44rem);
+}
+
+html[data-theme="plein-jour"] .hero .hero-content {
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: clamp(1.25rem, 4vw, 3.5rem);
+}
+
+html[data-theme="plein-jour"] .hero .hero-content h2 {
+  color: rgb(255, 255, 255);
+  font-size: var(--type-h1);
+  font-weight: 900;
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-tracking);
+  text-align: start;
+}
+
+html[data-theme="plein-jour"] .hero .hero-content p {
+  color: rgb(255, 255, 255);
+  font-size: var(--type-lead);
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: start;
+}
+
+/* ── List ──────────────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .list .list__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 0;
+  background: var(--color-accent);
+}
+
+html[data-theme="plein-jour"] .list .list__marker--number {
+  --list-num-weight: 900 !important;
+  --list-num-size: 1em !important;
+  --list-num-radius: 0 !important;
+  font-family: var(--font-display);
+}
+
+/* ── Locale switch ─────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .localeSwitch {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* ── Photo roll ────────────────────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .photo-roll .photo-roll__control {
+  border: 0;
+  border-radius: 0;
+  background: var(--color-inverse-surface);
+  box-shadow: none;
+  color: rgb(255, 255, 255);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-theme="plein-jour"] .photo-roll .photo-roll__control:hover,
+html[data-theme="plein-jour"] .photo-roll .photo-roll__control:focus-visible {
+  background: var(--color-accent);
+  box-shadow: none;
+  color: var(--color-fg);
+}
+
+html[data-theme="plein-jour"] .photo-roll [class*="bullet"] {
+  border-radius: 0;
+}
+
+/* ── Cookie banner and settings ────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .pipeda-banner {
+  border-top: 2px solid var(--color-fg);
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] :is(.pipeda-banner__fieldset, .pipeda-settings__fieldset) {
+  border: 2px solid var(--color-fg);
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="plein-jour"] :is(.pipeda-banner__legend, .pipeda-settings__legend) {
+  font-weight: 700;
+}
+
+html[data-theme="plein-jour"] :is(.pipeda-banner__description, .pipeda-settings__description) {
+  opacity: 1;
+  color: var(--color-muted);
+}
+
+/* ── Rotator, stars, tooltip ───────────────────────────────────────────────── */
+html[data-theme="plein-jour"] .rotator {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+html[data-theme="plein-jour"] .star-rating .star-rating__value {
+  font-weight: 700;
+}
+
+html[data-theme="plein-jour"] .tooltip .tooltip__content {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* ── Tag, site header and footer ───────────────────────────────────────────── */
+html[data-theme="plein-jour"] .siteheader {
+  border-bottom: 2px solid var(--color-fg);
+}
+
+html[data-theme="plein-jour"] .sitefooter {
+  --color-fg: rgb(255, 255, 255);
+  --color-muted: var(--plan-featured-muted);
+  --color-focus: rgb(255, 255, 255);
+}

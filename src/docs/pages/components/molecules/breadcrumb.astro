@@ -1,0 +1,56 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Breadcrumb from "@lib/components/Breadcrumb/Breadcrumb.astro";
+
+const examples: any[] = [
+  {
+    items: [
+      {
+        label: "Home",
+        href: "/"
+      },
+      {
+        label: "Pricing"
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Breadcrumb {...${JSON.stringify(p)}}>${bodies[i]}</Breadcrumb>`
+    : `<Breadcrumb {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  {
+    name: "items",
+    type: "{ label: string, href?: string }[]",
+    default: "[]",
+    description: "Trail of links. The last item is the current page."
+  },
+  {
+    name: "label",
+    type: "string",
+    default: '"Breadcrumb"',
+    description: "Accessible name of the nav. Translate it."
+  }
+];
+---
+
+<DocLayout
+  title="Breadcrumb"
+  description="Trail of links ending on the current page."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Trail" code={codes[0]}>
+    <Breadcrumb {...examples[0]} />
+  </Preview>
+</DocLayout>

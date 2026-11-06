@@ -1,0 +1,75 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import SiteHeader from "@lib/components/SiteHeader/SiteHeader.astro";
+import logo from "../../../images/yws_logo.svg?url";
+
+const items = [
+  {
+    label: "Services",
+    href: "#",
+    children: [
+      { label: "Websites", href: "#", text: "New or rebuilt, in custom code." },
+      { label: "Local visibility", href: "#", text: "Google, reviews and social media." },
+      { label: "Website care", href: "#", text: "Hosting, updates and redesign on request." }
+    ]
+  },
+  { label: "Who we help", href: "#" },
+  { label: "Pricing", href: "#", current: true },
+  { label: "Work", href: "#" },
+  { label: "About", href: "#" }
+];
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "logo", type: "string", description: "Required. Logo source." },
+  { name: "logoAlt", type: "string", default: '"Home"', description: "Logo description." },
+  { name: "homeHref", type: "string", default: '"/"', description: "Home link." },
+  { name: "homeLabel", type: "string", description: "Accessible name of the home link." },
+  {
+    name: "items",
+    type: "{ label, href?, current?, children?: { label, href, text? }[] }[]",
+    default: "[]",
+    description: "Menu entries. With children, the entry opens a submenu."
+  },
+  {
+    name: "locale",
+    type: "{ label, href, lang, name }",
+    description: "Link to the other language."
+  },
+  { name: "action", type: "{ label, href? }", description: "The main button." },
+  { name: "navLabel", type: "string", default: '"Main"', description: "Name of the nav." },
+  { name: "skipLabel", type: "string", default: '"Skip to content"', description: "Skip link." },
+  { name: "skipHref", type: "string", default: '"#main"', description: "Skip link target." },
+  { name: "menuLabel", type: "string", default: '"Menu"', description: "Phone menu button." },
+  { name: "closeLabel", type: "string", default: '"Close"', description: "Same, once open." }
+];
+
+const code = `<SiteHeader logo={logo} logoAlt="Your Web Squad" items={items}
+  locale={{ label: "FR", href: "/fr/", lang: "fr", name: "Français" }}
+  action={{ label: "Free audit", href: "/en/free-audit/" }} />`;
+---
+
+<DocLayout
+  title="SiteHeader"
+  description="Logo, main menu, language and one button. Menu panel on phones."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Header" code={code} note="Open Services to see the submenu.">
+    <div style="width: 100%; min-height: 15rem">
+      <SiteHeader
+        logo={logo}
+        logoAlt="Your Web Squad"
+        skipHref="#theme-switcher"
+        items={items}
+        locale={{ label: "FR", href: "#", lang: "fr", name: "Français" }}
+        action={{ label: "Free audit", href: "#" }}
+      />
+    </div>
+  </Preview>
+</DocLayout>

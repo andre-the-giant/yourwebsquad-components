@@ -1,0 +1,58 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Faq from "@lib/components/Faq/Faq.astro";
+
+const examples: any[] = [
+  {
+    heading: "Common questions",
+    items: [
+      {
+        question: "How long does it take?",
+        answer: "In as little as 30 days."
+      },
+      {
+        question: "Do I need to know anything technical?",
+        answer: "No. We handle the technical parts."
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Faq {...${JSON.stringify(p)}}>${bodies[i]}</Faq>`
+    : `<Faq {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  {
+    name: "items",
+    type: "{ question: string, answer: string }[]",
+    default: "[]",
+    description: "Answers allow HTML, trusted content only."
+  },
+  { name: "openFirst", type: "boolean", default: "true", description: "Opens the first question." },
+  {
+    name: "actions",
+    type: '{ label: string, href?: string, variant?: "solid" | "outline" | "ghost" }[]',
+    default: "[]",
+    description: "Links below."
+  },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout title="Faq" description="Questions and answers with native details." items={components}>
+  <PropsTable props={props} />
+  <Preview title="Questions" code={codes[0]}>
+    <Faq {...examples[0]} />
+  </Preview>
+</DocLayout>

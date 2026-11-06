@@ -1,0 +1,57 @@
+---
+/*
+Tag — small label for a status, such as "Coming soon". Not interactive.
+Props:
+- label: string
+- tone?: "neutral" | "inverse"
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  label: z.string(),
+  tone: z.enum(["neutral", "inverse"]).default("neutral")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  label,
+  tone,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Tag" });
+---
+
+<span id={id} class={mergeClasses("tag", `tag--${tone}`, className)} style={style} {...rest}>
+  {label}
+</span>
+
+<style>
+  .tag {
+    display: inline-block;
+    padding: 0.3125rem 0.4375rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1;
+  }
+
+  .tag--neutral {
+    background: var(--band-surface-bg, var(--color-surface));
+    color: var(--color-fg);
+  }
+
+  .tag--inverse {
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-fg);
+  }
+</style>

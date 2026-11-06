@@ -1,0 +1,77 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import PageHero from "@lib/components/PageHero/PageHero.astro";
+
+const examples: any[] = [
+  {
+    title: "Website pricing",
+    lead: "A complete online presence for one monthly price.",
+    breadcrumb: [
+      {
+        label: "Home",
+        href: "/"
+      },
+      {
+        label: "Pricing"
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<PageHero {...${JSON.stringify(p)}}>${bodies[i]}</PageHero>`
+    : `<PageHero {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "title", type: "string", description: "Required. The page's only h1." },
+  { name: "accent", type: "string", description: "Part of the title to highlight." },
+  { name: "lead", type: "string", description: "Text under the title." },
+  { name: "note", type: "string", description: "Small text, such as a price or an update date." },
+  { name: "slogan", type: "string", description: "Full layout only, below the image." },
+  {
+    name: "actions",
+    type: '{ label: string, href?: string, variant?: "solid" | "outline" | "ghost" }[]',
+    default: "[]",
+    description: "2 at most."
+  },
+  {
+    name: "breadcrumb",
+    type: "{ label: string, href?: string }[]",
+    default: "[]",
+    description: "Trail above the title."
+  },
+  { name: "breadcrumbLabel", type: "string", description: "Accessible name of the trail." },
+  { name: "img", type: "string", description: "Image source." },
+  {
+    name: "alt",
+    type: "string",
+    default: '""',
+    description: "Image description. Empty for a decorative image."
+  },
+  {
+    name: "layout",
+    type: '"text" | "split" | "full"',
+    default: '"text"',
+    description: "Text only, image on the right, or full-width image below."
+  }
+];
+---
+
+<DocLayout
+  title="PageHero"
+  description="Top of a page with its only h1. Hero stays the centered banner."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Text" code={codes[0]}>
+    <PageHero {...examples[0]} />
+  </Preview>
+</DocLayout>

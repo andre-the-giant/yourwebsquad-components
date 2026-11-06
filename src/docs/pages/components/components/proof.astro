@@ -1,0 +1,66 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Proof from "@lib/components/Proof/Proof.astro";
+
+const examples: any[] = [
+  {
+    heading: "You're not getting beginner-level work.",
+    label: "More than 25 years building for",
+    run: "The Globe and Mail, Postmedia, TFO, ecobee.",
+    itemsLabel: "Clients",
+    items: [
+      {
+        name: "Calvanostra",
+        description: "Tattoo studio in Normandy, France.",
+        href: "#"
+      },
+      {
+        name: "EvoLUEtion",
+        description: "Parisian painter.",
+        tag: "Coming soon"
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Proof {...${JSON.stringify(p)}}>${bodies[i]}</Proof>`
+    : `<Proof {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  { name: "label", type: "string", description: "Small text above run or lead." },
+  { name: "run", type: "string", description: "Names set as one large sentence." },
+  { name: "lead", type: "string", description: "A large sentence." },
+  { name: "itemsLabel", type: "string", description: "Small text above the items." },
+  {
+    name: "items",
+    type: "{ name: string, description?: string, href?: string, tag?: string }[]",
+    default: "[]",
+    description: "Clients."
+  },
+  {
+    name: "actions",
+    type: '{ label: string, href?: string, variant?: "solid" | "outline" | "ghost" }[]',
+    default: "[]",
+    description: "Buttons below."
+  },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout title="Proof" description="Experience and clients." items={components}>
+  <PropsTable props={props} />
+  <Preview title="Experience and clients" code={codes[0]}>
+    <Proof {...examples[0]} />
+  </Preview>
+</DocLayout>

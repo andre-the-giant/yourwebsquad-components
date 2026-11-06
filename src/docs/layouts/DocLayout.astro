@@ -1,9 +1,14 @@
 ---
 import "../styles/reset.css";
 import "@lib/styles/tokens.css";
+import "@lib/themes/plein-jour.css";
+import { themes, defaultTheme } from "@lib/themes/index.js";
 import Sidebar from "../components/Sidebar.astro";
-import ThemeToggle from "../components/ThemeToggle.astro";
+import ThemeSwitcher from "../components/ThemeSwitcher.astro";
 import ywsLogo from "../images/yws_logo.svg?raw";
+import ywsLogoDark from "../images/yws_logo_dark.svg?raw";
+
+const themeIds = themes.map((theme) => theme.id);
 
 const { title = "Your Web Squad", description = "Component library", items = [] } = Astro.props;
 ---
@@ -14,18 +19,50 @@ const { title = "Your Web Squad", description = "Component library", items = [] 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=satoshi@500,700,900&display=swap"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@300;400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap"
       rel="stylesheet"
     />
+    <script is:inline define:vars={{ themeIds, defaultTheme }}>
+      // Runs before the first paint, so that the page never flashes in the wrong theme.
+      (() => {
+        const fromUrl = new URLSearchParams(location.search).get("theme");
+        let saved = null;
+        try {
+          saved = localStorage.getItem("yws-theme");
+        } catch {
+          // Ignore storage errors in restricted contexts.
+        }
+        const wanted = fromUrl || saved;
+        document.documentElement.setAttribute(
+          "data-theme",
+          themeIds.includes(wanted) ? wanted : defaultTheme
+        );
+      })();
+    </script>
   </head>
   <body>
     <div class="docs-shell">
       <aside class="docs-sidebar">
         <div class="brand">
-          <div class="brand__logo" aria-label="Your Web Squad logo" role="img" set:html={ywsLogo} />
+          <div
+            class="brand__logo brand__logo--light"
+            aria-label="Your Web Squad"
+            role="img"
+            set:html={ywsLogo}
+          />
+          <div
+            class="brand__logo brand__logo--dark"
+            aria-label="Your Web Squad"
+            role="img"
+            set:html={ywsLogoDark}
+          />
         </div>
         <Sidebar items={items} />
       </aside>
@@ -36,7 +73,7 @@ const { title = "Your Web Squad", description = "Component library", items = [] 
             <h1 class="docs-title">{title}</h1>
             <p class="docs-subtitle">{description}</p>
           </div>
-          <ThemeToggle />
+          <ThemeSwitcher />
         </header>
         <section class="docs-content">
           <slot />
@@ -47,6 +84,61 @@ const { title = "Your Web Squad", description = "Component library", items = [] 
 </html>
 
 <style is:global>
+  :root {
+    --docs-font: "Satoshi", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .brand__logo--dark {
+    display: none;
+  }
+
+  [data-theme="dark"] .brand__logo--light {
+    display: none;
+  }
+
+  [data-theme="dark"] .brand__logo--dark {
+    display: block;
+  }
+
+  /* The documentation itself stays readable whatever the theme of the components */
+  .docs-title,
+  .preview__title,
+  .props-table__title {
+    font-family: var(--docs-font);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .docs-kicker {
+    font-family: var(--docs-font);
+    font-weight: 700;
+  }
+
+  html[data-theme="plein-jour"] .docs-sidebar,
+  html[data-theme="plein-jour"] .docs-main {
+    background: var(--color-bg);
+    border-color: var(--color-border);
+  }
+
+  html[data-theme="plein-jour"] body::before {
+    content: none;
+  }
+
+  html[data-theme="plein-jour"] .docs-title {
+    font-size: clamp(2rem, 2.4vw, 2.75rem);
+    line-height: 1;
+  }
+
+  html[data-theme="plein-jour"] .preview__title {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  html[data-theme="plein-jour"] .preview {
+    background: var(--color-bg);
+  }
+
   body {
     font-family: var(--font-body);
     background: var(--color-bg);

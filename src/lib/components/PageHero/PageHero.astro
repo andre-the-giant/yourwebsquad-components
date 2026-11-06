@@ -1,0 +1,228 @@
+---
+/*
+PageHero — top of a page, with the page's only <h1>.
+Different from Hero, which is a centered banner with a background image and an <h2>.
+Props:
+- title: string
+- accent?: string — part of the title to highlight, must appear in `title`
+- lead?: string
+- note?: string — small text under the lead, such as a price or an update date
+- slogan?: string — "full" layout only, below the image
+- actions?: { label: string, href?: string, variant?: "solid"|"outline"|"ghost" }[] — 2 at most
+- breadcrumb?: { label: string, href?: string }[]
+- breadcrumbLabel?: string
+- img?: string
+- alt?: string — required for a meaningful image, "" for a decorative one
+- layout?: "text" | "split" | "full"
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+import Button from "../Button/Button.astro";
+import Breadcrumb from "../Breadcrumb/Breadcrumb.astro";
+
+const Action = z.looseObject({
+  label: z.string(),
+  href: z.string().optional(),
+  variant: z.enum(["solid", "outline", "ghost"]).optional()
+});
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  title: z.string(),
+  accent: z.string().optional(),
+  lead: z.string().optional(),
+  note: z.string().optional(),
+  slogan: z.string().optional(),
+  actions: z.array(Action).default([]),
+  breadcrumb: z
+    .array(z.looseObject({ label: z.string(), href: z.string().optional() }))
+    .default([]),
+  breadcrumbLabel: z.string().optional(),
+  img: z.string().optional(),
+  alt: z.string().default(""),
+  layout: z.enum(["text", "split", "full"]).default("text")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  title,
+  accent,
+  lead,
+  note,
+  slogan,
+  actions,
+  breadcrumb,
+  breadcrumbLabel,
+  img,
+  alt,
+  layout,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "PageHero" });
+
+const parts = accent && title.includes(accent) ? title.split(accent) : null;
+const resolvedLayout = layout !== "text" && !img ? "text" : layout;
+const buttons = actions.slice(0, 2);
+---
+
+<section
+  id={id}
+  class={mergeClasses("pagehero", `pagehero--${resolvedLayout}`, className)}
+  style={style}
+  {...rest}
+>
+  <div class="pagehero__grid">
+    <div class="pagehero__text">
+      {
+        breadcrumb.length > 0 && (
+          <div class="pagehero__crumb">
+            <Breadcrumb items={breadcrumb} label={breadcrumbLabel} />
+          </div>
+        )
+      }
+      <h1 class="pagehero__title">
+        {
+          parts ? (
+            <Fragment>
+              {parts[0]}
+              <span class="pagehero__accent">{accent}</span>
+              {parts.slice(1).join(accent)}
+            </Fragment>
+          ) : (
+            title
+          )
+        }
+      </h1>
+      <div class="pagehero__body">
+        <div>
+          {lead && <p class="pagehero__lead">{lead}</p>}
+          {note && <p class="pagehero__note">{note}</p>}
+        </div>
+        {
+          buttons.length > 0 && (
+            <div class="pagehero__actions">
+              {buttons.map((b) => (
+                <Button label={b.label} href={b.href} variant={b.variant ?? "solid"} size="lg" />
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </div>
+    {img && <img class="pagehero__img" src={img} alt={alt} fetchpriority="high" />}
+    {slogan && resolvedLayout === "full" && <p class="pagehero__slogan">{slogan}</p>}
+  </div>
+</section>
+
+<style>
+  .pagehero {
+    --_gutter: var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem));
+    color: var(--color-fg);
+  }
+
+  .pagehero__text {
+    padding: clamp(2.5rem, 6vw, 5.5rem) var(--_gutter) clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .pagehero__crumb {
+    margin-block-end: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .pagehero__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h1, clamp(2.5rem, 6vw, 4.5rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: var(--type-h1-line, 1.05);
+    letter-spacing: var(--type-h1-tracking, normal);
+    overflow-wrap: break-word;
+  }
+
+  .pagehero__accent {
+    color: var(--color-accent);
+  }
+
+  .pagehero__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    margin-block-start: clamp(1.25rem, 3vw, 2.75rem);
+  }
+
+  .pagehero__lead {
+    max-width: 44ch;
+    margin: 0;
+    font-size: var(--type-lead, clamp(1.25rem, 2.1vw, 1.6875rem));
+    line-height: 1.35;
+  }
+
+  .pagehero__note {
+    max-width: 52ch;
+    margin: 0.875rem 0 0;
+    font-size: 1.0625rem;
+    font-weight: var(--weight-bold);
+    line-height: 1.45;
+  }
+
+  .pagehero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+  }
+
+  .pagehero__img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  .pagehero--full .pagehero__img {
+    height: clamp(15rem, 44vw, 35rem);
+  }
+
+  .pagehero--split .pagehero__img {
+    height: clamp(15rem, 60vw, 20rem);
+  }
+
+  .pagehero__slogan {
+    margin: 0;
+    padding: clamp(1.25rem, 2.6vw, 2rem) var(--_gutter);
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  @media (min-width: 56.25rem) {
+    .pagehero--full .pagehero__body {
+      grid-template-columns: 7fr 5fr;
+      gap: 3rem;
+      align-items: end;
+    }
+
+    .pagehero--full .pagehero__actions {
+      justify-content: flex-end;
+    }
+
+    .pagehero--split .pagehero__grid {
+      display: grid;
+      grid-template-columns: 7fr 5fr;
+    }
+
+    .pagehero--split .pagehero__img {
+      height: 100%;
+      min-height: 32.5rem;
+    }
+  }
+</style>

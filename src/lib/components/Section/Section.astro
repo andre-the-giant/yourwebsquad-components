@@ -1,0 +1,224 @@
+---
+/*
+Section — the basic content block: a title, text, sometimes a list or an image.
+Props:
+- heading?: string
+- body?: string | string[] — paragraphs, HTML allowed; pass trusted content only
+- list?: string[]
+- actions?: { label: string, href?: string, variant?: "solid"|"outline"|"ghost" }[]
+- img?: string
+- alt?: string
+- imagePosition?: "right" | "left"
+- tone?: "default" | "surface" | "inverse"
+- flush?: boolean
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Band from "../Band/Band.astro";
+import Button from "../Button/Button.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  heading: z.string().optional(),
+  body: z.union([z.string(), z.array(z.string())]).default([]),
+  list: z.array(z.string()).default([]),
+  actions: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        href: z.string().optional(),
+        variant: z.enum(["solid", "outline", "ghost"]).optional()
+      })
+    )
+    .default([]),
+  img: z.string().optional(),
+  alt: z.string().default(""),
+  imagePosition: z.enum(["right", "left"]).default("right"),
+  tone: z.enum(["default", "surface", "inverse"]).default("default"),
+  flush: z.boolean().default(false)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  heading,
+  body,
+  list,
+  actions,
+  img,
+  alt,
+  imagePosition,
+  tone,
+  flush
+} = parseProps(Schema, Astro.props, { component: "Section" });
+
+const headingId = nextId("section");
+const paragraphs = Array.isArray(body) ? body : [body];
+---
+
+<Band
+  id={id}
+  class={mergeClasses("section", className)}
+  style={style}
+  tone={tone}
+  flush={flush}
+  labelledby={heading ? headingId : undefined}
+>
+  <div
+    class:list={[
+      "section__grid",
+      img ? "section__grid--media" : "section__grid--text",
+      img && imagePosition === "left" && "section__grid--reverse"
+    ]}
+  >
+    {
+      img ? (
+        <Fragment>
+          <div>
+            {heading && (
+              <h2 id={headingId} class="section__title">
+                {heading}
+              </h2>
+            )}
+            <div class="section__body section__body--media">
+              {paragraphs.map((p) => (
+                <p set:html={p} />
+              ))}
+              {list.length > 0 && (
+                <ul class="section__list">
+                  {list.map((item) => (
+                    <li set:html={item} />
+                  ))}
+                </ul>
+              )}
+              {actions.length > 0 && (
+                <div class="section__actions">
+                  {actions.map((b) => (
+                    <Button label={b.label} href={b.href} variant={b.variant ?? "solid"} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <img class="section__img" src={img} alt={alt} loading="lazy" />
+        </Fragment>
+      ) : (
+        <Fragment>
+          {heading && (
+            <h2 id={headingId} class="section__title">
+              {heading}
+            </h2>
+          )}
+          <div class="section__body">
+            {paragraphs.map((p) => (
+              <p set:html={p} />
+            ))}
+            {list.length > 0 && (
+              <ul class="section__list">
+                {list.map((item) => (
+                  <li set:html={item} />
+                ))}
+              </ul>
+            )}
+            {actions.length > 0 && (
+              <div class="section__actions">
+                {actions.map((b) => (
+                  <Button label={b.label} href={b.href} variant={b.variant ?? "solid"} />
+                ))}
+              </div>
+            )}
+          </div>
+        </Fragment>
+      )
+    }
+  </div>
+</Band>
+
+<style>
+  .section__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .section__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: var(--type-h2-line, 1.1);
+    letter-spacing: var(--type-h2-tracking, normal);
+    overflow-wrap: break-word;
+  }
+
+  .section__body {
+    max-width: 68ch;
+  }
+
+  .section__body--media {
+    margin-block-start: 1.125rem;
+  }
+
+  .section__body p {
+    margin: 0;
+  }
+
+  .section__body p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .section__list {
+    margin: 0.9em 0 0;
+    padding-inline-start: 1.1em;
+  }
+
+  .section__list li {
+    margin-block-start: 0.35em;
+  }
+
+  .section__list li::marker {
+    color: var(--color-accent);
+  }
+
+  .section__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    margin-block-start: 1.25rem;
+  }
+
+  .section__img {
+    display: block;
+    width: 100%;
+    height: clamp(13.75rem, 34vw, 28.75rem);
+    object-fit: cover;
+  }
+
+  @media (min-width: 56.25rem) {
+    .section__grid--text {
+      grid-template-columns: 5fr 7fr;
+      gap: 3.5rem;
+    }
+
+    .section__grid--media {
+      grid-template-columns: 1fr 1fr;
+      gap: 3.5rem;
+      align-items: center;
+    }
+
+    .section__grid--reverse > :first-child {
+      order: 2;
+    }
+  }
+</style>

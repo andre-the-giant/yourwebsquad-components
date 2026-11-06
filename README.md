@@ -31,6 +31,30 @@ Notes:
 ---
 ```
 
+## Themes
+
+A site that does nothing keeps its current look: `:root` in `tokens.css`, plus the tokens the site defines itself. A theme is opt-in:
+
+```js
+import "yourwebsquad-components/tokens.css";
+import "yourwebsquad-components/themes/plein-jour.css";
+```
+
+```html
+<html data-theme="plein-jour"></html>
+```
+
+Rules for adding a theme:
+
+- Put every rule behind `html[data-theme="name"]`, so that importing the file changes nothing by itself.
+- Override the theme contract in `tokens.css` first. Use component rules only for what tokens can't express, such as a hover behaviour.
+- Don't ship font files. Each site loads its own fonts.
+- New tokens read by components need a fallback, `var(--token, current-value)`, because some sites define their own tokens and don't import `tokens.css`.
+
+Preview: `npm run dev`, then use the **Theme** menu at the top of any component page. Add `?theme=plein-jour` to a URL to link to a theme directly.
+
+Themes are listed in `src/lib/themes/index.js`.
+
 ## Adding a new component
 
 You can add new components manually or use the provided scaffolding script.

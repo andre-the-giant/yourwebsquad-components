@@ -1,0 +1,53 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import DataTable from "@lib/components/DataTable/DataTable.astro";
+
+const examples: any[] = [
+  {
+    heading: "What happens after 12 months?",
+    caption: "Conditions of subscription plans",
+    columns: ["Situation", "What applies"],
+    rows: [
+      ["If you leave early", "The rest of the 12 months is due in one payment."],
+      ["After 12 months", "A new 12-month term, or month to month."]
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<DataTable {...${JSON.stringify(p)}}>${bodies[i]}</DataTable>`
+    : `<DataTable {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  { name: "caption", type: "string", description: "Required. Also names the scrollable region." },
+  { name: "columns", type: "string[]", default: "[]", description: "Column headers." },
+  {
+    name: "rows",
+    type: "string[][]",
+    default: "[]",
+    description: "Rows. The first cell is the row header."
+  },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout
+  title="DataTable"
+  description="Real table with caption, headers and a scrollable region."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Conditions" code={codes[0]}>
+    <DataTable {...examples[0]} />
+  </Preview>
+</DocLayout>

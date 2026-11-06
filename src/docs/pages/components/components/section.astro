@@ -1,0 +1,67 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Section from "@lib/components/Section/Section.astro";
+
+const examples: any[] = [
+  {
+    heading: "What should a contractor's website show?",
+    body: "Customers want to know if you do their kind of job, in their area.",
+    list: ["The services you offer and the area you cover", "Photos of real projects"]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Section {...${JSON.stringify(p)}}>${bodies[i]}</Section>`
+    : `<Section {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  {
+    name: "body",
+    type: "string | string[]",
+    default: "[]",
+    description: "Paragraphs. HTML allowed, trusted content only."
+  },
+  { name: "list", type: "string[]", default: "[]", description: "Bulleted list after the text." },
+  {
+    name: "actions",
+    type: '{ label: string, href?: string, variant?: "solid" | "outline" | "ghost" }[]',
+    default: "[]",
+    description: "Buttons after the text."
+  },
+  { name: "img", type: "string", description: "Image source." },
+  { name: "alt", type: "string", default: '""', description: "Image description." },
+  {
+    name: "imagePosition",
+    type: '"right" | "left"',
+    default: '"right"',
+    description: "Side of the image."
+  },
+  {
+    name: "tone",
+    type: '"default" | "surface" | "inverse"',
+    default: '"default"',
+    description: "Background."
+  },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout
+  title="Section"
+  description="Basic content block: title, text, list or image."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Text and list" code={codes[0]}>
+    <Section {...examples[0]} />
+  </Preview>
+</DocLayout>

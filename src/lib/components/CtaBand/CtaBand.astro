@@ -1,0 +1,101 @@
+---
+/*
+CtaBand — one action, with a large title. Use it once per page, usually last.
+Props:
+- heading: string
+- text?: string
+- action: { label: string, href?: string }
+- tone?: "accent" | "inverse"
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Band from "../Band/Band.astro";
+import Button from "../Button/Button.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  heading: z.string(),
+  text: z.string().optional(),
+  action: z.looseObject({ label: z.string(), href: z.string().optional() }),
+  tone: z.enum(["accent", "inverse"]).default("accent")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  heading,
+  text,
+  action,
+  tone
+} = parseProps(Schema, Astro.props, { component: "CtaBand" });
+
+const headingId = nextId("ctaband");
+---
+
+<Band
+  id={id}
+  class={mergeClasses("ctaband", className)}
+  style={style}
+  tone={tone}
+  labelledby={headingId}
+>
+  <div class="ctaband__grid">
+    <h2 id={headingId} class="ctaband__title">{heading}</h2>
+    <div class="ctaband__side">
+      {text && <p class="ctaband__text">{text}</p>}
+      <Button label={action.label} href={action.href} size="lg" />
+    </div>
+  </div>
+</Band>
+
+<style>
+  .ctaband__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .ctaband__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.375rem, 6.4vw, 5.5rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 0.98;
+    letter-spacing: var(--type-h1-tracking, normal);
+    overflow-wrap: break-word;
+  }
+
+  .ctaband__side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    justify-items: start;
+  }
+
+  /* Bold at this size so that it counts as large text on a saturated background */
+  .ctaband__text {
+    max-width: 44ch;
+    margin: 0;
+    font-size: 1.1875rem;
+    font-weight: var(--weight-bold);
+    line-height: 1.4;
+  }
+
+  @media (min-width: 56.25rem) {
+    .ctaband__grid {
+      grid-template-columns: 8fr 4fr;
+      gap: 3rem;
+      align-items: end;
+    }
+  }
+</style>

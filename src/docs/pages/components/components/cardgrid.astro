@@ -1,0 +1,77 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import CardGrid from "@lib/components/CardGrid/CardGrid.astro";
+
+const examples: any[] = [
+  {
+    heading: "What we handle",
+    items: [
+      {
+        title: "Websites",
+        text: "Custom-coded sites, new or rebuilt.",
+        href: "#"
+      },
+      {
+        title: "Local visibility",
+        text: "Google profile, reviews and social media.",
+        href: "#"
+      },
+      {
+        title: "Website care",
+        text: "Hosting, updates and security.",
+        href: "#"
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<CardGrid {...${JSON.stringify(p)}}>${bodies[i]}</CardGrid>`
+    : `<CardGrid {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  { name: "intro", type: "string", description: "Text under the title." },
+  {
+    name: "items",
+    type: "{ title: string, text?: string, href?: string }[]",
+    default: "[]",
+    description: "Cards. A card with href is entirely clickable."
+  },
+  { name: "columns", type: "2 | 3", default: "3", description: "Columns on large screens." },
+  {
+    name: "filled",
+    type: "boolean",
+    default: "false",
+    description: "Filled cards instead of a top rule."
+  },
+  {
+    name: "actions",
+    type: '{ label: string, href?: string, variant?: "solid" | "outline" | "ghost" }[]',
+    default: "[]",
+    description: "Buttons below."
+  },
+  {
+    name: "tone",
+    type: '"default" | "surface" | "inverse"',
+    default: '"default"',
+    description: "Background."
+  },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout title="CardGrid" description="Comparable items in 2 or 3 columns." items={components}>
+  <PropsTable props={props} />
+  <Preview title="With links" code={codes[0]}>
+    <CardGrid {...examples[0]} />
+  </Preview>
+</DocLayout>

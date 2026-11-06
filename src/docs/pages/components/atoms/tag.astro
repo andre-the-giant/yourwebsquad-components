@@ -1,0 +1,26 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Tag from "@lib/components/Tag/Tag.astro";
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "label", type: "string", description: "Required. Text of the tag." },
+  { name: "tone", type: '"neutral" | "inverse"', default: '"neutral"', description: "Colors." }
+];
+---
+
+<DocLayout title="Tag" description="Small label for a status. Not interactive." items={components}>
+  <PropsTable props={props} />
+  <Preview
+    title="Tones"
+    code={`<Tag label="Coming soon" />\n<Tag label="Past client" tone="inverse" />`}
+  >
+    <Tag label="Coming soon" />
+    <Tag label="Past client" tone="inverse" />
+  </Preview>
+</DocLayout>

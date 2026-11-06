@@ -1,0 +1,464 @@
+---
+/*
+SiteHeader — logo, main menu, language and one button. On phones, the menu opens
+in a panel from a "Menu" button. Submenus open on click and with the keyboard,
+not only on hover. Without JavaScript, the panel and the submenus stay open.
+Props:
+- logo: string — logo source
+- logoAlt?: string
+- homeHref?: string
+- homeLabel?: string — accessible name of the home link
+- items: { label: string, href?: string, current?: boolean, children?: { label: string, href: string, text?: string }[] }[]
+- locale?: { label: string, href: string, lang: string, name: string } — link to the other language
+- action?: { label: string, href?: string }
+- navLabel?: string — accessible name of the nav
+- skipLabel?: string
+- skipHref?: string
+- menuLabel?: string
+- closeLabel?: string
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Button from "../Button/Button.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  logo: z.string(),
+  logoAlt: z.string().default("Home"),
+  homeHref: z.string().default("/"),
+  homeLabel: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        href: z.string().optional(),
+        current: z.boolean().default(false),
+        children: z
+          .array(
+            z.looseObject({
+              label: z.string(),
+              href: z.string(),
+              text: z.string().optional()
+            })
+          )
+          .default([])
+      })
+    )
+    .default([]),
+  locale: z
+    .looseObject({ label: z.string(), href: z.string(), lang: z.string(), name: z.string() })
+    .optional(),
+  action: z.looseObject({ label: z.string(), href: z.string().optional() }).optional(),
+  navLabel: z.string().default("Main"),
+  skipLabel: z.string().default("Skip to content"),
+  skipHref: z.string().default("#main"),
+  menuLabel: z.string().default("Menu"),
+  closeLabel: z.string().default("Close")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  logo,
+  logoAlt,
+  homeHref,
+  homeLabel,
+  items,
+  locale,
+  action,
+  navLabel,
+  skipLabel,
+  skipHref,
+  menuLabel,
+  closeLabel
+} = parseProps(Schema, Astro.props, { component: "SiteHeader" });
+
+const menuId = nextId("siteheader-menu");
+---
+
+<header
+  id={id}
+  class={mergeClasses("siteheader", className)}
+  style={style}
+  data-siteheader
+  data-menu-label={menuLabel}
+  data-close-label={closeLabel}
+>
+  <a class="siteheader__skip" href={skipHref}>{skipLabel}</a>
+  <div class="siteheader__bar">
+    <a class="siteheader__home" href={homeHref} aria-label={homeLabel}>
+      <img src={logo} alt={logoAlt} />
+    </a>
+    <button
+      class="siteheader__toggle"
+      type="button"
+      hidden
+      aria-expanded="false"
+      aria-controls={menuId}
+      data-siteheader-toggle
+    >
+      {menuLabel}
+    </button>
+    <nav id={menuId} class="siteheader__nav" aria-label={navLabel} data-siteheader-nav>
+      <ul class="siteheader__list">
+        {
+          items.map((item, index) => (
+            <li class="siteheader__item">
+              {item.children.length > 0 ? (
+                <Fragment>
+                  <button
+                    class:list={["siteheader__link", item.current && "is-current"]}
+                    type="button"
+                    hidden
+                    aria-expanded="false"
+                    aria-controls={`${menuId}-sub-${index}`}
+                    data-siteheader-sub
+                  >
+                    {item.label}
+                    <svg
+                      aria-hidden="true"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path d="M4 7l6 6 6-6" />
+                    </svg>
+                  </button>
+                  <a class="siteheader__link siteheader__nojs" href={item.href}>
+                    {item.label}
+                  </a>
+                  <ul id={`${menuId}-sub-${index}`} class="siteheader__sub">
+                    {item.children.map((child) => (
+                      <li>
+                        <a class="siteheader__sublink" href={child.href}>
+                          {child.label}
+                        </a>
+                        {child.text && <p class="siteheader__subtext">{child.text}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                </Fragment>
+              ) : (
+                <a
+                  class:list={["siteheader__link", item.current && "is-current"]}
+                  href={item.href}
+                  aria-current={item.current ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+      {
+        locale && (
+          <a
+            class="siteheader__locale"
+            href={locale.href}
+            lang={locale.lang}
+            hreflang={locale.lang}
+            aria-label={locale.name}
+          >
+            {locale.label}
+          </a>
+        )
+      }
+      {
+        action && (
+          <div class="siteheader__action">
+            <Button label={action.label} href={action.href} size="sm" />
+          </div>
+        )
+      }
+    </nav>
+  </div>
+</header>
+
+<style>
+  .siteheader {
+    position: relative;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .siteheader__skip {
+    position: absolute;
+    left: -9999px;
+    z-index: 5;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-fg);
+    color: var(--color-bg);
+    font-weight: var(--weight-bold);
+  }
+
+  .siteheader__skip:focus {
+    left: 1rem;
+    top: 0.5rem;
+  }
+
+  .siteheader__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0 1.5rem;
+    min-height: 4.5rem;
+    padding-inline: var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem));
+  }
+
+  .siteheader__home {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .siteheader__home img {
+    display: block;
+    width: auto;
+    height: 2.125rem;
+  }
+
+  .siteheader__toggle {
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border: 2px solid currentColor;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+  }
+
+  .siteheader__nav {
+    flex: 1 0 100%;
+    padding-block-end: 2rem;
+  }
+
+  .siteheader__list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .siteheader__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.375rem;
+    width: 100%;
+    min-height: 4rem;
+    padding: 0;
+    border: 0;
+    border-bottom: 2px solid currentColor;
+    background: none;
+    color: inherit;
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1;
+    letter-spacing: -0.025em;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .siteheader__link[hidden],
+  .siteheader__toggle[hidden] {
+    display: none;
+  }
+
+  [data-siteheader-ready] .siteheader__nojs {
+    display: none;
+  }
+
+  .siteheader__sub {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 1rem 0;
+    list-style: none;
+  }
+
+  [data-siteheader-ready] .siteheader__sub:not(.is-open) {
+    display: none;
+  }
+
+  .siteheader__sublink {
+    display: inline-block;
+    min-height: 1.5rem;
+    color: inherit;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .siteheader__sublink:hover {
+    box-shadow: inset 0 -5px 0 var(--color-accent);
+  }
+
+  .siteheader__subtext {
+    margin: 0.375rem 0 0;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+
+  .siteheader__locale {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-block-start: 1rem;
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+  }
+
+  .siteheader__action {
+    margin-block-start: 1rem;
+  }
+
+  .siteheader__action :global(.button) {
+    width: 100%;
+  }
+
+  [data-siteheader-ready]:not(.is-open) .siteheader__nav {
+    display: none;
+  }
+
+  @media (min-width: 62.5rem) {
+    .siteheader__toggle {
+      display: none;
+    }
+
+    .siteheader__nav,
+    [data-siteheader-ready]:not(.is-open) .siteheader__nav {
+      display: flex;
+      flex: 0 1 auto;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0 clamp(1rem, 2.2vw, 1.875rem);
+      padding-block-end: 0;
+    }
+
+    .siteheader__list {
+      display: flex;
+      align-items: center;
+      gap: clamp(1rem, 2.2vw, 1.875rem);
+    }
+
+    .siteheader__link {
+      width: auto;
+      min-height: 2.75rem;
+      border-bottom: 0;
+      font-family: inherit;
+      font-size: 1.125rem;
+      font-weight: var(--weight-bold);
+      letter-spacing: normal;
+    }
+
+    .siteheader__link:hover,
+    .siteheader__link.is-current,
+    .siteheader__link[aria-expanded="true"] {
+      box-shadow: inset 0 -5px 0 var(--color-accent);
+    }
+
+    .siteheader__item {
+      position: static;
+    }
+
+    .siteheader__sub.is-open {
+      position: absolute;
+      inset: 100% 0 auto;
+      z-index: 10;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      padding: 1.5rem var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem));
+      background: var(--color-bg);
+      border-block: 2px solid var(--color-fg);
+    }
+
+    .siteheader__locale,
+    .siteheader__action {
+      margin-block-start: 0;
+    }
+
+    .siteheader__action :global(.button) {
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  // Progressive enhancement: everything stays reachable without this script.
+  document.querySelectorAll<HTMLElement>("[data-siteheader]").forEach((header) => {
+    if (header.hasAttribute("data-siteheader-ready")) return;
+    header.setAttribute("data-siteheader-ready", "");
+
+    const toggle = header.querySelector<HTMLButtonElement>("[data-siteheader-toggle]");
+    const subs = [...header.querySelectorAll<HTMLButtonElement>("[data-siteheader-sub]")];
+
+    const setSub = (button: HTMLButtonElement, open: boolean) => {
+      button.setAttribute("aria-expanded", String(open));
+      const panel = document.getElementById(button.getAttribute("aria-controls") ?? "");
+      panel?.classList.toggle("is-open", open);
+    };
+
+    const setMenu = (open: boolean) => {
+      header.classList.toggle("is-open", open);
+      if (!toggle) return;
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.textContent = open
+        ? (header.dataset.closeLabel ?? "Close")
+        : (header.dataset.menuLabel ?? "Menu");
+    };
+
+    if (toggle) {
+      toggle.hidden = false;
+      toggle.addEventListener("click", () => setMenu(!header.classList.contains("is-open")));
+    }
+
+    subs.forEach((button) => {
+      button.hidden = false;
+      button.addEventListener("click", () => {
+        const open = button.getAttribute("aria-expanded") !== "true";
+        subs.forEach((other) => setSub(other, false));
+        setSub(button, open);
+      });
+    });
+
+    header.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const openSub = subs.find((button) => button.getAttribute("aria-expanded") === "true");
+      if (openSub) {
+        setSub(openSub, false);
+        openSub.focus();
+      } else if (header.classList.contains("is-open")) {
+        setMenu(false);
+        toggle?.focus();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!header.contains(event.target as Node)) subs.forEach((button) => setSub(button, false));
+    });
+  });
+</script>

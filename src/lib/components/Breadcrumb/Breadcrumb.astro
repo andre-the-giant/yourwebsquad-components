@@ -1,0 +1,91 @@
+---
+/*
+Breadcrumb — trail of links; the last item is the current page.
+Props:
+- items: { label: string, href?: string }[]
+- label?: string — accessible name of the nav, translate it for each language
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z.array(z.looseObject({ label: z.string(), href: z.string().optional() })).default([]),
+  label: z.string().default("Breadcrumb")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  label,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Breadcrumb" });
+---
+
+<nav
+  id={id}
+  class={mergeClasses("breadcrumb", className)}
+  style={style}
+  aria-label={label}
+  {...rest}
+>
+  <ol class="breadcrumb__list">
+    {
+      items.map((item, index) =>
+        index === items.length - 1 || !item.href ? (
+          <li
+            class="breadcrumb__item"
+            aria-current={index === items.length - 1 ? "page" : undefined}
+          >
+            {item.label}
+          </li>
+        ) : (
+          <li class="breadcrumb__item">
+            <a href={item.href}>{item.label}</a>
+          </li>
+        )
+      )
+    }
+  </ol>
+</nav>
+
+<style>
+  .breadcrumb__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+    line-height: 1.4;
+  }
+
+  .breadcrumb__item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .breadcrumb__item + .breadcrumb__item::before {
+    content: "›" / "";
+    color: var(--color-muted);
+  }
+
+  .breadcrumb__item a {
+    display: inline-block;
+    min-height: 1.5rem;
+    color: inherit;
+  }
+</style>

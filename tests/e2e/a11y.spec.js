@@ -14,17 +14,33 @@ const pages = [
   "/components/molecules/accordion",
   "/components/components/modal",
   "/components/atoms/form-input",
-  "/components/components/formfield"
+  "/components/components/formfield",
+  "/components/components/band",
+  "/components/molecules/breadcrumb",
+  "/components/components/pagehero",
+  "/components/components/facts",
+  "/components/components/section",
+  "/components/components/cardgrid",
+  "/components/components/plans",
+  "/components/components/datatable",
+  "/components/components/steps",
+  "/components/components/faq",
+  "/components/components/proof",
+  "/components/components/ctaband",
+  "/components/components/siteheader",
+  "/components/components/sitefooter",
+  "/components/atoms/tag"
 ];
 
-for (const path of pages) {
-  test(`a11y: ${path} has no WCAG A/AA violations`, async ({ page }) => {
-    await page.goto(path);
+const allPages = ["light", "plein-jour"].flatMap((theme) => pages.map((path) => ({ path, theme })));
+
+for (const { path, theme } of allPages) {
+  test(`a11y (${theme}): ${path} has no WCAG A/AA violations`, async ({ page }) => {
+    await page.goto(`${path}?theme=${theme}`);
     const { violations } = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       // Scope to the library components — exclude docs-site chrome (nav, theme
       // toggle, syntax-highlighted code samples) which aren't part of the lib.
-      .exclude(".theme-toggle")
       .exclude(".preview__code")
       .exclude("pre")
       .exclude("nav")

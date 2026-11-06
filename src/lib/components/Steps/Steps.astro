@@ -1,0 +1,149 @@
+---
+/*
+Steps — an ordered sequence with large numbers.
+Props:
+- heading?: string
+- items: { title: string, text?: string }[]
+- actions?: { label: string, href?: string, variant?: "solid"|"outline"|"ghost" }[]
+- tone?: "default" | "surface"
+- flush?: boolean
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Band from "../Band/Band.astro";
+import Button from "../Button/Button.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  heading: z.string().optional(),
+  items: z.array(z.looseObject({ title: z.string(), text: z.string().optional() })).default([]),
+  actions: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        href: z.string().optional(),
+        variant: z.enum(["solid", "outline", "ghost"]).optional()
+      })
+    )
+    .default([]),
+  tone: z.enum(["default", "surface"]).default("default"),
+  flush: z.boolean().default(false)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  heading,
+  items,
+  actions,
+  tone,
+  flush
+} = parseProps(Schema, Astro.props, { component: "Steps" });
+
+const headingId = nextId("steps");
+---
+
+<Band
+  id={id}
+  class={mergeClasses("steps", className)}
+  style={style}
+  tone={tone}
+  flush={flush}
+  labelledby={heading ? headingId : undefined}
+>
+  {
+    heading && (
+      <h2 id={headingId} class="steps__title">
+        {heading}
+      </h2>
+    )
+  }
+  <ol class="steps__list">
+    {
+      items.map((item) => (
+        <li class="step">
+          <h3 class="step__title">{item.title}</h3>
+          {item.text && <p class="step__text">{item.text}</p>}
+        </li>
+      ))
+    }
+  </ol>
+  {
+    actions.length > 0 && (
+      <div class="steps__actions">
+        {actions.map((b) => (
+          <Button label={b.label} href={b.href} variant={b.variant ?? "solid"} />
+        ))}
+      </div>
+    )
+  }
+</Band>
+
+<style>
+  .steps__title {
+    margin: 0 0 clamp(1.75rem, 4vw, 3.5rem);
+    font-family: var(--font-display);
+    font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: var(--type-h2-line, 1.1);
+    letter-spacing: var(--type-h2-tracking, normal);
+  }
+
+  .steps__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .step {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: clamp(3.5rem, 10vw, 8.25rem) 1fr;
+    gap: 0 clamp(0.75rem, 2vw, 1.75rem);
+    padding-block: clamp(1.25rem, 2.6vw, 2rem);
+    border-top: 2px solid currentColor;
+  }
+
+  .step::before {
+    content: counter(step);
+    grid-row: 1 / span 2;
+    font-family: var(--font-display);
+    font-size: clamp(3.25rem, 8vw, 6.5rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--color-accent);
+  }
+
+  .step__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h3, clamp(1.5rem, 2.6vw, 2.125rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: var(--type-h3-line, 1.15);
+    letter-spacing: var(--type-h3-tracking, normal);
+  }
+
+  .step__text {
+    max-width: 62ch;
+    margin: 0.5rem 0 0;
+  }
+
+  .steps__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-block-start: 2rem;
+  }
+</style>

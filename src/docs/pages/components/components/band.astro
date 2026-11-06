@@ -1,0 +1,67 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Band from "@lib/components/Band/Band.astro";
+
+const examples: any[] = [
+  {
+    tone: "surface"
+  },
+  {
+    tone: "inverse"
+  },
+  {
+    tone: "accent"
+  }
+];
+const bodies = [
+  "<p>Content on the surface tone.</p>",
+  "<p>Content on the inverse tone.</p>",
+  "<p>Content on the accent tone.</p>"
+];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Band {...${JSON.stringify(p)}}>${bodies[i]}</Band>`
+    : `<Band {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  {
+    name: "tone",
+    type: '"default" | "surface" | "inverse" | "accent"',
+    default: '"default"',
+    description: "Background and text colors."
+  },
+  { name: "tight", type: "boolean", default: "false", description: "Smaller vertical padding." },
+  {
+    name: "flush",
+    type: "boolean",
+    default: "false",
+    description: "No top padding, for two bands in a row."
+  },
+  { name: "as", type: '"section" | "div"', default: '"section"', description: "Root element." },
+  { name: "labelledby", type: "string", description: "Id of the heading that names the section." }
+];
+---
+
+<DocLayout
+  title="Band"
+  description="Full-width section: spacing, width and background tone."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Surface" code={codes[0]}>
+    <Band {...examples[0]}><Fragment set:html={bodies[0]} /></Band>
+  </Preview>
+  <Preview title="Inverse" code={codes[1]}>
+    <Band {...examples[1]}><Fragment set:html={bodies[1]} /></Band>
+  </Preview>
+  <Preview title="Accent" code={codes[2]}>
+    <Band {...examples[2]}><Fragment set:html={bodies[2]} /></Band>
+  </Preview>
+</DocLayout>

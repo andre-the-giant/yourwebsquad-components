@@ -1,0 +1,60 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import CtaBand from "@lib/components/CtaBand/CtaBand.astro";
+
+const examples: any[] = [
+  {
+    heading: "Wonder how your business looks online?",
+    text: "We check your website, Google visibility and social media.",
+    action: {
+      label: "Get your free audit",
+      href: "#"
+    }
+  },
+  {
+    tone: "inverse",
+    heading: "Ready to hand it over?",
+    action: {
+      label: "See our plans",
+      href: "#"
+    }
+  }
+];
+const bodies = ["", ""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<CtaBand {...${JSON.stringify(p)}}>${bodies[i]}</CtaBand>`
+    : `<CtaBand {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Required." },
+  { name: "text", type: "string", description: "Text beside the title." },
+  {
+    name: "action",
+    type: "{ label: string, href?: string }",
+    description: "Required. The only action."
+  },
+  { name: "tone", type: '"accent" | "inverse"', default: '"accent"', description: "Background." }
+];
+---
+
+<DocLayout
+  title="CtaBand"
+  description="One action with a large title, once per page."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Accent" code={codes[0]}>
+    <CtaBand {...examples[0]} />
+  </Preview>
+  <Preview title="Inverse" code={codes[1]}>
+    <CtaBand {...examples[1]} />
+  </Preview>
+</DocLayout>

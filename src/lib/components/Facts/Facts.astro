@@ -1,0 +1,164 @@
+---
+/*
+Facts — a sentence that answers on its own, then key facts in a <dl>.
+The block that answer engines can quote most easily.
+Props:
+- answer: string
+- heading?: string — when it ends with "?", it shows as a large title
+- items?: { term: string, value: string }[]
+- tone?: "default" | "surface" | "inverse"
+- flush?: boolean
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Band from "../Band/Band.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  answer: z.string(),
+  heading: z.string().optional(),
+  items: z.array(z.looseObject({ term: z.string(), value: z.string() })).default([]),
+  tone: z.enum(["default", "surface", "inverse"]).default("surface"),
+  flush: z.boolean().default(false)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  answer,
+  heading,
+  items,
+  tone,
+  flush
+} = parseProps(Schema, Astro.props, { component: "Facts" });
+
+const headingId = nextId("facts");
+const isQuestion = heading?.trim().endsWith("?");
+---
+
+<Band
+  id={id}
+  class={mergeClasses("facts", className)}
+  style={style}
+  tone={tone}
+  flush={flush}
+  labelledby={heading ? headingId : undefined}
+>
+  <div class="facts__grid">
+    <div>
+      {
+        heading && (
+          <h2 id={headingId} class={isQuestion ? "facts__title" : "facts__label"}>
+            {heading}
+          </h2>
+        )
+      }
+      <p class={isQuestion ? "facts__answer--lead" : "facts__answer"}>{answer}</p>
+    </div>
+    {
+      items.length > 0 && (
+        <dl class="facts__list">
+          {items.map((item) => (
+            <div class="facts__row">
+              <dt>{item.term}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+  </div>
+</Band>
+
+<style>
+  .facts__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .facts__label {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-muted);
+  }
+
+  .facts__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: var(--type-h2-line, 1.1);
+    letter-spacing: var(--type-h2-tracking, normal);
+  }
+
+  .facts__answer {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.625rem, 3.3vw, 2.75rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.08;
+    letter-spacing: var(--type-h3-tracking, normal);
+  }
+
+  .facts__answer--lead {
+    margin: 1rem 0 0;
+    font-size: var(--type-lead, clamp(1.25rem, 2.1vw, 1.6875rem));
+    font-weight: var(--weight-bold);
+    line-height: 1.35;
+  }
+
+  .facts__list {
+    display: grid;
+    align-self: start;
+    margin: 0;
+    border-top: 2px solid currentColor;
+  }
+
+  .facts__row {
+    display: grid;
+    gap: 0.125rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .facts__row dt {
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+    line-height: 1.35;
+    color: var(--color-muted);
+  }
+
+  .facts__row dd {
+    margin: 0;
+    font-weight: var(--weight-bold);
+    line-height: 1.4;
+  }
+
+  @media (min-width: 45rem) {
+    .facts__row {
+      grid-template-columns: 8.75rem 1fr;
+      gap: 1rem;
+      align-items: baseline;
+    }
+  }
+
+  @media (min-width: 56.25rem) {
+    .facts__grid {
+      grid-template-columns: 5fr 7fr;
+      gap: 3.5rem;
+    }
+  }
+</style>

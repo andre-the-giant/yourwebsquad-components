@@ -1,0 +1,188 @@
+---
+/*
+SiteFooter — contact details, link columns and a legal line, on the inverse surface.
+Props:
+- logo?: string — logo source for a dark background
+- logoAlt?: string
+- address?: string[] — lines of the address
+- phone?: { label: string, href: string }
+- email?: string
+- note?: string — such as opening hours
+- columns?: { heading: string, links: { label: string, href: string }[] }[]
+- legal?: string
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  logo: z.string().optional(),
+  logoAlt: z.string().default(""),
+  address: z.array(z.string()).default([]),
+  phone: z.looseObject({ label: z.string(), href: z.string() }).optional(),
+  email: z.string().optional(),
+  note: z.string().optional(),
+  columns: z
+    .array(
+      z.looseObject({
+        heading: z.string(),
+        links: z.array(z.looseObject({ label: z.string(), href: z.string() })).default([])
+      })
+    )
+    .default([]),
+  legal: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  logo,
+  logoAlt,
+  address,
+  phone,
+  email,
+  note,
+  columns,
+  legal,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "SiteFooter" });
+---
+
+<footer id={id} class={mergeClasses("sitefooter", className)} style={style} {...rest}>
+  <div class="sitefooter__grid" style={`--_columns: ${columns.length}`}>
+    <div>
+      {logo && <img class="sitefooter__logo" src={logo} alt={logoAlt} loading="lazy" />}
+      <address class="sitefooter__address">
+        {
+          address.map((line) => (
+            <Fragment>
+              {line}
+              <br />
+            </Fragment>
+          ))
+        }
+        {
+          phone && (
+            <Fragment>
+              <a href={phone.href}>{phone.label}</a>
+              <br />
+            </Fragment>
+          )
+        }
+        {email && <a href={`mailto:${email}`}>{email}</a>}
+      </address>
+      {note && <p class="sitefooter__note">{note}</p>}
+    </div>
+    {
+      columns.map((column) => (
+        <div>
+          <h2 class="sitefooter__heading">{column.heading}</h2>
+          <ul class="sitefooter__links">
+            {column.links.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+  {legal && <p class="sitefooter__legal">{legal}</p>}
+</footer>
+
+<style>
+  .sitefooter {
+    padding: clamp(3rem, 6vw, 5rem) var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem)) 2rem;
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-fg);
+  }
+
+  .sitefooter__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    max-width: var(--band-max-width, 80rem);
+    margin-inline: auto;
+  }
+
+  .sitefooter__logo {
+    display: block;
+    width: auto;
+    height: 2.125rem;
+    margin-block-end: 1.25rem;
+  }
+
+  .sitefooter__address {
+    font-size: 1.0625rem;
+    font-style: normal;
+    line-height: 1.5;
+  }
+
+  .sitefooter a {
+    color: inherit;
+  }
+
+  .sitefooter a:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  .sitefooter__note {
+    margin: 0.875rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    opacity: 0.85;
+  }
+
+  .sitefooter__heading {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+    font-weight: var(--weight-medium);
+    line-height: 1.35;
+    letter-spacing: normal;
+    opacity: 0.85;
+  }
+
+  .sitefooter__links {
+    display: grid;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sitefooter__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    font-size: 1.0625rem;
+    font-weight: var(--weight-bold);
+  }
+
+  .sitefooter__legal {
+    max-width: var(--band-max-width, 80rem);
+    margin: 2.5rem auto 0;
+    padding-block-start: 1rem;
+    border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+    font-size: 0.9375rem;
+    opacity: 0.85;
+  }
+
+  @media (min-width: 56.25rem) {
+    .sitefooter__grid {
+      grid-template-columns: 5fr repeat(var(--_columns), 3fr);
+      gap: 2rem;
+    }
+  }
+</style>

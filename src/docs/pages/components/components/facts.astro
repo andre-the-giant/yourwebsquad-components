@@ -1,0 +1,66 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Facts from "@lib/components/Facts/Facts.astro";
+
+const examples: any[] = [
+  {
+    heading: "In short",
+    answer: "We build and manage your whole online presence for one monthly price.",
+    items: [
+      {
+        term: "Price",
+        value: "From 199 CA$/month paid yearly."
+      },
+      {
+        term: "Where",
+        value: "Based in Bath, next to Kingston."
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Facts {...${JSON.stringify(p)}}>${bodies[i]}</Facts>`
+    : `<Facts {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "answer", type: "string", description: "Required. A sentence that answers on its own." },
+  {
+    name: "heading",
+    type: "string",
+    description: "Ending with a question mark, it shows as a large title."
+  },
+  {
+    name: "items",
+    type: "{ term: string, value: string }[]",
+    default: "[]",
+    description: "Key facts, in a dl."
+  },
+  {
+    name: "tone",
+    type: '"default" | "surface" | "inverse"',
+    default: '"surface"',
+    description: "Background."
+  },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout
+  title="Facts"
+  description="A sentence that answers on its own, then key facts."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Short answer" code={codes[0]}>
+    <Facts {...examples[0]} />
+  </Preview>
+</DocLayout>

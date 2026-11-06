@@ -1,0 +1,104 @@
+---
+/*
+Band — full-width page section: spacing, width and background tone.
+Props:
+- tone?: "default" | "surface" | "inverse" | "accent" — background and text colors
+- tight?: boolean — smaller vertical padding
+- flush?: boolean — no top padding, for two bands in a row on the same background
+- as?: "section" | "div" — root element
+- labelledby?: string — id of the heading that names this section
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  tone: z.enum(["default", "surface", "inverse", "accent"]).default("default"),
+  tight: z.boolean().default(false),
+  flush: z.boolean().default(false),
+  as: z.enum(["section", "div"]).default("section"),
+  labelledby: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  tone,
+  tight,
+  flush,
+  as: Tag,
+  labelledby,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Band" });
+
+const resolvedClass = mergeClasses(
+  "band",
+  `band--${tone}`,
+  tight && "band--tight",
+  flush && "band--flush",
+  className
+);
+const resolvedStyle = makeStyleVars({}, style);
+---
+
+<Tag
+  id={id}
+  class={resolvedClass}
+  style={resolvedStyle || undefined}
+  aria-labelledby={labelledby}
+  {...rest}
+>
+  <div class="band__inner"><slot /></div>
+</Tag>
+
+<style>
+  .band {
+    padding-block: var(--band-padding, clamp(3.5rem, 8vw, 7rem));
+    padding-inline: var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem));
+    color: var(--color-fg);
+  }
+
+  .band__inner {
+    max-width: var(--band-max-width, 80rem);
+    margin-inline: auto;
+  }
+
+  .band--tight {
+    padding-block: var(--band-padding-tight, clamp(2rem, 4vw, 3.5rem));
+  }
+
+  .band--flush {
+    padding-block-start: 0;
+  }
+
+  .band--surface {
+    background: var(--band-surface-bg, var(--color-surface));
+  }
+
+  .band--inverse {
+    --color-fg: var(--color-inverse-fg);
+    --color-fg-rgb: 255, 255, 255;
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-fg);
+  }
+
+  .band--accent {
+    --color-fg: var(--color-accent-contrast);
+    --button-solid-bg: var(--color-accent-contrast);
+    --button-solid-fg: var(--color-accent);
+    --button-solid-border: var(--color-accent-contrast);
+    --button-outline-fg: var(--color-accent-contrast);
+    --button-outline-border: var(--color-accent-contrast);
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+</style>

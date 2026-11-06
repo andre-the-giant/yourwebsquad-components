@@ -1,0 +1,89 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Plans from "@lib/components/Plans/Plans.astro";
+
+const examples: any[] = [
+  {
+    heading: "Simple plans, public prices",
+    billing: {
+      legend: "How do you want to pay?",
+      first: "Paid yearly",
+      second: "Paid monthly"
+    },
+    items: [
+      {
+        name: "Worry-free plan",
+        price: "199",
+        priceSecond: "219",
+        note: "Per month, paid yearly.",
+        noteSecond: "Per month, paid monthly.",
+        features: ["Design and development", "Hosting and domain name"],
+        cta: {
+          label: "Get started",
+          href: "#"
+        },
+        featured: true
+      },
+      {
+        name: "Growth plan",
+        price: "299",
+        priceSecond: "329",
+        note: "Per month, paid yearly.",
+        noteSecond: "Per month, paid monthly.",
+        features: ["Google Business audit", "1 social post per week"],
+        cta: {
+          label: "Get started",
+          href: "#"
+        }
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Plans {...${JSON.stringify(p)}}>${bodies[i]}</Plans>`
+    : `<Plans {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  { name: "note", type: "string", description: "Small text above the cards." },
+  {
+    name: "billing",
+    type: "{ legend: string, first: string, second: string }",
+    description: "Radio buttons that switch prices with CSS only."
+  },
+  {
+    name: "currency",
+    type: "string",
+    default: '"CA$"',
+    description: "Shown after numeric prices."
+  },
+  {
+    name: "items",
+    type: "{ eyebrow?, name, price?, priceSecond?, note?, noteSecond?, features?, cta?, featured? }[]",
+    default: "[]",
+    description: "Plans. A non-numeric price shows as text."
+  },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout
+  title="Plans"
+  description="Pricing cards, with a CSS-only payment switch."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Two plans" code={codes[0]}>
+    <Plans {...examples[0]} />
+  </Preview>
+</DocLayout>

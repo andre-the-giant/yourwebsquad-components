@@ -1,0 +1,51 @@
+---
+import { themes, defaultTheme } from "@lib/themes/index.js";
+---
+
+<div class="theme-switcher">
+  <label class="theme-switcher__label" for="theme-switcher">Theme</label>
+  <select class="theme-switcher__select" id="theme-switcher" data-theme-select>
+    {themes.map((theme) => <option value={theme.id}>{theme.label}</option>)}
+  </select>
+</div>
+
+<script is:inline define:vars={{ themeIds: themes.map((theme) => theme.id), defaultTheme }}>
+  const select = document.querySelector("[data-theme-select]");
+  const current = document.documentElement.getAttribute("data-theme");
+  if (select) {
+    select.value = themeIds.includes(current) ? current : defaultTheme;
+    select.addEventListener("change", () => {
+      document.documentElement.setAttribute("data-theme", select.value);
+      try {
+        localStorage.setItem("yws-theme", select.value);
+      } catch {
+        // Ignore storage errors in restricted contexts.
+      }
+    });
+  }
+</script>
+
+<style>
+  .theme-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--docs-font);
+  }
+
+  .theme-switcher__label {
+    font-size: var(--size-sm);
+    font-weight: 700;
+  }
+
+  .theme-switcher__select {
+    min-height: 2.75rem;
+    padding: 0 var(--space-3);
+    border: 2px solid var(--color-fg);
+    border-radius: 0;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font: 700 var(--size-md) var(--docs-font);
+    cursor: pointer;
+  }
+</style>

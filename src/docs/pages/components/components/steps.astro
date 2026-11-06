@@ -1,0 +1,61 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import Steps from "@lib/components/Steps/Steps.astro";
+
+const examples: any[] = [
+  {
+    heading: "How we work",
+    items: [
+      {
+        title: "Let's discuss your needs",
+        text: "We explain your options and pick a plan."
+      },
+      {
+        title: "We design and build",
+        text: "You see progress every week."
+      },
+      {
+        title: "Go live",
+        text: "We connect your domain and run our checks."
+      }
+    ]
+  }
+];
+const bodies = [""];
+const codes = examples.map((p, i) =>
+  bodies[i]
+    ? `<Steps {...${JSON.stringify(p)}}>${bodies[i]}</Steps>`
+    : `<Steps {...${JSON.stringify(p)}} />`
+);
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "heading", type: "string", description: "Section title." },
+  {
+    name: "items",
+    type: "{ title: string, text?: string }[]",
+    default: "[]",
+    description: "Steps, in order."
+  },
+  {
+    name: "actions",
+    type: '{ label: string, href?: string, variant?: "solid" | "outline" | "ghost" }[]',
+    default: "[]",
+    description: "Buttons below."
+  },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+];
+---
+
+<DocLayout title="Steps" description="Ordered sequence with large numbers." items={components}>
+  <PropsTable props={props} />
+  <Preview title="Three steps" code={codes[0]}>
+    <Steps {...examples[0]} />
+  </Preview>
+</DocLayout>

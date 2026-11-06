@@ -1,0 +1,243 @@
+---
+/*
+Proof — experience and clients. Only list what is true: past employers go in
+`run`, clients of the business in `items`, and reviews stay in GoogleReviews.
+Props:
+- heading?: string
+- label?: string — small text above `run` or `lead`
+- run?: string — a list of names set as one large sentence
+- lead?: string — a large sentence
+- itemsLabel?: string — small text above the items
+- items?: { name: string, description?: string, href?: string, tag?: string }[]
+- actions?: { label: string, href?: string, variant?: "solid"|"outline"|"ghost" }[]
+- tone?: "default" | "surface"
+- flush?: boolean
+- id?: string
+- class?: string
+- style?: string
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Band from "../Band/Band.astro";
+import Button from "../Button/Button.astro";
+import Tag from "../Tag/Tag.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  heading: z.string().optional(),
+  label: z.string().optional(),
+  run: z.string().optional(),
+  lead: z.string().optional(),
+  itemsLabel: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        name: z.string(),
+        description: z.string().optional(),
+        href: z.string().optional(),
+        tag: z.string().optional()
+      })
+    )
+    .default([]),
+  actions: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        href: z.string().optional(),
+        variant: z.enum(["solid", "outline", "ghost"]).optional()
+      })
+    )
+    .default([]),
+  tone: z.enum(["default", "surface"]).default("default"),
+  flush: z.boolean().default(false)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  heading,
+  label,
+  run,
+  lead,
+  itemsLabel,
+  items,
+  actions,
+  tone,
+  flush
+} = parseProps(Schema, Astro.props, { component: "Proof" });
+
+const headingId = nextId("proof");
+---
+
+<Band
+  id={id}
+  class={mergeClasses("proof", className)}
+  style={style}
+  tone={tone}
+  flush={flush}
+  labelledby={heading ? headingId : undefined}
+>
+  {
+    heading && (
+      <h2 id={headingId} class="proof__title">
+        {heading}
+      </h2>
+    )
+  }
+  {label && <p class="proof__label">{label}</p>}
+  {run && <p class="proof__run">{run}</p>}
+  {lead && <p class="proof__lead">{lead}</p>}
+  {itemsLabel && <p class="proof__label proof__label--items">{itemsLabel}</p>}
+  {
+    items.length > 0 && (
+      <ul class="proof__list">
+        {items.map((item) => (
+          <li class:list={["proof__item", item.href && "proof__item--link"]}>
+            <span class="proof__name">
+              {item.href ? <a href={item.href}>{item.name}</a> : item.name}
+            </span>
+            <span class="proof__desc">
+              {item.description}
+              {item.tag && <Tag class="proof__tag" label={item.tag} />}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  {
+    actions.length > 0 && (
+      <div class="proof__actions">
+        {actions.map((b) => (
+          <Button label={b.label} href={b.href} variant={b.variant ?? "outline"} />
+        ))}
+      </div>
+    )
+  }
+</Band>
+
+<style>
+  .proof__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: var(--type-h2-line, 1.1);
+    letter-spacing: var(--type-h2-tracking, normal);
+    overflow-wrap: break-word;
+  }
+
+  .proof__label {
+    margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--size-sm);
+    line-height: 1.35;
+    color: var(--color-muted);
+  }
+
+  .proof__label--items {
+    margin-block-start: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .proof__run {
+    margin: 0.75rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.875rem, 4.6vw, 3.875rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.08;
+    letter-spacing: var(--type-h2-tracking, normal);
+    color: var(--color-muted);
+  }
+
+  .proof__lead {
+    margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.625rem, 3.4vw, 2.875rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.1;
+    letter-spacing: var(--type-h2-tracking, normal);
+    color: var(--color-muted);
+  }
+
+  .proof__list {
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 2px solid currentColor;
+  }
+
+  .proof__title + .proof__list {
+    margin-block-start: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .proof__item {
+    position: relative;
+    display: grid;
+    gap: 0.25rem;
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .proof__item--link:hover {
+    box-shadow: inset 0 -3px 0 var(--color-accent);
+  }
+
+  .proof__name {
+    font-family: var(--font-display);
+    font-size: var(--type-h3, clamp(1.5rem, 2.6vw, 2.125rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.1;
+    letter-spacing: var(--type-h3-tracking, normal);
+  }
+
+  .proof__name a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .proof__name a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .proof__name a:focus-visible {
+    outline: none;
+  }
+
+  .proof__name a:focus-visible::after {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .proof__desc :global(.proof__tag) {
+    margin-inline-start: 0.5rem;
+  }
+
+  .proof__desc {
+    font-size: 1.0625rem;
+    line-height: 1.4;
+  }
+
+  .proof__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-block-start: 1.5rem;
+  }
+
+  @media (min-width: 45rem) {
+    .proof__item {
+      grid-template-columns: 5fr 7fr;
+      gap: 1.5rem;
+      align-items: baseline;
+    }
+  }
+</style>

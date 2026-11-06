@@ -178,5 +178,95 @@ export const components = [
     href: "/components/components/formfield",
     description: "Composed, fully-wired form field (label + control + help + error)",
     group: "components"
+  },
+  {
+    name: "Band",
+    href: "/components/components/band",
+    description: "Full-width section: spacing, width and background tone.",
+    group: "components"
+  },
+  {
+    name: "Breadcrumb",
+    href: "/components/molecules/breadcrumb",
+    description: "Trail of links ending on the current page.",
+    group: "molecules"
+  },
+  {
+    name: "CardGrid",
+    href: "/components/components/cardgrid",
+    description: "Comparable items in 2 or 3 columns, with or without links.",
+    group: "components"
+  },
+  {
+    name: "CtaBand",
+    href: "/components/components/ctaband",
+    description: "One action with a large title, once per page.",
+    group: "components"
+  },
+  {
+    name: "DataTable",
+    href: "/components/components/datatable",
+    description: "Real table with caption, headers and a scrollable region.",
+    group: "components"
+  },
+  {
+    name: "Facts",
+    href: "/components/components/facts",
+    description: "A sentence that answers on its own, then key facts.",
+    group: "components"
+  },
+  {
+    name: "Faq",
+    href: "/components/components/faq",
+    description: "Questions and answers with native details.",
+    group: "components"
+  },
+  {
+    name: "PageHero",
+    href: "/components/components/pagehero",
+    description: "Top of a page with its only h1.",
+    group: "components"
+  },
+  {
+    name: "Plans",
+    href: "/components/components/plans",
+    description: "Pricing cards, with a CSS-only payment switch.",
+    group: "components"
+  },
+  {
+    name: "Proof",
+    href: "/components/components/proof",
+    description: "Experience and clients.",
+    group: "components"
+  },
+  {
+    name: "Section",
+    href: "/components/components/section",
+    description: "Basic content block: title, text, list or image.",
+    group: "components"
+  },
+  {
+    name: "Steps",
+    href: "/components/components/steps",
+    description: "Ordered sequence with large numbers.",
+    group: "components"
+  },
+  {
+    name: "SiteHeader",
+    href: "/components/components/siteheader",
+    description: "Logo, main menu, language and one button. Menu panel on phones.",
+    group: "components"
+  },
+  {
+    name: "SiteFooter",
+    href: "/components/components/sitefooter",
+    description: "Contact details, link columns and legal line.",
+    group: "components"
+  },
+  {
+    name: "Tag",
+    href: "/components/atoms/tag",
+    description: "Small label for a status.",
+    group: "atoms"
   }
 ];

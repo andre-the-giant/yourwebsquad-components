@@ -1,0 +1,78 @@
+---
+import DocLayout from "../../../layouts/DocLayout.astro";
+import Preview from "../../../components/Preview.astro";
+import PropsTable from "../../../components/PropsTable.astro";
+import { components } from "../../../data/components.js";
+import SiteFooter from "@lib/components/SiteFooter/SiteFooter.astro";
+import logo from "../../../images/yws_logo_dark.svg?url";
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  { name: "logo", type: "string", description: "Logo source for a dark background." },
+  { name: "logoAlt", type: "string", default: '""', description: "Logo description." },
+  { name: "address", type: "string[]", default: "[]", description: "Lines of the address." },
+  { name: "phone", type: "{ label, href }", description: "Phone link." },
+  { name: "email", type: "string", description: "Email address." },
+  { name: "note", type: "string", description: "Such as opening hours." },
+  {
+    name: "columns",
+    type: "{ heading, links: { label, href }[] }[]",
+    default: "[]",
+    description: "Link columns."
+  },
+  { name: "legal", type: "string", description: "Line at the bottom." }
+];
+
+const columns = [
+  {
+    heading: "The site",
+    links: [
+      { label: "Services", href: "#" },
+      { label: "Pricing", href: "#" },
+      { label: "FAQ", href: "#" },
+      { label: "Contact", href: "#" }
+    ]
+  },
+  {
+    heading: "Areas we serve",
+    links: [
+      { label: "Kingston", href: "#" },
+      { label: "Napanee", href: "#" },
+      { label: "Belleville", href: "#" }
+    ]
+  },
+  {
+    heading: "Legal",
+    links: [
+      { label: "Accessibility", href: "#" },
+      { label: "Privacy", href: "#" },
+      { label: "Terms", href: "#" }
+    ]
+  }
+];
+
+const code = `<SiteFooter logo={logo} logoAlt="Your Web Squad" address={[...]} phone={{ label, href }}
+  email="hello@yourwebsquad.com" columns={columns} legal="© Your Web Squad Ltd." />`;
+---
+
+<DocLayout
+  title="SiteFooter"
+  description="Contact details, link columns and legal line."
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview title="Footer" code={code}>
+    <SiteFooter
+      logo={logo}
+      logoAlt="Your Web Squad"
+      address={["Based in Bath, next to Kingston", "698 Caton Rd, Bath, ON K0H 1G0"]}
+      phone={{ label: "+1 647 964 9779", href: "tel:+16479649779" }}
+      email="hello@yourwebsquad.com"
+      note="Monday to Friday, 8 a.m. to 4 p.m. Saturday, 8 a.m. to noon."
+      columns={columns}
+      legal="© Your Web Squad Ltd."
+    />
+  </Preview>
+</DocLayout>
