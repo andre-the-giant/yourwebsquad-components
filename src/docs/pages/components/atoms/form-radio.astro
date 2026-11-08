@@ -49,6 +49,14 @@ const styleVars = [
         description: "Radio placement relative to label."
       },
       {
+        name: "appearance",
+        type: `"default" | "tile"`,
+        default: '"default"',
+        description: "tile: a large card (48px or more), the whole card is clickable. Used for the questions of a step-by-step quote."
+      },
+      { name: "description", type: "string", description: "Second line under the label (tile)." },
+      { name: "icon", type: "string", description: "Icon name shown before the text (tile)." },
+      {
         deprecated: true,
         name: "color",
         type: "string",
@@ -95,6 +103,19 @@ const styleVars = [
   />
 
   <PropsTable title="Style variables" props={styleVars} />
+
+  <Preview
+    title="Tile appearance"
+    code={`<FormRadio appearance="tile" name="finish" value="essentiel" label="Essentiel" description="Ceramic, chrome fixtures, stock vanity." />
+<FormRadio appearance="tile" name="finish" value="confort" checked label="Confort" description="Large porcelain, glass shower, custom vanity." />`}
+  >
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:0.75rem;">
+      <FormRadio appearance="tile" name="finish" id="finish-a" value="essentiel" label="Essentiel" description="Ceramic, chrome fixtures, stock vanity." />
+      <FormRadio appearance="tile" name="finish" id="finish-b" value="confort" checked label="Confort" description="Large porcelain, glass shower, custom vanity." />
+      <FormRadio appearance="tile" name="finish" id="finish-c" value="haut" label="Haut de gamme" description="Marble, heated floor, custom niche." />
+      <FormRadio appearance="tile" name="finish" id="finish-d" value="nsp" label="Not sure yet" description="We will show you samples at the visit." />
+    </div>
+  </Preview>
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">

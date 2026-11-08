@@ -23,6 +23,12 @@ const propsTable = [
   },
   { name: "closeLabel", type: "string", description: "Accessible label for the close button." },
   { name: "open", type: "boolean", description: "Open the modal on initial page load." },
+  {
+    name: "size",
+    type: `"default" | "full"`,
+    default: '"default"',
+    description: "full: the whole screen on a dark surface, close button pinned top right. Base of a photo viewer (Lightbox)."
+  },
   { name: "class", type: "string", description: "Additional class names for the dialog root." },
   { name: "style", type: "string", description: "Inline style or CSS variable overrides." }
 ];

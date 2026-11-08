@@ -53,6 +53,13 @@ const styleVars = [
         description: "Toggle placement relative to label."
       },
       {
+        name: "appearance",
+        type: `"switch" | "checkbox"`,
+        default: '"switch"',
+        description:
+          "switch for settings; checkbox (square box with a tick, placed before the label) for consent and agreement."
+      },
+      {
         deprecated: true,
         name: "checkedColor",
         type: "string",
@@ -103,6 +110,20 @@ const styleVars = [
   />
 
   <PropsTable title="Style variables" props={styleVars} />
+
+  <Preview
+    title="Checkbox appearance"
+    code={`<FormCheckbox appearance="checkbox" required label="I agree that BathroomMate uses this information to prepare my quote." />`}
+  >
+    <div class="row">
+      <FormCheckbox
+        appearance="checkbox"
+        required
+        label="I agree that BathroomMate uses this information to prepare my quote."
+      />
+      <FormCheckbox appearance="checkbox" checked label="Send me a copy by email" />
+    </div>
+  </Preview>
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">

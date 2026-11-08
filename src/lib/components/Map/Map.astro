@@ -1,20 +1,40 @@
 ---
 /*
+Map — a Google Maps embed.
 Props:
-- title?: string // TODO: document props
-- content?: { shape }
+- url?: string — embed URL from Google Maps ("Share" › "Embed a map")
+- title?: string — accessible name of the map frame
+- loadOnClick?: boolean — show a placeholder and load Google only when asked
+- buttonLabel?: string — label of the load button (loadOnClick)
+- notice?: string — short line under the button (loadOnClick)
+- poster?: string — static image behind the placeholder (loadOnClick)
+- loadWithConsent?: boolean — with loadOnClick, load at once when the visitor
+  already accepted "marketing" in the Pipeda banner
+- id?: string
+- class?: string
+- style?: string
 Notes:
-- Update schema + props to match your component API.
+- With loadOnClick, nothing is requested from Google before the click, which
+  keeps the page free of third-party cookies until the visitor asks.
+- Put the same information as text next to the map (service area, address):
+  the map frame is hard to use with a screen reader.
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
 import { nextId } from "../../utils/id.js";
+import Button from "../Button/Button.astro";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
   class: z.string().optional(),
   style: z.string().optional(),
-  url: z.string().optional()
+  url: z.string().optional(),
+  title: z.string().default("Google map"),
+  loadOnClick: z.boolean().default(false),
+  buttonLabel: z.string().default("Show the interactive map"),
+  notice: z.string().default("The map loads from Google when you ask for it."),
+  poster: z.string().optional(),
+  loadWithConsent: z.boolean().default(false)
 });
 
 type Props = z.input<typeof Schema>;
@@ -24,6 +44,12 @@ const {
   class: className,
   style,
   url,
+  title,
+  loadOnClick,
+  buttonLabel,
+  notice,
+  poster,
+  loadWithConsent,
   ...rest
 } = parseProps(Schema, Astro.props, { component: "Map" });
 
@@ -44,16 +70,62 @@ const resolvedUrl =
   "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d921409.5295789742!2d-77.56507788132775!3d44.187330791764865!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6dc35a555395012f%3A0x6dbb25de539e7453!2sYour%20Web%20Squad%20Ltd.!5e1!3m2!1sen!2sca!4v1768249199163!5m2!1sen!2sca";
 ---
 
-<iframe
-  id={resolvedId}
-  class={resolvedClass}
-  style={resolvedStyle || undefined}
-  src={resolvedUrl}
-  allowfullscreen=""
-  aria-hidden="false"
-  tabindex="-1"
-  title="This is a map by Google Map"
-  {...rest}></iframe>
+{
+  loadOnClick ? (
+    <div
+      id={resolvedId}
+      class={`${resolvedClass} map--deferred`}
+      style={resolvedStyle || undefined}
+      data-map-src={resolvedUrl}
+      data-map-title={title}
+      data-map-consent={loadWithConsent ? "true" : undefined}
+      {...rest}
+    >
+      {poster && <img class="map__poster" src={poster} alt="" loading="lazy" decoding="async" />}
+      <div class="map__placeholder">
+        <Button class="map__load" variant="outline" label={buttonLabel} />
+        {notice && <p class="map__notice">{notice}</p>}
+      </div>
+    </div>
+  ) : (
+    <iframe
+      id={resolvedId}
+      class={resolvedClass}
+      style={resolvedStyle || undefined}
+      src={resolvedUrl}
+      allowfullscreen=""
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      title={title}
+      {...rest}
+    />
+  )
+}
+
+<script>
+  import { readStoredConsent } from "../Pipeda/consent.js";
+
+  const load = (box: HTMLElement, moveFocus: boolean) => {
+    if (box.dataset.mapLoaded) return;
+    box.dataset.mapLoaded = "true";
+    const frame = document.createElement("iframe");
+    frame.className = "map__frame";
+    frame.src = box.dataset.mapSrc ?? "";
+    frame.title = box.dataset.mapTitle ?? "Google map";
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = "no-referrer-when-downgrade";
+    box.replaceChildren(frame);
+    if (moveFocus) frame.focus();
+  };
+
+  for (const box of document.querySelectorAll<HTMLElement>(".map--deferred")) {
+    if (box.dataset.mapConsent === "true" && readStoredConsent()?.prefs.marketing) {
+      load(box, false);
+      continue;
+    }
+    box.querySelector(".map__load")?.addEventListener("click", () => load(box, true));
+  }
+</script>
 
 <style>
   .map {
@@ -61,5 +133,49 @@ const resolvedUrl =
     filter: var(--map-filter);
     width: 100%;
     height: 100%;
+  }
+
+  .map--deferred {
+    position: relative;
+    display: grid;
+    min-height: 16rem;
+    overflow: hidden;
+    background: var(--color-surface);
+    filter: none;
+  }
+
+  .map__poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.6);
+  }
+
+  .map__placeholder {
+    position: relative;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.625rem;
+    padding: 1.5rem;
+    background: rgba(var(--color-bg-rgb), 0.55);
+    text-align: center;
+  }
+
+  .map__notice {
+    margin: 0;
+    max-width: 28ch;
+    font-size: 0.875rem;
+    color: var(--color-fg);
+  }
+
+  .map :global(.map__frame) {
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    border: 0;
+    filter: var(--map-filter);
   }
 </style>

@@ -10,6 +10,9 @@ Props:
 - required?: boolean
 - layout?: "row" | "column"   // arrangement of radio items
 - position?: "left" | "right" // position of radio relative to label
+- appearance?: "default" | "tile" // tile: a large card, the whole card is clickable
+- description?: string           // second line under the label (tile)
+- icon?: string                  // Icon name shown before the text (tile)
 - color?: string                 // radio active color
 - size?: string                  // diameter of radio in px (e.g. "20px")
 - radius?: string                // border-radius for outer ring
@@ -29,6 +32,7 @@ import { parseProps } from "../../utils/props.js";
 import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import FormLabel from "../Form-Label/Form-Label.astro";
+import Icon from "../Icon/Icon.astro";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
@@ -42,6 +46,9 @@ const Schema = z.looseObject({
   required: z.boolean().optional(),
   layout: z.string().optional(),
   position: z.string().optional(),
+  appearance: z.enum(["default", "tile"]).default("default"),
+  description: z.string().optional(),
+  icon: z.string().optional(),
   color: z.string().optional(),
   size: z.string().optional(),
   radius: z.string().optional(),
@@ -67,6 +74,9 @@ const {
   required = false,
   layout = "row",
   position = "left",
+  appearance,
+  description,
+  icon,
   color: _color,
   size: _size,
   radius: _radius,
@@ -93,7 +103,14 @@ const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, classN
 ---
 
 <div class={resolvedClass} role="radiogroup" style={resolvedStyle || undefined}>
-  <label class={`radio-row ${position === "left" ? "pos-left" : "pos-right"}`} for={resolvedId}>
+  <label
+    class={mergeClasses(
+      "radio-row",
+      position === "left" ? "pos-left" : "pos-right",
+      appearance === "tile" && "is-tile"
+    )}
+    for={resolvedId}
+  >
     {
       position === "left" ? (
         <>
@@ -113,14 +130,18 @@ const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, classN
             {...rest}
           />
           <span class="radio" aria-hidden="true" />
+          {icon && <Icon name={icon} class="radio-icon" />}
           <span class="label-text">
             <FormLabel tag="span" label={resolvedLabel} required={required} />
+            {description && <span class="radio-description">{description}</span>}
           </span>
         </>
       ) : (
         <>
+          {icon && <Icon name={icon} class="radio-icon" />}
           <span class="label-text">
             <FormLabel tag="span" label={resolvedLabel} required={required} />
+            {description && <span class="radio-description">{description}</span>}
           </span>
           <input
             id={resolvedId}
@@ -223,6 +244,60 @@ const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, classN
 
   .radio-input:focus-visible + .radio {
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--radio-color) 14%, transparent);
+  }
+
+  /* Tile appearance: a large card, the whole card is the target */
+  .is-tile {
+    align-items: flex-start;
+    min-height: 3rem;
+    padding: var(--radio-tile-padding, 1.125rem 1.25rem);
+    border: 1px solid var(--radio-tile-border, var(--color-border));
+    border-radius: var(--radius-md, 0.25rem);
+    background: var(--radio-tile-bg, var(--color-bg));
+    transition:
+      border-color 160ms ease,
+      background 160ms ease;
+  }
+
+  .is-tile:hover {
+    border-color: var(--radio-tile-hover-border, var(--color-fg));
+  }
+
+  .is-tile:has(.radio-input:checked) {
+    border-color: var(--radio-tile-checked-border, var(--color-accent));
+    box-shadow: inset 0 0 0 1px var(--radio-tile-checked-border, var(--color-accent));
+    background: var(--radio-tile-checked-bg, var(--color-accent-muted));
+  }
+
+  .is-tile:has(.radio-input[aria-invalid="true"]) {
+    border-color: var(--color-danger-text, #b00020);
+  }
+
+  .is-tile:has(.radio-input:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .is-tile .radio {
+    margin-block-start: 0.125rem;
+  }
+
+  .is-tile .label-text {
+    display: grid;
+    gap: 0.125rem;
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .radio-description {
+    font-size: 0.9375rem;
+    font-weight: var(--weight-regular, 400);
+    line-height: 1.45;
+    color: var(--color-muted);
+  }
+
+  .radio-row :global(.radio-icon) {
+    flex: none;
+    color: var(--color-accent);
   }
 
   .radio-input:disabled + .radio {

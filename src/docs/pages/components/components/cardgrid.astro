@@ -42,9 +42,30 @@ const props = [
   { name: "intro", type: "string", description: "Text under the title." },
   {
     name: "items",
-    type: "{ title: string, text?: string, href?: string }[]",
+    type: "{ title, text?, href?, img?, alt?, tag?, meta?, tags?: string[] }[]",
     default: "[]",
-    description: "Cards. A card with href is entirely clickable."
+    description:
+      "Cards. A card with href is entirely clickable. A card with img becomes a photo card (photo, tag, title, text, meta line). tags go to data-tags for a FilterBar."
+  },
+  {
+    name: "compact",
+    type: "boolean",
+    default: "false",
+    description: "Photo cards with a square photo on the left (similar projects, examples)."
+  },
+  { name: "ratio", type: "string", default: '"4/3"', description: "Photo ratio of photo cards." },
+  {
+    name: "initial",
+    type: "number",
+    description:
+      "Show this many cards, then a button that adds as many. All cards stay in the HTML; the focus moves to the first new card."
+  },
+  { name: "moreLabel", type: "string", default: '"Show more"', description: "Label of the Show more button." },
+  {
+    name: "countLabel",
+    type: "string",
+    default: '"{shown} of {total} shown"',
+    description: "Line under the button, announced to screen readers."
   },
   { name: "columns", type: "2 | 3", default: "3", description: "Columns on large screens." },
   {
@@ -67,11 +88,28 @@ const props = [
   },
   { name: "flush", type: "boolean", default: "false", description: "No top padding." }
 ];
+
+const photoItems = [
+  { title: "King Street West", tag: "Walk-in shower", meta: "5 weeks · about $32,000", href: "#", img: "https://picsum.photos/seed/bath1/800/600", alt: "Blue vanity and marble walls" },
+  { title: "Stone house, Sydenham", tag: "Heritage home", meta: "4 weeks · about $24,000", href: "#", img: "https://picsum.photos/seed/bath2/800/600", alt: "Period bathroom with a tall window" },
+  { title: "Freestanding tub", tag: "Bathtub", meta: "5 weeks · about $38,000", href: "#", img: "https://picsum.photos/seed/bath3/800/600", alt: "White tub next to a window" },
+  { title: "Family bathroom", tag: "Small bathroom", meta: "3 weeks · about $19,000", href: "#", img: "https://picsum.photos/seed/bath4/800/600", alt: "White vanity and glass shower" },
+  { title: "Marble suite", tag: "High end", meta: "6 weeks · about $44,000", href: "#", img: "https://picsum.photos/seed/bath5/800/600", alt: "Oval marble tub" },
+  { title: "Step-free shower", tag: "Walk-in shower", meta: "4 weeks · about $27,000", href: "#", img: "https://picsum.photos/seed/bath6/800/600", alt: "Shower by a window" }
+];
+const photoCode = `<CardGrid heading="Our projects" items={[{ title, tag, meta, href, img, alt }, …]} initial={3} moreLabel="Show 3 more projects" />`;
+const compactCode = `<CardGrid columns={3} compact items={…} />`;
 ---
 
 <DocLayout title="CardGrid" description="Comparable items in 2 or 3 columns." items={components}>
   <PropsTable props={props} />
   <Preview title="With links" code={codes[0]}>
     <CardGrid {...examples[0]} />
+  </Preview>
+  <Preview title="Photo cards and Show more" code={photoCode}>
+    <CardGrid heading="Our projects" items={photoItems} initial={3} moreLabel="Show 3 more projects" />
+  </Preview>
+  <Preview title="Compact" code={compactCode}>
+    <CardGrid columns={3} compact items={photoItems.slice(0, 3)} />
   </Preview>
 </DocLayout>

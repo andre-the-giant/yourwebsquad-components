@@ -49,6 +49,38 @@ const builtinIcons = {
     viewBox: "0 0 24 24",
     svg: `<path d="M9 5l10 7-10 7z" />`
   },
+  "arrow-left": {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M19 12H5" /><path d="M11 6l-6 6 6 6" />`
+  },
+  "chevron-down": {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M6 9l6 6 6-6" />`
+  },
+  check: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M4 12.5l5 5L20 6.5" />`
+  },
+  close: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M6 6l12 12" /><path d="M18 6L6 18" />`
+  },
+  clock: {
+    viewBox: "0 0 24 24",
+    svg: `<circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" />`
+  },
+  ruler: {
+    viewBox: "0 0 24 24",
+    svg: `<rect x="2.5" y="8" width="19" height="8" /><path d="M6.5 8v3M10 8v4.5M13.5 8v3M17 8v4.5" />`
+  },
+  camera: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" />`
+  },
+  shield: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z" /><path d="M8.5 12l2.5 2.5 4.5-5" />`
+  },
   pause: {
     viewBox: "0 0 24 24",
     svg: `<path d="M9 5v14M15 5v14" />`

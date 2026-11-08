@@ -573,6 +573,20 @@ html[data-theme="plein-jour"] .toggle-input:focus-visible + .toggle {
   outline-offset: 3px;
 }
 
+/* Checkbox appearance (consent): square box in ink */
+html[data-theme="plein-jour"] .form-field .is-checkbox .toggle {
+  --checkbox-border: var(--color-fg);
+  --checkbox-checked: var(--color-fg);
+  --checkbox-radius: 0;
+  border-width: 2px;
+  box-shadow: none;
+}
+
+html[data-theme="plein-jour"] .form-field .is-checkbox .toggle::after,
+html[data-theme="plein-jour"] .form-field .is-checkbox .toggle-input:checked + .toggle::after {
+  background: none;
+}
+
 html[data-theme="plein-jour"] :is(.toggle-row, .radio-row) {
   min-height: 2.75rem;
 }
@@ -601,6 +615,15 @@ html[data-theme="plein-jour"] .radio-input:focus-visible + .radio {
   box-shadow: none;
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
+}
+
+/* Radio tiles */
+html[data-theme="plein-jour"] .radio-row.is-tile {
+  --radio-tile-border: var(--color-fg);
+  --radio-tile-checked-border: var(--color-fg);
+  --radio-tile-checked-bg: var(--color-accent-muted);
+  border-width: 2px;
+  border-radius: 0;
 }
 
 /* Upload */

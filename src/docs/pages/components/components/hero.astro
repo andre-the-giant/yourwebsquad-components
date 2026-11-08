@@ -4,6 +4,7 @@ import Preview from "../../../components/Preview.astro";
 import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import Hero from "@lib/components/Hero/Hero.astro";
+import Tag from "@lib/components/Tag/Tag.astro";
 
 const code = "<Hero />";
 const cssVarCode = `<Hero
@@ -47,6 +48,22 @@ const props = [
   }
 ];
 
+const slots = [
+  {
+    name: "meta",
+    type: "slot",
+    description: "Under the button: price chips, a rating badge, short facts. Hidden when empty."
+  }
+];
+
+const metaCode = `<Hero title="…" body="…" img="…" cta={{ href, label }}>
+  <Fragment slot="meta">
+    <Tag label="From $18,000" />
+    <Tag label="3 to 5 weeks" />
+    <Tag label="Permit included" />
+  </Fragment>
+</Hero>`;
+
 const styleVars = [
   {
     name: "--hero-gradient-start",
@@ -64,6 +81,8 @@ const styleVars = [
 <DocLayout title="Hero" description={"A big fat image with a text and a cta "} items={components}>
   <PropsTable props={props} />
 
+  <PropsTable title="Slots" props={slots} />
+
   <PropsTable title="Style variables" props={styleVars} />
 
   <Preview title="Preview" code={code}>
@@ -77,6 +96,21 @@ const styleVars = [
         label: "Pump up the volume!"
       }}
     />
+  </Preview>
+
+  <Preview title="Meta slot" code={metaCode}>
+    <Hero
+      title="A bathroom that breathes"
+      body="Fixed price once the design is approved."
+      img="https://picsum.photos/1200/701"
+      cta={{ href: "/", label: "Estimate my project" }}
+    >
+      <Fragment slot="meta">
+        <Tag label="From $18,000" />
+        <Tag label="3 to 5 weeks" />
+        <Tag label="Permit included" />
+      </Fragment>
+    </Hero>
   </Preview>
 
   <Preview title="CSS variables" code={cssVarCode}>

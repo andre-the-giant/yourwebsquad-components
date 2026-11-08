@@ -10,6 +10,8 @@ Props:
 - note?: string — such as opening hours
 - columns?: { heading: string, links: { label: string, href: string }[] }[]
 - legal?: string
+Slots:
+- extra — under the contact details: a rating badge, certifications, a short line
 - id?: string
 - class?: string
 - style?: string
@@ -81,6 +83,13 @@ const {
         {email && <a href={`mailto:${email}`}>{email}</a>}
       </address>
       {note && <p class="sitefooter__note">{note}</p>}
+      {
+        Astro.slots.has("extra") && (
+          <div class="sitefooter__extra">
+            <slot name="extra" />
+          </div>
+        )
+      }
     </div>
     {
       columns.map((column) => (
@@ -142,6 +151,10 @@ const {
     font-size: 0.9375rem;
     line-height: 1.5;
     opacity: 0.85;
+  }
+
+  .sitefooter__extra {
+    margin-block-start: 1.25rem;
   }
 
   .sitefooter__heading {

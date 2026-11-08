@@ -6,6 +6,8 @@ Props:
 - cta?: { href?: string, label?: string }
 - img?: string — src passed to <Image>
 - clip?: string — SVG path for clipPath
+Slots:
+- meta — under the button: price chips, a rating badge, any short facts
 - id?: string
 - class?: string
 - style?: string
@@ -78,6 +80,13 @@ const resolvedClass = mergeClasses("hero", className);
         </div>
       )
     }
+    {
+      Astro.slots.has("meta") && (
+        <div class="hero-meta">
+          <slot name="meta" />
+        </div>
+      )
+    }
   </div>
 </div>
 <style>
@@ -118,6 +127,14 @@ const resolvedClass = mergeClasses("hero", className);
     font-size: clamp(1rem, 2vw, 1.5rem);
     max-width: 600px;
     text-align: center;
+  }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem 1rem;
   }
 
   .in-photo-roll {

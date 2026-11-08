@@ -25,6 +25,19 @@ const props = [
   { name: "legal", type: "string", description: "Line at the bottom." }
 ];
 
+const slots = [
+  {
+    name: "extra",
+    type: "slot",
+    description:
+      "Under the contact details: a rating badge, certifications, a short line. Hidden when empty."
+  }
+];
+
+const extraCode = `<SiteFooter … >
+  <p slot="extra">4.9 on Google · 127 reviews</p>
+</SiteFooter>`;
+
 const columns = [
   {
     heading: "The site",
@@ -63,6 +76,7 @@ const code = `<SiteFooter logo={logo} logoAlt="Your Web Squad" address={[...]} p
   items={components}
 >
   <PropsTable props={props} />
+  <PropsTable title="Slots" props={slots} />
   <Preview title="Footer" code={code}>
     <SiteFooter
       logo={logo}
@@ -74,5 +88,16 @@ const code = `<SiteFooter logo={logo} logoAlt="Your Web Squad" address={[...]} p
       columns={columns}
       legal="© Your Web Squad Ltd."
     />
+  </Preview>
+  <Preview title="Extra slot" code={extraCode}>
+    <SiteFooter
+      logo={logo}
+      logoAlt="Your Web Squad"
+      address={["Based in Bath, next to Kingston"]}
+      email="hello@yourwebsquad.com"
+      columns={columns.slice(0, 1)}
+    >
+      <p slot="extra">4.9 on Google · 127 reviews</p>
+    </SiteFooter>
   </Preview>
 </DocLayout>

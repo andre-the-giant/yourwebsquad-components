@@ -5,8 +5,16 @@ through the single link in its title.
 Props:
 - heading?: string
 - intro?: string
-- items: { title: string, text?: string, href?: string }[]
+- items: { title: string, text?: string, href?: string,
+           img?: string, alt?: string, tag?: string, meta?: string, tags?: string[] }[]
+  An item with img becomes a photo card: photo, tag, title, text, meta line.
+  tags are written to data-tags so a FilterBar can filter the grid.
 - columns?: 2 | 3
+- compact?: boolean — photo cards with a square photo on the left
+- ratio?: string — photo ratio of photo cards (default "4/3")
+- initial?: number — show this many cards, then a "Show more" button that adds as many
+- moreLabel?: string — label of that button
+- countLabel?: string — "{shown} of {total} shown"
 - filled?: boolean — filled cards instead of a top rule
 - actions?: { label: string, href?: string, variant?: "solid"|"outline"|"ghost" }[]
 - tone?: "default" | "surface" | "inverse"
@@ -33,10 +41,20 @@ const Schema = z.looseObject({
       z.looseObject({
         title: z.string(),
         text: z.string().optional(),
-        href: z.string().optional()
+        href: z.string().optional(),
+        img: z.string().optional(),
+        alt: z.string().optional(),
+        tag: z.string().optional(),
+        meta: z.string().optional(),
+        tags: z.array(z.string()).optional()
       })
     )
     .default([]),
+  compact: z.boolean().default(false),
+  ratio: z.string().default("4/3"),
+  initial: z.number().int().positive().optional(),
+  moreLabel: z.string().default("Show more"),
+  countLabel: z.string().default("{shown} of {total} shown"),
   columns: z.union([z.literal(2), z.literal(3)]).default(3),
   filled: z.boolean().default(false),
   actions: z
@@ -65,10 +83,17 @@ const {
   filled,
   actions,
   tone,
-  flush
+  flush,
+  compact,
+  ratio,
+  initial,
+  moreLabel,
+  countLabel
 } = parseProps(Schema, Astro.props, { component: "CardGrid" });
 
 const headingId = nextId("cardgrid");
+const listId = nextId("cardgrid-list");
+const hasMore = typeof initial === "number" && items.length > initial;
 ---
 
 <Band
@@ -87,15 +112,42 @@ const headingId = nextId("cardgrid");
     )
   }
   {intro && <p class="cardgrid__intro">{intro}</p>}
-  <ul class:list={["cardgrid__list", `cardgrid__list--${columns}`, filled && "is-filled"]}>
+  <ul
+    id={listId}
+    class:list={[
+      "cardgrid__list",
+      `cardgrid__list--${columns}`,
+      (filled || items.some((item) => item.img)) && "is-filled",
+      compact && "is-compact"
+    ]}
+    style={`--card-ratio: ${ratio}`}
+    data-cardgrid-initial={hasMore ? String(initial) : undefined}
+  >
     {
       items.map((item) => (
-        <li class:list={["card", item.href && "card--link", filled && "card--filled"]}>
+        <li
+          class:list={[
+            "card",
+            item.href && "card--link",
+            filled && !item.img && "card--filled",
+            item.img && "card--photo"
+          ]}
+          data-tags={item.tags?.length ? item.tags.join(" ") : undefined}
+          tabindex={hasMore ? "-1" : undefined}
+        >
+          {item.img && (
+            <div class="card__media">
+              <img src={item.img} alt={item.alt ?? ""} loading="lazy" decoding="async" />
+            </div>
+          )}
+          <div class="card__body">
+          {item.tag && <p class="card__tag">{item.tag}</p>}
           <h3 class="card__title">
             {item.href ? <a href={item.href}>{item.title}</a> : item.title}
           </h3>
           {item.text && <p class="card__text">{item.text}</p>}
-          {item.href && (
+          {item.meta && <p class="card__meta">{item.meta}</p>}
+          {item.href && !item.img && (
             <svg
               class="card__arrow"
               aria-hidden="true"
@@ -109,10 +161,19 @@ const headingId = nextId("cardgrid");
               <path d="M3 10h13M11 5l5 5-5 5" />
             </svg>
           )}
+          </div>
         </li>
       ))
     }
   </ul>
+  {
+    hasMore && (
+      <div class="cardgrid__more" data-cardgrid-more={listId} hidden>
+        <Button label={moreLabel} variant="outline" class="cardgrid__more-button" />
+        <p class="cardgrid__count" aria-live="polite" data-count-label={countLabel} />
+      </div>
+    )
+  }
   {
     actions.length > 0 && (
       <div class="cardgrid__actions">
@@ -123,6 +184,38 @@ const headingId = nextId("cardgrid");
     )
   }
 </Band>
+
+<script>
+  // "Show more": the cards are all in the HTML (readable without JS); the script hides
+  // the extra ones, then reveals them in batches and moves the focus to the first new card.
+  for (const more of document.querySelectorAll<HTMLElement>("[data-cardgrid-more]")) {
+    const list = document.getElementById(more.dataset.cardgridMore ?? "");
+    if (!list) continue;
+    const step = Number(list.dataset.cardgridInitial);
+    const cards = [...list.children] as HTMLElement[];
+    const button = more.querySelector("button");
+    const count = more.querySelector<HTMLElement>(".cardgrid__count");
+    const template = count?.dataset.countLabel ?? "{shown} of {total} shown";
+    let shown = step;
+    const render = () => {
+      cards.forEach((card, index) => (card.hidden = index >= shown));
+      if (count) {
+        count.textContent = template
+          .replace("{shown}", String(Math.min(shown, cards.length)))
+          .replace("{total}", String(cards.length));
+      }
+      more.hidden = false;
+      if (button) button.hidden = shown >= cards.length;
+    };
+    button?.addEventListener("click", () => {
+      const firstNew = shown;
+      shown += step;
+      render();
+      cards[firstNew]?.focus();
+    });
+    render();
+  }
+</script>
 
 <style>
   .cardgrid__title {
@@ -209,6 +302,112 @@ const headingId = nextId("cardgrid");
     line-height: 1.45;
   }
 
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .card[hidden] {
+    display: none;
+  }
+
+  .card:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  /* Photo card */
+  .card--photo {
+    gap: 1.125rem;
+    padding: 0;
+    border-top: 0;
+  }
+
+  .card__media {
+    aspect-ratio: var(--card-ratio, 4/3);
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+
+  .card__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .card--photo.card--link:hover {
+    box-shadow: none;
+  }
+
+  .card--photo.card--link:hover .card__media img {
+    transform: scale(1.04);
+  }
+
+  .card--photo.card--link:hover .card__title {
+    color: var(--color-accent);
+  }
+
+  .card__tag {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: var(--weight-semibold, 600);
+    color: var(--color-accent);
+  }
+
+  .card__meta {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Compact: square photo on the left */
+  .is-compact .card--photo {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--color-border);
+    background: var(--band-surface-bg, var(--color-bg));
+  }
+
+  .is-compact .card__media {
+    flex: 0 0 6.5rem;
+    aspect-ratio: 1;
+  }
+
+  .is-compact .card__body {
+    padding-inline-end: 1rem;
+  }
+
+  .is-compact .card__title {
+    font-size: 1.25rem;
+  }
+
+  .cardgrid__more {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    margin-block-start: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .cardgrid__more[hidden] {
+    display: none;
+  }
+
+  .cardgrid__more :global(button[hidden]) {
+    display: none;
+  }
+
+  .cardgrid__count {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--color-muted);
+  }
+
   .card__arrow {
     margin-block-start: auto;
     padding-block-start: 0.375rem;
@@ -236,8 +435,13 @@ const headingId = nextId("cardgrid");
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .card {
+    .card,
+    .card__media img {
       transition: none;
+    }
+
+    .card--photo.card--link:hover .card__media img {
+      transform: none;
     }
   }
 </style>

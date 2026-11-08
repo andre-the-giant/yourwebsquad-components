@@ -601,6 +601,20 @@ html[data-theme="marbre"] .toggle-input:focus-visible + .toggle {
   outline-offset: 3px;
 }
 
+/* Checkbox appearance (consent): square, lake blue when ticked */
+html[data-theme="marbre"] .form-field .is-checkbox .toggle {
+  --checkbox-border: var(--marbre-border-strong);
+  --checkbox-checked: var(--color-accent);
+  --checkbox-radius: 0;
+  --checkbox-bg: rgb(255, 255, 255);
+  box-shadow: none;
+}
+
+html[data-theme="marbre"] .form-field .is-checkbox .toggle::after,
+html[data-theme="marbre"] .form-field .is-checkbox .toggle-input:checked + .toggle::after {
+  background: none;
+}
+
 html[data-theme="marbre"] :is(.toggle-row, .radio-row) {
   min-height: 3rem;
 }
@@ -632,6 +646,16 @@ html[data-theme="marbre"] .radio-input:focus-visible + .radio {
   box-shadow: none;
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
+}
+
+/* Radio tiles (questions of StepByStepWizard) */
+html[data-theme="marbre"] .radio-row.is-tile {
+  --radio-tile-bg: rgb(255, 255, 255);
+  --radio-tile-border: var(--color-border);
+  --radio-tile-hover-border: var(--marbre-border-strong);
+  --radio-tile-checked-border: var(--color-accent);
+  --radio-tile-checked-bg: rgb(239, 245, 247);
+  border-radius: 0;
 }
 
 /* Upload */
