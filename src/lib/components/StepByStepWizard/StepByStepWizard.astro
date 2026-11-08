@@ -1,0 +1,652 @@
+---
+/*
+StepByStepWizard — one question at a time, with a progress bar, then a result.
+It knows nothing about quotes: it receives questions; StepByStepResult computes the
+outcome (a price range here, a text for a quiz elsewhere).
+Props:
+- id: string
+- steps: {
+    id: string,
+    question: string,
+    title?: string,          // short name shown in the summary, defaults to the question
+    help?: string,
+    options: { value: string, label: string, description?: string, icon?: string }[]
+  }[]
+- start?: { eyebrow?: string, title: string, text?: string, bullets?: string[], button: string }
+  — optional start screen
+- labels?: {
+    step?: "Step {index} of {total}", remaining?: "About {minutes} min left",
+    back?: "Back", next?: "Continue", finish?: "See the result",
+    error?: "Choose an option to continue.", errorHint?: string,
+    resume?: "You started ({count} of {total} answers).", resumeContinue?: "Pick up where I left off",
+    resumeRestart?: "Start over", calculating?: "Calculating…"
+  }
+- storageKey?: string — answers are kept in the browser under this key
+- secondsPerStep?: number — for the remaining-time line (default 15)
+- class?: string
+- style?: string
+Slots:
+- header — the simplified top bar (logo, phone, Quit link)
+- aside — StepByStepSummary, beside the questions on large screens
+- result — StepByStepResult, shown after the last question
+- default — after the result (the contact form)
+Events on the root (bubbling):
+- stepbystep:change { answers, current } · stepbystep:complete { answers }
+- listen to stepbystep:goto { stepId } to jump back to a question
+Hidden fields: any input[data-stepbystep-answers] inside receives the answers as JSON.
+Accessibility: each question is a fieldset with its legend; the focus moves to the
+question at each step; "Step 5 of 7" is written, not only drawn; Enter = Continue;
+Back keeps every answer; no auto-advance.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+import FormRadio from "../Form-Radio/Form-Radio.astro";
+import Button from "../Button/Button.astro";
+import Icon from "../Icon/Icon.astro";
+
+const Option = z.looseObject({
+  value: z.string(),
+  label: z.string(),
+  description: z.string().optional(),
+  icon: z.string().optional()
+});
+
+const Schema = z.looseObject({
+  id: z.string(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  steps: z
+    .array(
+      z.looseObject({
+        id: z.string(),
+        question: z.string(),
+        title: z.string().optional(),
+        help: z.string().optional(),
+        options: z.array(Option).min(2)
+      })
+    )
+    .min(1),
+  start: z
+    .looseObject({
+      eyebrow: z.string().optional(),
+      title: z.string(),
+      text: z.string().optional(),
+      bullets: z.array(z.string()).default([]),
+      button: z.string()
+    })
+    .optional(),
+  labels: z.looseObject({}).default({}),
+  storageKey: z.string().optional(),
+  secondsPerStep: z.number().positive().default(15)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  steps,
+  start,
+  labels: labelProps,
+  storageKey,
+  secondsPerStep
+} = parseProps(Schema, Astro.props, { component: "StepByStepWizard" });
+
+const labels = {
+  step: "Step {index} of {total}",
+  remaining: "About {minutes} min left",
+  back: "Back",
+  next: "Continue",
+  finish: "See the result",
+  error: "Choose an option to continue.",
+  errorHint: "",
+  resume: "You started ({count} of {total} answers).",
+  resumeContinue: "Pick up where I left off",
+  resumeRestart: "Start over",
+  calculating: "Calculating…",
+  ...(labelProps as Record<string, string>)
+};
+
+const stepsData = steps.map((step) => ({
+  id: step.id,
+  title: step.title ?? step.question,
+  options: step.options.map(({ value, label }) => ({ value, label }))
+}));
+---
+
+<div
+  id={id}
+  class={mergeClasses("sbs", className)}
+  style={style}
+  data-stepbystep
+  data-steps={JSON.stringify(stepsData)}
+  data-labels={JSON.stringify(labels)}
+  data-storage-key={storageKey ?? `stepbystep-${id}`}
+  data-seconds={String(secondsPerStep)}
+  data-has-start={start ? "true" : undefined}
+>
+  {Astro.slots.has("header") && <div class="sbs__header"><slot name="header" /></div>}
+  <div class="sbs__progress" aria-hidden="true"><span data-progress></span></div>
+
+  <div class:list={["sbs__layout", Astro.slots.has("aside") && "has-aside"]}>
+    <div class="sbs__main">
+      <div class="sbs__resume" data-resume hidden>
+        <p data-resume-text></p>
+        <div class="sbs__resume-actions">
+          <Button label={labels.resumeContinue} variant="solid" size="sm" data-resume-continue />
+          <Button label={labels.resumeRestart} variant="outline" size="sm" data-resume-restart />
+        </div>
+      </div>
+
+      {
+        start && (
+          <section class="sbs__start" data-start>
+            {start.eyebrow && <p class="sbs__eyebrow">{start.eyebrow}</p>}
+            <h1 class="sbs__start-title">{start.title}</h1>
+            {start.text && <p class="sbs__start-text">{start.text}</p>}
+            {start.bullets.length > 0 && (
+              <ul class="sbs__bullets">
+                {start.bullets.map((bullet) => (
+                  <li>
+                    <Icon name="check" />
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button label={start.button} variant="solid" size="lg" data-begin />
+          </section>
+        )
+      }
+
+      <form class="sbs__form" action="#" novalidate data-form>
+        <p class="sbs__counter" data-counter aria-live="polite"></p>
+        {
+          steps.map((step) => (
+            <fieldset class="sbs__step" data-step={step.id}>
+              <legend class="sbs__question" tabindex="-1">
+                {step.question}
+              </legend>
+              {step.help && <p class="sbs__help">{step.help}</p>}
+              <div class="sbs__error" role="alert" data-error hidden>
+                <Icon name="warning" />
+                <span>
+                  <b>{labels.error}</b>
+                  {labels.errorHint && <span class="sbs__error-hint">{labels.errorHint}</span>}
+                </span>
+              </div>
+              <div class="sbs__options">
+                {step.options.map((option, index) => (
+                  <FormRadio
+                    appearance="tile"
+                    id={`${id}-${step.id}-${index}`}
+                    name={`${id}-${step.id}`}
+                    value={option.value}
+                    label={option.label}
+                    description={option.description}
+                    icon={option.icon}
+                  />
+                ))}
+              </div>
+            </fieldset>
+          ))
+        }
+        <div class="sbs__nav">
+          <Button label={labels.back} variant="ghost" class="sbs__back" data-back>
+            <Icon name="arrow-left" />
+            {labels.back}
+          </Button>
+          <Button type="submit" variant="solid" class="sbs__next" data-next>
+            <span data-next-label>{labels.next}</span>
+            <Icon name="arrow-right" />
+          </Button>
+        </div>
+      </form>
+
+      <p class="sbs__calculating" data-calculating hidden aria-live="polite">{labels.calculating}</p>
+      <div class="sbs__result" data-result-wrap hidden>
+        <slot name="result" />
+      </div>
+    </div>
+    {
+      Astro.slots.has("aside") && (
+        <aside class="sbs__aside">
+          <slot name="aside" />
+        </aside>
+      )
+    }
+  </div>
+  <div class="sbs__after" data-after hidden>
+    <slot />
+  </div>
+</div>
+
+<script>
+  type StepData = { id: string; title: string; options: { value: string; label: string }[] };
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-stepbystep]")) {
+    const steps: StepData[] = JSON.parse(root.dataset.steps ?? "[]");
+    const labels: Record<string, string> = JSON.parse(root.dataset.labels ?? "{}");
+    const key = root.dataset.storageKey ?? "stepbystep";
+    const seconds = Number(root.dataset.seconds ?? 15);
+    const form = root.querySelector<HTMLFormElement>("[data-form]")!;
+    const fieldsets = [...root.querySelectorAll<HTMLFieldSetElement>("[data-step]")];
+    const start = root.querySelector<HTMLElement>("[data-start]");
+    const counter = root.querySelector<HTMLElement>("[data-counter]")!;
+    const progress = root.querySelector<HTMLElement>("[data-progress]")!;
+    const back = root.querySelector<HTMLButtonElement>("[data-back]")!;
+    const nextLabel = root.querySelector<HTMLElement>("[data-next-label]")!;
+    const resultWrap = root.querySelector<HTMLElement>("[data-result-wrap]")!;
+    const after = root.querySelector<HTMLElement>("[data-after]")!;
+    const calculating = root.querySelector<HTMLElement>("[data-calculating]")!;
+    const resume = root.querySelector<HTMLElement>("[data-resume]")!;
+
+    let current = 0;
+    let returnTo: number | null = null;
+    let answers: Record<string, string> = {};
+
+    const load = () => {
+      try {
+        return JSON.parse(localStorage.getItem(key) ?? "null");
+      } catch {
+        return null;
+      }
+    };
+    const save = () => {
+      try {
+        localStorage.setItem(key, JSON.stringify({ answers, current }));
+      } catch {
+        // Storage unavailable: answers live for this visit only.
+      }
+    };
+
+    const syncInputs = () => {
+      for (const fieldset of fieldsets) {
+        const value = answers[fieldset.dataset.step ?? ""];
+        fieldset.querySelectorAll<HTMLInputElement>("input[type=radio]").forEach((input) => {
+          input.checked = input.value === value;
+        });
+      }
+      root.querySelectorAll<HTMLInputElement>("input[data-stepbystep-answers]").forEach((input) => {
+        input.value = JSON.stringify(answers);
+      });
+    };
+
+    const emit = (name: string, detail: object) => {
+      // Keep the latest state on the root so late listeners can read it
+      (root as HTMLElement & { sbsState?: object }).sbsState = detail;
+      root.dispatchEvent(new CustomEvent(name, { bubbles: true, detail }));
+    };
+
+    const show = (index: number, focus = true) => {
+      current = Math.max(0, Math.min(steps.length - 1, index));
+      fieldsets.forEach((fs, i) => (fs.hidden = i !== current));
+      fieldsets[current].querySelector<HTMLElement>("[data-error]")!.hidden = true;
+      const total = steps.length;
+      const minutes = Math.max(1, Math.ceil(((total - current) * seconds) / 60));
+      counter.textContent = `${labels.step.replace("{index}", String(current + 1)).replace("{total}", String(total))} · ${steps[current].title} · ${labels.remaining.replace("{minutes}", String(minutes))}`;
+      progress.style.width = `${(current / total) * 100}%`;
+      back.hidden = current === 0 && !start;
+      nextLabel.textContent = current === total - 1 ? labels.finish : labels.next;
+      save();
+      emit("stepbystep:change", { answers, current });
+      if (focus) fieldsets[current].querySelector<HTMLElement>("legend")?.focus();
+    };
+
+    const begin = (index = 0) => {
+      if (start) start.hidden = true;
+      resume.hidden = true;
+      form.hidden = false;
+      resultWrap.hidden = true;
+      after.hidden = true;
+      show(index);
+    };
+
+    const finish = () => {
+      progress.style.width = "100%";
+      form.hidden = true;
+      calculating.hidden = false;
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Nothing to clean.
+      }
+      window.setTimeout(() => {
+        calculating.hidden = true;
+        resultWrap.hidden = false;
+        after.hidden = false;
+        emit("stepbystep:complete", { answers });
+        resultWrap.querySelector<HTMLElement>("h1, h2, [tabindex='-1']")?.focus();
+      }, 450);
+    };
+
+    form.addEventListener("change", (event) => {
+      const input = event.target as HTMLInputElement;
+      if (input.type !== "radio") return;
+      const stepId = input.closest<HTMLElement>("[data-step]")?.dataset.step;
+      if (!stepId) return;
+      answers[stepId] = input.value;
+      input.closest("[data-step]")!.querySelector<HTMLElement>("[data-error]")!.hidden = true;
+      syncInputs();
+      save();
+      emit("stepbystep:change", { answers, current });
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const stepId = steps[current].id;
+      if (!answers[stepId]) {
+        const error = fieldsets[current].querySelector<HTMLElement>("[data-error]")!;
+        error.hidden = false;
+        fieldsets[current].querySelector<HTMLInputElement>("input[type=radio]")?.focus();
+        return;
+      }
+      if (returnTo !== null) {
+        const target = returnTo;
+        returnTo = null;
+        show(target);
+        return;
+      }
+      if (current < steps.length - 1) show(current + 1);
+      else finish();
+    });
+
+    back.addEventListener("click", () => {
+      if (current === 0 && start) {
+        form.hidden = true;
+        start.hidden = false;
+        start.querySelector<HTMLElement>("h1")?.setAttribute("tabindex", "-1");
+        start.querySelector<HTMLElement>("h1")?.focus();
+        return;
+      }
+      show(current - 1);
+    });
+
+    root.addEventListener("stepbystep:goto", (event) => {
+      const stepId = (event as CustomEvent).detail?.stepId;
+      const index = steps.findIndex((s) => s.id === stepId);
+      if (index < 0) return;
+      if (form.hidden) begin(index);
+      else {
+        returnTo = current;
+        show(index);
+      }
+    });
+
+    root.querySelector("[data-begin]")?.addEventListener("click", () => begin(0));
+
+    // Resume a run left unfinished
+    const saved = load();
+    const count = saved?.answers ? Object.keys(saved.answers).length : 0;
+    if (count > 0 && count < steps.length + 1) {
+      resume.querySelector("[data-resume-text]")!.textContent = labels.resume
+        .replace("{count}", String(count))
+        .replace("{total}", String(steps.length));
+      resume.hidden = false;
+      form.hidden = true;
+      resume.querySelector("[data-resume-continue]")?.addEventListener("click", () => {
+        answers = saved.answers;
+        syncInputs();
+        begin(Math.min(saved.current ?? 0, steps.length - 1));
+      });
+      resume.querySelector("[data-resume-restart]")?.addEventListener("click", () => {
+        answers = {};
+        syncInputs();
+        if (start) {
+          resume.hidden = true;
+          start.hidden = false;
+        } else begin(0);
+      });
+    } else if (start) {
+      form.hidden = true;
+    } else {
+      begin(0);
+    }
+    syncInputs();
+  }
+</script>
+
+<style>
+  .sbs {
+    display: grid;
+    background: var(--sbs-bg, var(--color-bg));
+    color: var(--color-fg);
+  }
+
+  .sbs__header {
+    border-bottom: 1px solid var(--color-border);
+    background: var(--sbs-header-bg, rgb(255 255 255));
+  }
+
+  .sbs__progress {
+    height: 4px;
+    background: var(--color-border);
+  }
+
+  .sbs__progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--color-accent);
+    transition: width 250ms ease-out;
+  }
+
+  .sbs__layout {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    width: min(100%, var(--sbs-width, 72rem));
+    margin-inline: auto;
+    padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1rem, 4vw, 3.5rem) clamp(2rem, 6vw, 4rem);
+  }
+
+  @media (min-width: 64rem) {
+    .sbs__layout.has-aside {
+      grid-template-columns: minmax(0, 1fr) 22rem;
+      align-items: start;
+    }
+
+    .sbs__aside {
+      position: sticky;
+      top: 1.5rem;
+    }
+  }
+
+  .sbs__main {
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .sbs__eyebrow {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: var(--weight-semibold, 600);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .sbs__start {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+    max-width: 40rem;
+  }
+
+  .sbs__start-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h1, clamp(2.25rem, 5vw, 3.5rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.08;
+  }
+
+  .sbs__start-text {
+    margin: 0;
+    font-size: var(--type-lead, 1.125rem);
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs__bullets {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sbs__bullets li {
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+  }
+
+  .sbs__bullets :global(.icon) {
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .sbs__form {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .sbs__counter {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs__step {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .sbs__question {
+    margin-bottom: 0.25rem;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: var(--type-h2, clamp(1.75rem, 3.6vw, 2.75rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.12;
+  }
+
+  .sbs__question:focus {
+    outline: none;
+  }
+
+  .sbs__question:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 4px;
+  }
+
+  .sbs__help {
+    margin: 0;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs__error {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.875rem 1rem;
+    background: rgba(var(--color-danger-rgb, 176, 0, 32), 0.1);
+    color: var(--color-danger-text, rgb(176 0 32));
+  }
+
+  .sbs__error-hint {
+    display: block;
+    color: var(--color-fg);
+    font-size: 0.9375rem;
+  }
+
+  .sbs__options {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .sbs__options :global(.form-field) {
+    width: auto;
+  }
+
+  @media (min-width: 40rem) {
+    .sbs__options {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .sbs__nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .sbs__nav :global(.sbs__next) {
+    margin-inline-start: auto;
+    gap: 0.625rem;
+  }
+
+  .sbs__nav :global(.sbs__back) {
+    gap: 0.5rem;
+  }
+
+  /* Phones: Back and Continue stay at the bottom of the screen */
+  @media (max-width: 39.99rem) {
+    .sbs__nav {
+      position: sticky;
+      bottom: 0;
+      margin-inline: calc(-1 * clamp(1rem, 4vw, 3.5rem));
+      padding: 0.75rem clamp(1rem, 4vw, 3.5rem) calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--color-border);
+      background: var(--sbs-header-bg, rgb(255 255 255));
+    }
+
+    .sbs__nav :global(.sbs__next) {
+      flex: 1;
+    }
+  }
+
+  .sbs__resume {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-accent-muted);
+  }
+
+  .sbs__resume p {
+    margin: 0;
+  }
+
+  .sbs__resume-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+
+  .sbs__calculating {
+    margin: 0;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs__after {
+    width: min(100%, var(--sbs-width, 72rem));
+    margin-inline: auto;
+    padding: 0 clamp(1rem, 4vw, 3.5rem) clamp(2rem, 6vw, 4rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sbs__progress span {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,29 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import GoogleRating from "@lib/components/GoogleRating/GoogleRating.astro";
+
+const props = [
+  { name: "rating", type: "number", description: "0 to 5. Required to render anything." },
+  { name: "count", type: "number", description: "Number of reviews." },
+  { name: "href", type: "string", description: "Google profile; opens in a new tab." },
+  { name: "variant", type: "\"badge\" | \"inline\" | \"mini\"", default: "\"badge\"", description: "Badge for the hero, inline in reviews, mini in the footer." },
+  { name: "label", type: "string", default: "\"{count} Google reviews\"", description: "Visible label." },
+  { name: "srTemplate", type: "string", default: "\"Rated {rating} out of 5 on Google, {count} reviews\"", description: "Screen reader text." },
+  { name: "newTabLabel", type: "string", default: "\"(opens in a new tab)\"", description: "Appended for screen readers when href is set." },
+  { name: "locale", type: "string", default: "\"en-CA\"", description: "Number format: fr-CA gives 4,9." }
+];
+---
+
+<DocLayout title={"GoogleRating"} description={"Overall Google rating, linked to the business profile. Nothing renders without a rating."} items={components}>
+  <PropsTable props={props} />
+  <Preview title={"Variants"} code={"<GoogleRating rating={4.9} count={127} href=\"https://g.page/r/…\" />\n<GoogleRating variant=\"inline\" rating={4.9} count={127} />\n<GoogleRating variant=\"mini\" rating={4.9} locale=\"fr-CA\" />"}>
+    <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center">
+      <GoogleRating rating={4.9} count={127} href="https://www.google.com/maps" />
+      <GoogleRating variant="inline" rating={4.9} count={127} />
+      <GoogleRating variant="mini" rating={4.9} locale="fr-CA" />
+    </div>
+  </Preview>
+</DocLayout>

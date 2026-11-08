@@ -1,0 +1,329 @@
+---
+/*
+Review — one customer review, set by its parameters. Use it on every page with the
+review that matches the page (the client of a project, a review about the fixed price…).
+Props:
+- review: {
+    quote: string,
+    author: string,          // first name and initial
+    place?: string,          // neighbourhood
+    project?: string,        // type of project
+    date?: string,           // already formatted, such as "March 2026"
+    rating?: number,         // 1 to 5
+    source?: string          // "Google", "Video testimonial"…
+  }
+- variant?: "full" | "compact" — compact: one line
+- showRating?: { rating: number, count?: number, href?: string, locale?: string, label?: string }
+  — adds the overall GoogleRating
+- allReviewsHref?: string, allReviewsLabel?: string — "Read all reviews"
+- projectHref?: string, projectLabel?: string — "See the project"
+- video?: { src: string, poster?: string, label: string, duration?: string,
+            captions: { src: string, srclang: string, label: string, default?: boolean }[], // at least one
+            transcript?: string } — native video above the text, never autoplay
+- moreAfter?: number — characters before the text folds behind "Read more" (full variant)
+- moreLabel?: string — "Read more"
+- transcriptLabel?: string — "Read the transcript"
+- id?: string
+- class?: string
+- style?: string
+Notes:
+- Stars come from StarRating. Only real reviews on a client site.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import StarRating from "../StarRating/StarRating.astro";
+import GoogleRating from "../GoogleRating/GoogleRating.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  review: z.looseObject({
+    quote: z.string(),
+    author: z.string(),
+    place: z.string().optional(),
+    project: z.string().optional(),
+    date: z.string().optional(),
+    rating: z.number().min(1).max(5).optional(),
+    source: z.string().optional()
+  }),
+  variant: z.enum(["full", "compact"]).default("full"),
+  showRating: z
+    .looseObject({
+      rating: z.number(),
+      count: z.number().optional(),
+      href: z.string().optional(),
+      locale: z.string().optional(),
+      label: z.string().optional()
+    })
+    .optional(),
+  allReviewsHref: z.string().optional(),
+  allReviewsLabel: z.string().default("Read all reviews"),
+  projectHref: z.string().optional(),
+  projectLabel: z.string().default("See the project"),
+  video: z
+    .looseObject({
+      src: z.string(),
+      poster: z.string().optional(),
+      label: z.string(),
+      duration: z.string().optional(),
+      captions: z
+        .array(
+          z.looseObject({
+            src: z.string(),
+            srclang: z.string(),
+            label: z.string(),
+            default: z.boolean().optional()
+          })
+        )
+        .min(1),
+      transcript: z.string().optional()
+    })
+    .optional(),
+  moreAfter: z.number().int().positive().default(280),
+  moreLabel: z.string().default("Read more"),
+  transcriptLabel: z.string().default("Read the transcript")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  review,
+  variant,
+  showRating,
+  allReviewsHref,
+  allReviewsLabel,
+  projectHref,
+  projectLabel,
+  video,
+  moreAfter,
+  moreLabel,
+  transcriptLabel,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Review" });
+
+const resolvedId = id ?? nextId("review");
+const rating = review.rating ?? 5;
+const isLong = variant === "full" && review.quote.length > moreAfter;
+// Cut on a word boundary
+const cut = isLong ? review.quote.lastIndexOf(" ", moreAfter) : -1;
+const head = isLong ? review.quote.slice(0, cut > 0 ? cut : moreAfter) : review.quote;
+const tail = isLong ? review.quote.slice(head.length) : "";
+const who = [review.place, review.project, review.date].filter(Boolean).join(" · ");
+---
+
+<figure
+  id={resolvedId}
+  class={mergeClasses("review", `review--${variant}`, video && "review--video", className)}
+  style={style}
+  {...rest}
+>
+  {
+    video && variant === "full" && (
+      <div class="review__video">
+        {/* Caption tracks are required by the schema (captions.min(1)) and mapped below */}
+        {/* eslint-disable-next-line astro/jsx-a11y/media-has-caption */}
+        <video controls preload="none" poster={video.poster} aria-label={video.label} playsinline>
+          <source src={video.src} />
+          {video.captions.map((track) => (
+            <track
+              kind="captions"
+              src={track.src}
+              srclang={track.srclang}
+              label={track.label}
+              default={track.default}
+            />
+          ))}
+        </video>
+        {video.transcript && (
+          <details class="review__transcript">
+            <summary>{transcriptLabel}</summary>
+            <p>{video.transcript}</p>
+          </details>
+        )}
+      </div>
+    )
+  }
+  <StarRating rating={rating} size={variant === "compact" ? "xs" : "sm"} class="review__stars" />
+  <blockquote class="review__quote">
+    {
+      isLong ? (
+        <Fragment>
+          <p class="review__text review__text--open">{head}…</p>
+          <details class="review__more">
+            <summary>{moreLabel}</summary>
+            <p class="review__text review__text--close">…{tail}</p>
+          </details>
+        </Fragment>
+      ) : (
+        <p class="review__text review__text--open review__text--close">{review.quote}</p>
+      )
+    }
+  </blockquote>
+  <figcaption class="review__caption">
+    <b class="review__author">{review.author}</b>
+    {who && <span class="review__who">{who}</span>}
+    {review.source && variant === "full" && <span class="review__source">{review.source}</span>}
+    {projectHref && <a href={projectHref}>{projectLabel}</a>}
+  </figcaption>
+  {
+    (showRating || allReviewsHref) && variant === "full" && (
+      <div class="review__footer">
+        {showRating && (
+          <GoogleRating
+            variant="inline"
+            rating={showRating.rating}
+            count={showRating.count}
+            href={showRating.href}
+            locale={showRating.locale}
+            label={showRating.label}
+          />
+        )}
+        {allReviewsHref && (
+          <a class="review__all" href={allReviewsHref}>
+            {allReviewsLabel}
+          </a>
+        )}
+      </div>
+    )
+  }
+</figure>
+
+<style>
+  .review {
+    display: grid;
+    gap: 0.875rem;
+    margin: 0;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--color-border);
+    background: var(--review-bg, rgb(255 255 255));
+    color: var(--color-fg);
+  }
+
+  .review--video {
+    padding-top: 0;
+  }
+
+  .review__video {
+    display: grid;
+    gap: 0.5rem;
+    margin-inline: calc(-1 * clamp(1.25rem, 3vw, 2rem));
+  }
+
+  .review__video video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    background: var(--color-surface);
+  }
+
+  .review__transcript,
+  .review__more {
+    font-size: 0.9375rem;
+  }
+
+  .review__transcript {
+    padding-inline: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .review__transcript summary,
+  .review__more summary {
+    color: var(--accent-text, var(--color-accent));
+    font-weight: var(--weight-semibold, 600);
+    cursor: pointer;
+  }
+
+  .review__more summary {
+    margin-top: 0.25rem;
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+  }
+
+  .review__more[open] summary {
+    display: none;
+  }
+
+  .review__quote {
+    margin: 0;
+    quotes: auto;
+  }
+
+  /* Typographic quotes follow the page language: « » in French, “ ” in English */
+  .review__text--open::before {
+    content: open-quote;
+  }
+
+  .review__text--close::after {
+    content: close-quote;
+  }
+
+  .review__quote p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--review-quote-size, clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem));
+    line-height: 1.45;
+  }
+
+  .review__caption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .review__author {
+    color: var(--color-fg);
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .review__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .review__all,
+  .review__caption a {
+    color: var(--accent-text, var(--color-accent));
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .review a:focus-visible,
+  .review summary:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  /* Compact: one line */
+  .review--compact {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem 0.875rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .review--compact .review__quote p {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+  }
+
+  .review--compact .review__caption {
+    font-size: 0.875rem;
+  }
+
+  .review :global(.star-rating) {
+    margin: 0;
+  }
+</style>

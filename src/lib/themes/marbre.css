@@ -313,7 +313,7 @@ html[data-theme="marbre"] .button:is(:disabled, [aria-disabled="true"]) {
 
 /* ── Bands ─────────────────────────────────────────────────────────────────── */
 /* Charcoal sections (call-to-action blocks, one section per long page) */
-html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) {
+html[data-theme="marbre"] :is(.band--inverse, .band--accent, [data-tone="inverse"]) {
   background: var(--color-inverse-surface);
   color: var(--color-inverse-fg);
   --color-muted: var(--marbre-inverse-muted);
@@ -333,18 +333,12 @@ html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) {
   --star-filled: var(--marbre-spa);
 }
 
-html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) .button--solid {
+html[data-theme="marbre"] :is(.band--inverse, .band--accent, [data-tone="inverse"]) .button--solid {
   color: rgb(42, 40, 38);
 }
 
-html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) a:not(.button) {
+html[data-theme="marbre"] :is(.band--inverse, .band--accent, [data-tone="inverse"]) a:not(.button) {
   color: var(--marbre-spa);
-}
-
-/* Soft spa band, laid on the marble */
-html[data-theme="marbre"] .band--accent {
-  background: var(--color-accent-muted);
-  color: var(--color-fg);
 }
 
 html[data-theme="marbre"] .band--surface {
@@ -352,6 +346,10 @@ html[data-theme="marbre"] .band--surface {
 }
 
 html[data-theme="marbre"] .plan--featured {
+  --color-inverse-surface: rgb(255, 255, 255);
+  --color-inverse-fg: var(--color-fg);
+  --plan-featured-muted: var(--color-muted);
+  --color-focus: var(--color-accent);
   outline: 2px solid var(--color-accent);
   outline-offset: -2px;
   background: var(--marbre-surface-raised);

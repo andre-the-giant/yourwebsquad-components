@@ -268,5 +268,65 @@ export const components = [
     href: "/components/atoms/tag",
     description: "Small label for a status.",
     group: "atoms"
+  },
+  {
+    name: "Card",
+    href: "/components/molecules/card",
+    description: "Generic card: photo, tag, title, text, meta line; one link.",
+    group: "molecules"
+  },
+  {
+    name: "FilterBar",
+    href: "/components/molecules/filterbar",
+    description: "Toggle filters for any list on the page, with a shareable URL.",
+    group: "molecules"
+  },
+  {
+    name: "GoogleRating",
+    href: "/components/molecules/googlerating",
+    description: "Overall Google rating: badge, inline or mini.",
+    group: "molecules"
+  },
+  {
+    name: "TableOfContents",
+    href: "/components/molecules/tableofcontents",
+    description: '"On this page" list, sticky on desktop, folded on phones.',
+    group: "molecules"
+  },
+  {
+    name: "ContactCard",
+    href: "/components/components/contactcard",
+    description: "Phone, email, office and hours with an open-now status.",
+    group: "components"
+  },
+  {
+    name: "Lightbox",
+    href: "/components/components/lightbox",
+    description: "Full-screen photo viewer with arrows, swipe and captions.",
+    group: "components"
+  },
+  {
+    name: "Review",
+    href: "/components/components/review",
+    description: "One customer review: full, compact, with rating or video.",
+    group: "components"
+  },
+  {
+    name: "StepByStepWizard",
+    href: "/components/components/stepbystepwizard",
+    description: "One question at a time, progress bar, summary and result.",
+    group: "components"
+  },
+  {
+    name: "StickyActions",
+    href: "/components/components/stickyactions",
+    description: "Fixed bottom bar on phones: main action and call.",
+    group: "components"
+  },
+  {
+    name: "TrustBar",
+    href: "/components/components/trustbar",
+    description: "Two to six short guarantees with icons.",
+    group: "components"
   }
 ];

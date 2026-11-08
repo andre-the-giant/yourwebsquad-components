@@ -1,0 +1,22 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import StickyActions from "@lib/components/StickyActions/StickyActions.astro";
+
+const props = [
+  { name: "primary", type: "{ label, href }", description: "Main action." },
+  { name: "secondary", type: "{ label, href, icon? }", description: "Secondary action, phone icon by default." },
+  { name: "label", type: "string", default: "\"Quick actions\"", description: "Accessible name of the bar." },
+  { name: "hideFrom", type: "string", default: "\"64rem\"", description: "Width from which the bar disappears." }
+];
+---
+
+<DocLayout title={"StickyActions"} description={"Fixed bottom bar on phones and tablets. Hidden from 64rem, while typing in a field, and on pages that have their own bottom buttons."} items={components}>
+  <PropsTable props={props} />
+  <Preview title={"Preview (narrow the window to see it)"} code={"<StickyActions primary={{ label: \"Get a quote\", href: \"/quote\" }} secondary={{ label: \"Call\", href: \"tel:+16135550142\" }} />"}>
+    <p>The bar is fixed to the bottom of the screen under 64rem wide.</p>
+    <StickyActions primary={{ label: "Get a quote", href: "#" }} secondary={{ label: "Call", href: "#" }} />
+  </Preview>
+</DocLayout>

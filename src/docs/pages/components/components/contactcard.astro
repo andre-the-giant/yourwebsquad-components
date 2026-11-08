@@ -1,0 +1,38 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import ContactCard from "@lib/components/ContactCard/ContactCard.astro";
+
+const props = [
+  { name: "phone", type: "{ label, href }", description: "Phone link." },
+  { name: "email", type: "string", description: "Email; selectable, with a copy button." },
+  { name: "address", type: "string", description: "One line." },
+  { name: "hours", type: "{ days, time }[]", default: "[]", description: "Visible table." },
+  { name: "schedule", type: "{ day: 1-7, open: \"HH:MM\", close: \"HH:MM\" }[]", default: "[]", description: "Machine schedule for the status (1 = Monday)." },
+  { name: "timeZone", type: "string", default: "\"America/Toronto\"", description: "IANA time zone." },
+  { name: "openLabel", type: "string", default: "\"Open · until {time}\"", description: "Status when open." },
+  { name: "closedLabel", type: "string", default: "\"Closed · opens {day} at {time}\"", description: "Status when closed." },
+  { name: "dayNames", type: "string[7]", description: "Day names, Monday first." },
+  { name: "variant", type: "\"full\" | \"compact\"", default: "\"full\"", description: "compact hides the hours table." },
+  { name: "copyLabel", type: "string", default: "\"Copy the email address\"", description: "Label of the copy button." },
+  { name: "copiedLabel", type: "string", default: "\"Email address copied\"", description: "Announced after copying." },
+  { name: "heading", type: "string", description: "Caption of the hours table." }
+];
+---
+
+<DocLayout title={"ContactCard"} description={"Phone, email, office and hours, with an open-now status computed in the business time zone."} items={components}>
+  <PropsTable props={props} />
+  <Preview title={"Full"} code={"<ContactCard phone={{ label: \"613 555-0142\", href: \"tel:+16135550142\" }} email=\"hello@example.ca\" address=\"Office and samples in Kingston, by appointment\" hours={[…]} schedule={[…]} />"}>
+    <div style="max-width:30rem">
+      <ContactCard
+        phone={{ label: "613 555-0142", href: "tel:+16135550142" }}
+        email="hello@example.ca"
+        address="Office and samples in Kingston, by appointment"
+        hours={[{ days: "Monday to Friday", time: "8 a.m. – 5 p.m." }, { days: "Saturday", time: "By appointment" }, { days: "Sunday", time: "Closed" }]}
+        schedule={[1, 2, 3, 4, 5].map((day) => ({ day, open: "08:00", close: "17:00" }))}
+      />
+    </div>
+  </Preview>
+</DocLayout>

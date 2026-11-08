@@ -1,0 +1,151 @@
+---
+/*
+StickyActions — fixed bar at the bottom of the screen on phones and tablets:
+one main action and one secondary action (call).
+Props:
+- primary: { label: string, href: string }
+- secondary?: { label: string, href: string, icon?: string }
+- label?: string — accessible name of the bar
+- hideFrom?: string — CSS length; the bar disappears from this width (default 64rem)
+- id?: string
+- class?: string
+- style?: string
+Behaviour:
+- Always visible while scrolling, so it stays predictable.
+- Hidden while the on-screen keyboard is open (a form field has the focus).
+- Leaves room at the bottom of the page so it never hides the footer, and adds
+  the iPhone home-bar inset.
+- Do not render it on pages that have their own bottom buttons (a step-by-step quote).
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+import Button from "../Button/Button.astro";
+import Icon from "../Icon/Icon.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  primary: z.looseObject({ label: z.string(), href: z.string() }),
+  secondary: z
+    .looseObject({ label: z.string(), href: z.string(), icon: z.string().optional() })
+    .optional(),
+  label: z.string().default("Quick actions"),
+  hideFrom: z.string().default("64rem")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  primary,
+  secondary,
+  label,
+  hideFrom,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "StickyActions" });
+---
+
+<div class="sticky-actions-spacer" aria-hidden="true"></div>
+<nav
+  id={id}
+  class={mergeClasses("sticky-actions", className)}
+  style={style}
+  aria-label={label}
+  data-sticky-actions
+  data-hide-from={hideFrom}
+  {...rest}
+>
+  <Button href={primary.href} label={primary.label} variant="solid" class="sticky-actions__primary" />
+  {
+    secondary && (
+      <Button href={secondary.href} variant="outline" class="sticky-actions__secondary">
+        <Icon name={secondary.icon ?? "phone"} />
+        {secondary.label}
+      </Button>
+    )
+  }
+</nav>
+
+<script>
+  // Hide the bar while a text field has the focus: the on-screen keyboard is open.
+  const typing = (el: EventTarget | null) =>
+    el instanceof HTMLElement &&
+    (el.matches("input:not([type=checkbox], [type=radio], [type=submit], [type=button]), textarea, select") ||
+      el.isContentEditable);
+
+  document.addEventListener("focusin", (event) => {
+    document.documentElement.classList.toggle("sticky-actions-typing", typing(event.target));
+  });
+  document.addEventListener("focusout", () => {
+    requestAnimationFrame(() => {
+      document.documentElement.classList.toggle(
+        "sticky-actions-typing",
+        typing(document.activeElement)
+      );
+    });
+  });
+
+  // Apply the hideFrom width (media queries cannot read custom properties).
+  for (const bar of document.querySelectorAll<HTMLElement>("[data-sticky-actions]")) {
+    const query = window.matchMedia(`(min-width: ${bar.dataset.hideFrom ?? "64rem"})`);
+    const spacer = bar.previousElementSibling as HTMLElement | null;
+    const sync = () => {
+      bar.hidden = query.matches;
+      if (spacer?.classList.contains("sticky-actions-spacer")) spacer.hidden = query.matches;
+    };
+    query.addEventListener("change", sync);
+    sync();
+  }
+</script>
+
+<style>
+  .sticky-actions {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: var(--z-bottom-bar, 50);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    padding: 0.625rem max(0.75rem, env(safe-area-inset-right, 0px))
+      calc(0.75rem + env(safe-area-inset-bottom, 0px)) max(0.75rem, env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--color-border);
+    background: rgba(var(--color-bg-rgb), 0.96);
+  }
+
+  .sticky-actions[hidden],
+  .sticky-actions-spacer[hidden] {
+    display: none;
+  }
+
+  .sticky-actions-spacer {
+    height: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  :global(html.sticky-actions-typing) .sticky-actions {
+    display: none;
+  }
+
+  .sticky-actions :global(.button) {
+    width: 100%;
+    min-height: 3rem;
+    gap: 0.5rem;
+  }
+
+  /* Without JS the bar still disappears on large screens */
+  @media (min-width: 64rem) {
+    .sticky-actions:not([data-hide-from]),
+    .sticky-actions-spacer {
+      display: none;
+    }
+  }
+
+  @media (max-width: 22.5rem) {
+    .sticky-actions {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

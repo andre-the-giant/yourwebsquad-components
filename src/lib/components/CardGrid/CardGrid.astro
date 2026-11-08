@@ -29,6 +29,7 @@ import { nextId } from "../../utils/id.js";
 import { mergeClasses } from "../../utils/style.js";
 import Band from "../Band/Band.astro";
 import Button from "../Button/Button.astro";
+import Card from "../Card/Card.astro";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
@@ -124,46 +125,51 @@ const hasMore = typeof initial === "number" && items.length > initial;
     data-cardgrid-initial={hasMore ? String(initial) : undefined}
   >
     {
-      items.map((item) => (
-        <li
-          class:list={[
-            "card",
-            item.href && "card--link",
-            filled && !item.img && "card--filled",
-            item.img && "card--photo"
-          ]}
-          data-tags={item.tags?.length ? item.tags.join(" ") : undefined}
-          tabindex={hasMore ? "-1" : undefined}
-        >
-          {item.img && (
-            <div class="card__media">
-              <img src={item.img} alt={item.alt ?? ""} loading="lazy" decoding="async" />
-            </div>
-          )}
-          <div class="card__body">
-          {item.tag && <p class="card__tag">{item.tag}</p>}
-          <h3 class="card__title">
-            {item.href ? <a href={item.href}>{item.title}</a> : item.title}
-          </h3>
-          {item.text && <p class="card__text">{item.text}</p>}
-          {item.meta && <p class="card__meta">{item.meta}</p>}
-          {item.href && !item.img && (
-            <svg
-              class="card__arrow"
-              aria-hidden="true"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-            >
-              <path d="M3 10h13M11 5l5 5-5 5" />
-            </svg>
-          )}
-          </div>
-        </li>
-      ))
+      items.map((item) =>
+        item.img ? (
+          <Card
+            as="li"
+            variant={compact ? "compact" : "standard"}
+            ratio={ratio}
+            title={item.title}
+            href={item.href}
+            img={item.img}
+            alt={item.alt}
+            tag={item.tag}
+            text={item.text}
+            meta={item.meta}
+            tags={item.tags}
+            tabindex={hasMore ? "-1" : undefined}
+          />
+        ) : (
+          <li
+            class:list={["card", item.href && "card--link", filled && "card--filled"]}
+            data-tags={item.tags?.length ? item.tags.join(" ") : undefined}
+            tabindex={hasMore ? "-1" : undefined}
+          >
+            {item.tag && <p class="card__tag">{item.tag}</p>}
+            <h3 class="card__title">
+              {item.href ? <a href={item.href}>{item.title}</a> : item.title}
+            </h3>
+            {item.text && <p class="card__text">{item.text}</p>}
+            {item.meta && <p class="card__meta">{item.meta}</p>}
+            {item.href && (
+              <svg
+                class="card__arrow"
+                aria-hidden="true"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M3 10h13M11 5l5 5-5 5" />
+              </svg>
+            )}
+          </li>
+        )
+      )
     }
   </ul>
   {
@@ -302,89 +308,31 @@ const hasMore = typeof initial === "number" && items.length > initial;
     line-height: 1.45;
   }
 
-  .card__body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex: 1;
+  .card:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
   }
 
   .card[hidden] {
     display: none;
   }
 
-  .card:focus-visible {
-    outline: 3px solid var(--color-focus);
-    outline-offset: 3px;
-  }
-
-  /* Photo card */
-  .card--photo {
-    gap: 1.125rem;
-    padding: 0;
-    border-top: 0;
-  }
-
-  .card__media {
-    aspect-ratio: var(--card-ratio, 4/3);
-    overflow: hidden;
-    background: var(--color-surface);
-  }
-
-  .card__media img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-
-  .card--photo.card--link:hover {
-    box-shadow: none;
-  }
-
-  .card--photo.card--link:hover .card__media img {
-    transform: scale(1.04);
-  }
-
-  .card--photo.card--link:hover .card__title {
-    color: var(--color-accent);
-  }
-
   .card__tag {
     margin: 0;
     font-size: 0.8125rem;
     font-weight: var(--weight-semibold, 600);
-    color: var(--color-accent);
+    color: var(--accent-text, var(--color-accent));
   }
 
   .card__meta {
     margin: 0;
     font-size: 0.9375rem;
-    color: var(--color-muted);
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
     font-variant-numeric: tabular-nums;
   }
 
-  /* Compact: square photo on the left */
-  .is-compact .card--photo {
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-    border: 1px solid var(--color-border);
-    background: var(--band-surface-bg, var(--color-bg));
-  }
-
-  .is-compact .card__media {
-    flex: 0 0 6.5rem;
-    aspect-ratio: 1;
-  }
-
-  .is-compact .card__body {
-    padding-inline-end: 1rem;
-  }
-
-  .is-compact .card__title {
-    font-size: 1.25rem;
+  .is-compact {
+    gap: 0.75rem clamp(1.25rem, 2.6vw, 2rem);
   }
 
   .cardgrid__more {
@@ -405,7 +353,7 @@ const hasMore = typeof initial === "number" && items.length > initial;
   .cardgrid__count {
     margin: 0;
     font-size: 0.9375rem;
-    color: var(--color-muted);
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
   }
 
   .card__arrow {
@@ -435,13 +383,8 @@ const hasMore = typeof initial === "number" && items.length > initial;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .card,
-    .card__media img {
+    .card {
       transition: none;
-    }
-
-    .card--photo.card--link:hover .card__media img {
-      transform: none;
     }
   }
 </style>

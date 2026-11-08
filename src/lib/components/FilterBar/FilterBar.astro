@@ -1,0 +1,362 @@
+---
+/*
+FilterBar — a row of filters that filters any list on the page. Link it to the list
+by its id; each element of the list carries its tags in data-tags (Card and CardGrid
+write them from their `tags` prop).
+Props:
+- target: string — id of the list to filter (its direct children are filtered)
+- filters: { label: string, value: string }[]
+- allLabel?: string — "All"
+- multiple?: boolean — several filters at once (default: one)
+- showCounts?: boolean — number of items on each filter (default true)
+- param?: string — URL parameter that keeps the filter, so the link can be shared (default "type")
+- sort?: { label: string, options: { label: string, value: string, key: string, order?: "asc" | "desc" }[] }
+  — optional sort select; key names a data attribute of the items (data-sort-<key>)
+- countTemplate?: string — announced count, "{count} items"
+- emptyText?: string — "Nothing for this filter yet."
+- resetLabel?: string — "Show all"
+- label?: string — accessible name of the group, "Filter by type"
+- id?: string
+- class?: string
+- style?: string
+Behaviour:
+- Filters are toggle buttons (aria-pressed). The visible count is announced.
+- Without JS the filters are plain links (?type=value) and the whole list stays visible.
+- When a CardGrid uses `initial`, filtering shows every matching card.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  target: z.string(),
+  filters: z.array(z.looseObject({ label: z.string(), value: z.string() })).min(1),
+  allLabel: z.string().default("All"),
+  multiple: z.boolean().default(false),
+  showCounts: z.boolean().default(true),
+  param: z.string().default("type"),
+  sort: z
+    .looseObject({
+      label: z.string(),
+      options: z.array(
+        z.looseObject({
+          label: z.string(),
+          value: z.string(),
+          key: z.string(),
+          order: z.enum(["asc", "desc"]).default("asc")
+        })
+      )
+    })
+    .optional(),
+  countTemplate: z.string().default("{count} items"),
+  emptyText: z.string().default("Nothing for this filter yet."),
+  resetLabel: z.string().default("Show all"),
+  label: z.string().default("Filter by type")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  target,
+  filters,
+  allLabel,
+  multiple,
+  showCounts,
+  param,
+  sort,
+  countTemplate,
+  emptyText,
+  resetLabel,
+  label,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "FilterBar" });
+
+const resolvedId = id ?? nextId("filterbar");
+const sortId = `${resolvedId}-sort`;
+---
+
+<div
+  id={resolvedId}
+  class={mergeClasses("filterbar", className)}
+  style={style}
+  data-filterbar
+  data-target={target}
+  data-param={param}
+  data-multiple={multiple ? "true" : undefined}
+  data-count-template={countTemplate}
+  data-show-counts={showCounts ? "true" : undefined}
+  {...rest}
+>
+  <div class="filterbar__row">
+    <div class="filterbar__group" role="group" aria-label={label}>
+      <a class="filterbar__chip" href="?" data-filter-value="">
+        <span>{allLabel}</span>
+        <small class="filterbar__count" data-count></small>
+      </a>
+      {
+        filters.map((filter) => (
+          <a
+            class="filterbar__chip"
+            href={`?${param}=${encodeURIComponent(filter.value)}`}
+            data-filter-value={filter.value}
+          >
+            <span>{filter.label}</span>
+            <small class="filterbar__count" data-count />
+          </a>
+        ))
+      }
+    </div>
+    {
+      sort && (
+        <label class="filterbar__sort" for={sortId}>
+          {sort.label}
+          <select id={sortId} data-sort>
+            {sort.options.map((option) => (
+              <option value={option.value} data-key={option.key} data-order={option.order}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )
+    }
+  </div>
+  <p class="filterbar__status" role="status" data-status></p>
+  <div class="filterbar__empty" data-empty hidden>
+    <p>{emptyText}</p>
+    <button type="button" class="filterbar__reset" data-reset>{resetLabel}</button>
+  </div>
+</div>
+
+<script>
+  for (const bar of document.querySelectorAll<HTMLElement>("[data-filterbar]")) {
+    const list = document.getElementById(bar.dataset.target ?? "");
+    if (!list) continue;
+    const param = bar.dataset.param ?? "type";
+    const multiple = bar.dataset.multiple === "true";
+    const template = bar.dataset.countTemplate ?? "{count} items";
+    const items = () => [...list.children] as HTMLElement[];
+    const tagsOf = (el: HTMLElement) => (el.dataset.tags ?? "").split(/\s+/).filter(Boolean);
+
+    // Progressive enhancement: links become toggle buttons
+    const chips = [...bar.querySelectorAll<HTMLAnchorElement>("[data-filter-value]")].map(
+      (link) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = link.className;
+        button.dataset.filterValue = link.dataset.filterValue ?? "";
+        button.innerHTML = link.innerHTML;
+        link.replaceWith(button);
+        return button;
+      }
+    );
+
+    // Counts per filter
+    if (bar.dataset.showCounts === "true") {
+      for (const chip of chips) {
+        const value = chip.dataset.filterValue ?? "";
+        const n = value ? items().filter((el) => tagsOf(el).includes(value)).length : items().length;
+        const count = chip.querySelector<HTMLElement>("[data-count]");
+        if (count) count.textContent = String(n);
+      }
+    }
+
+    const status = bar.querySelector<HTMLElement>("[data-status]");
+    const empty = bar.querySelector<HTMLElement>("[data-empty]");
+    let active = new URLSearchParams(location.search).getAll(param).filter(Boolean);
+
+    const apply = (updateUrl: boolean) => {
+      // A CardGrid "Show more" would hide matches: reveal everything while filtering
+      if (active.length) {
+        list.closest(".cardgrid")?.querySelectorAll<HTMLElement>("[data-cardgrid-more]").forEach((m) => (m.hidden = true));
+      }
+      let shown = 0;
+      for (const el of items()) {
+        const match = !active.length || active.some((value) => tagsOf(el).includes(value));
+        el.hidden = !match;
+        if (match) shown++;
+      }
+      for (const chip of chips) {
+        const value = chip.dataset.filterValue ?? "";
+        chip.setAttribute(
+          "aria-pressed",
+          String(value === "" ? active.length === 0 : active.includes(value))
+        );
+      }
+      if (status) status.textContent = template.replace("{count}", String(shown));
+      if (empty) empty.hidden = shown > 0;
+      if (updateUrl) {
+        const url = new URL(location.href);
+        url.searchParams.delete(param);
+        active.forEach((value) => url.searchParams.append(param, value));
+        history.replaceState(null, "", url);
+      }
+    };
+
+    for (const chip of chips) {
+      chip.addEventListener("click", () => {
+        const value = chip.dataset.filterValue ?? "";
+        if (!value) active = [];
+        else if (multiple)
+          active = active.includes(value) ? active.filter((v) => v !== value) : [...active, value];
+        else active = active.includes(value) ? [] : [value];
+        apply(true);
+      });
+    }
+
+    bar.querySelector("[data-reset]")?.addEventListener("click", () => {
+      active = [];
+      apply(true);
+      chips[0]?.focus();
+    });
+
+    const select = bar.querySelector<HTMLSelectElement>("[data-sort]");
+    select?.addEventListener("change", () => {
+      const option = select.selectedOptions[0];
+      const key = option?.dataset.key;
+      if (!key) return;
+      const order = option.dataset.order === "desc" ? -1 : 1;
+      const attr = `sort${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+      const sorted = items().sort((a, b) => {
+        const va = a.dataset[attr] ?? "";
+        const vb = b.dataset[attr] ?? "";
+        const na = Number(va);
+        const nb = Number(vb);
+        const cmp = !Number.isNaN(na) && !Number.isNaN(nb) ? na - nb : va.localeCompare(vb);
+        return cmp * order;
+      });
+      sorted.forEach((el) => list.appendChild(el));
+    });
+
+    apply(false);
+  }
+</script>
+
+<style>
+  .filterbar {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .filterbar__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+  }
+
+  .filterbar__group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filterbar__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 0);
+    background: var(--filterbar-chip-bg, rgb(255 255 255));
+    color: var(--color-fg);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: var(--weight-medium, 500);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .filterbar__chip:hover {
+    border-color: var(--color-accent);
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .filterbar__chip[aria-pressed="true"] {
+    border-color: var(--filterbar-active-bg, var(--color-fg));
+    background: var(--filterbar-active-bg, var(--color-fg));
+    color: var(--filterbar-active-fg, var(--color-bg));
+  }
+
+  .filterbar__count {
+    font-size: 0.8125rem;
+    color: inherit;
+    opacity: 0.75;
+  }
+
+  .filterbar__count:empty {
+    display: none;
+  }
+
+  .filterbar__chip:focus-visible,
+  .filterbar__reset:focus-visible,
+  .filterbar__sort select:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .filterbar__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.9375rem;
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .filterbar__sort select {
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 0);
+    background: rgb(255 255 255);
+    color: var(--color-fg);
+    font: inherit;
+    font-weight: var(--weight-medium, 500);
+  }
+
+  .filterbar__status {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .filterbar__status:empty {
+    display: none;
+  }
+
+  .filterbar__empty {
+    display: grid;
+    justify-items: start;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    border: 1px dashed var(--color-border);
+  }
+
+  .filterbar__empty[hidden] {
+    display: none;
+  }
+
+  .filterbar__empty p {
+    margin: 0;
+  }
+
+  .filterbar__reset {
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--accent-text, var(--color-accent));
+    font: inherit;
+    font-weight: var(--weight-semibold, 600);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+</style>

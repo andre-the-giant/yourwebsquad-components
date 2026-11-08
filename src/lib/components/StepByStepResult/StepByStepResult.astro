@@ -1,0 +1,300 @@
+---
+/*
+StepByStepResult — the result screen of StepByStepWizard (put it in its `result` slot).
+Props:
+- variant?: "range" | "text"
+- eyebrow?: string — "Your estimate"
+range:
+- pricing: {
+    base: { min: number, max: number },
+    rules?: { [stepId]: { [value]: { factor?: number, add?: number, widen?: number } } },
+    round?: number             // rounding step, default 500
+  }
+- duration?: { base: { min: number, max: number }, rules?: { [stepId]: { [value]: { add?: number } } } }
+- durationTemplate?: string — "{min} to {max} weeks"
+- currency?: string — ISO code, default "CAD"
+- locale?: string — number format ("fr-CA" → 22 000 $, "en-CA" → $22,000)
+- unsureValue?: string — option value meaning "not sure yet" (default "unsure")
+- wideAfter?: number — from this many unsure answers, the range widens (default 2)
+- wideNote?: string — sentence shown when it widens
+- taxNote?: string — "taxes extra"
+text:
+- outcomeStep: string — the step whose answer picks the text
+- outcomes: { [value]: { title: string, text: string } }
+Common:
+- class?: string
+- style?: string
+Slots:
+- default — notes and "what is included", under the figure
+- actions — buttons
+Hidden field: any input[data-stepbystep-result] inside the wizard receives "min-max".
+States: calculating (handled by the wizard), shown, "review my answers" (StepByStepSummary).
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Rule = z.looseObject({
+  factor: z.number().optional(),
+  add: z.number().optional(),
+  widen: z.number().optional()
+});
+
+const Schema = z.looseObject({
+  class: z.string().optional(),
+  style: z.string().optional(),
+  variant: z.enum(["range", "text"]).default("range"),
+  eyebrow: z.string().default("Your estimate"),
+  pricing: z
+    .looseObject({
+      base: z.looseObject({ min: z.number(), max: z.number() }),
+      rules: z.record(z.string(), z.record(z.string(), Rule)).default({}),
+      round: z.number().positive().default(500)
+    })
+    .optional(),
+  duration: z
+    .looseObject({
+      base: z.looseObject({ min: z.number(), max: z.number() }),
+      rules: z.record(z.string(), z.record(z.string(), Rule)).default({})
+    })
+    .optional(),
+  durationTemplate: z.string().default("{min} to {max} weeks"),
+  currency: z.string().default("CAD"),
+  locale: z.string().default("en-CA"),
+  unsureValue: z.string().default("unsure"),
+  wideAfter: z.number().int().positive().default(2),
+  wideNote: z.string().default("Wide range: some answers are still open."),
+  taxNote: z.string().default("taxes extra"),
+  outcomeStep: z.string().optional(),
+  outcomes: z.record(z.string(), z.looseObject({ title: z.string(), text: z.string() })).default({})
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  class: className,
+  style,
+  variant,
+  eyebrow,
+  pricing,
+  duration,
+  durationTemplate,
+  currency,
+  locale,
+  unsureValue,
+  wideAfter,
+  wideNote,
+  taxNote,
+  outcomeStep,
+  outcomes
+} = parseProps(Schema, Astro.props, { component: "StepByStepResult" });
+
+const config = {
+  variant,
+  pricing,
+  duration,
+  durationTemplate,
+  currency,
+  locale,
+  unsureValue,
+  wideAfter,
+  outcomeStep,
+  outcomes
+};
+---
+
+<section
+  class={mergeClasses("sbs-result", `sbs-result--${variant}`, className)}
+  style={style}
+  data-sbs-result
+  data-config={JSON.stringify(config)}
+>
+  <h2 class="sbs-result__eyebrow" tabindex="-1">{eyebrow}</h2>
+  <p class="sbs-result__line" data-line></p>
+  {
+    variant === "range" ? (
+      <Fragment>
+        <p class="sbs-result__figure" data-figure></p>
+        <p class="sbs-result__meta">
+          <span data-duration></span>
+          <span>{taxNote}</span>
+        </p>
+        <p class="sbs-result__wide" data-wide hidden>
+          {wideNote}
+        </p>
+      </Fragment>
+    ) : (
+      <Fragment>
+        <p class="sbs-result__title" data-title></p>
+        <p class="sbs-result__text" data-text></p>
+      </Fragment>
+    )
+  }
+  {Astro.slots.has("default") && <div class="sbs-result__notes"><slot /></div>}
+  {Astro.slots.has("actions") && <div class="sbs-result__actions"><slot name="actions" /></div>}
+</section>
+
+<script>
+  type Rule = { factor?: number; add?: number; widen?: number };
+  type StepData = { id: string; title: string; options: { value: string; label: string }[] };
+
+  for (const box of document.querySelectorAll<HTMLElement>("[data-sbs-result]")) {
+    const root = box.closest<HTMLElement>("[data-stepbystep]");
+    if (!root) continue;
+    const c = JSON.parse(box.dataset.config ?? "{}");
+    const steps: StepData[] = JSON.parse(root.dataset.steps ?? "[]");
+
+    const apply = (
+      base: { min: number; max: number },
+      rules: Record<string, Record<string, Rule>>,
+      answers: Record<string, string>
+    ) => {
+      let { min, max } = base;
+      for (const [stepId, value] of Object.entries(answers)) {
+        const rule = rules?.[stepId]?.[value];
+        if (!rule) continue;
+        if (rule.factor) {
+          min *= rule.factor;
+          max *= rule.factor;
+        }
+        if (rule.add) {
+          min += rule.add;
+          max += rule.add;
+        }
+        if (rule.widen) {
+          min *= 1 - rule.widen / 2;
+          max *= 1 + rule.widen;
+        }
+      }
+      return { min, max };
+    };
+
+    root.addEventListener("stepbystep:complete", (event) => {
+      const answers: Record<string, string> = (event as CustomEvent).detail?.answers ?? {};
+      const line = box.querySelector<HTMLElement>("[data-line]");
+      if (line) {
+        line.textContent = steps
+          .map((s) => s.options.find((o) => o.value === answers[s.id]))
+          .filter((o) => o && o.value !== c.unsureValue)
+          .map((o) => o!.label)
+          .join(" · ");
+      }
+
+      if (c.variant === "text") {
+        const outcome = c.outcomes?.[answers[c.outcomeStep]];
+        box.querySelector("[data-title]")!.textContent = outcome?.title ?? "";
+        box.querySelector("[data-text]")!.textContent = outcome?.text ?? "";
+        return;
+      }
+
+      if (!c.pricing) return;
+      let price = apply(c.pricing.base, c.pricing.rules, answers);
+      const unsure = Object.values(answers).filter((v) => v === c.unsureValue).length;
+      const wide = unsure >= c.wideAfter;
+      if (wide) price = { min: price.min * 0.92, max: price.max * 1.15 };
+      const step = c.pricing.round ?? 500;
+      const min = Math.floor(price.min / step) * step;
+      const max = Math.ceil(price.max / step) * step;
+      const money = new Intl.NumberFormat(c.locale, {
+        style: "currency",
+        currency: c.currency,
+        maximumFractionDigits: 0
+      });
+      box.querySelector("[data-figure]")!.textContent = `${money.format(min)} – ${money.format(max)}`;
+      box.querySelector<HTMLElement>("[data-wide]")!.hidden = !wide;
+
+      if (c.duration) {
+        const d = apply(c.duration.base, c.duration.rules, answers);
+        box.querySelector("[data-duration]")!.textContent = c.durationTemplate
+          .replace("{min}", String(Math.round(d.min)))
+          .replace("{max}", String(Math.round(d.max)));
+      }
+
+      root.querySelectorAll<HTMLInputElement>("input[data-stepbystep-result]").forEach((input) => {
+        input.value = `${min}-${max}`;
+      });
+    });
+  }
+</script>
+
+<style>
+  .sbs-result {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+  }
+
+  .sbs-result__eyebrow {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: var(--weight-semibold, 600);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .sbs-result__eyebrow:focus {
+    outline: none;
+  }
+
+  .sbs-result__line {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs-result__figure,
+  .sbs-result__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 1.5rem + 3.4vw, 4rem);
+    line-height: 1.02;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .sbs-result__figure {
+    white-space: nowrap;
+  }
+
+  .sbs-result__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.5rem;
+    margin: 0;
+    font-size: 1.0625rem;
+  }
+
+  .sbs-result__meta span:first-child:not(:empty)::after {
+    content: " ·";
+  }
+
+  .sbs-result__wide {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: var(--color-accent-muted);
+    font-size: 0.9375rem;
+  }
+
+  .sbs-result__text {
+    margin: 0;
+    font-size: var(--type-lead, 1.125rem);
+  }
+
+  .sbs-result__notes {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .sbs-result__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 30rem) {
+    .sbs-result__figure {
+      white-space: normal;
+    }
+  }
+</style>

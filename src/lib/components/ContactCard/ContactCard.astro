@@ -1,0 +1,367 @@
+---
+/*
+ContactCard — phone, email, office and opening hours, with an "open now" status
+computed in the business time zone.
+Props:
+- phone?: { label: string, href: string }
+- email?: string
+- address?: string — one line, such as "Office and samples in Kingston, by appointment"
+- hours?: { days: string, time: string }[] — the visible table
+- schedule?: { day: 1-7, open: "HH:MM", close: "HH:MM" }[] — machine schedule for the status
+  (1 = Monday). Days not listed are closed.
+- timeZone?: string — IANA zone, default "America/Toronto"
+- openLabel?: string — "Open · until {time}"
+- closedLabel?: string — "Closed · opens {day} at {time}"
+- dayNames?: string[] — 7 names, Monday first, used in closedLabel
+- variant?: "full" | "compact" — compact hides the hours table
+- copyLabel?: string — accessible label of the copy-email button
+- copiedLabel?: string — announced after copying
+- heading?: string — optional title of the hours table
+- id?: string
+- class?: string
+- style?: string
+Notes:
+- The phone number and email stay selectable text, next to their links.
+- Without JS, or without a schedule, the status line is simply not shown.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Icon from "../Icon/Icon.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  phone: z.looseObject({ label: z.string(), href: z.string() }).optional(),
+  email: z.string().optional(),
+  address: z.string().optional(),
+  hours: z.array(z.looseObject({ days: z.string(), time: z.string() })).default([]),
+  schedule: z
+    .array(
+      z.looseObject({
+        day: z.number().int().min(1).max(7),
+        open: z.string().regex(/^\d{2}:\d{2}$/),
+        close: z.string().regex(/^\d{2}:\d{2}$/)
+      })
+    )
+    .default([]),
+  timeZone: z.string().default("America/Toronto"),
+  openLabel: z.string().default("Open · until {time}"),
+  closedLabel: z.string().default("Closed · opens {day} at {time}"),
+  dayNames: z
+    .array(z.string())
+    .length(7)
+    .default(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]),
+  variant: z.enum(["full", "compact"]).default("full"),
+  copyLabel: z.string().default("Copy the email address"),
+  copiedLabel: z.string().default("Email address copied"),
+  heading: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  phone,
+  email,
+  address,
+  hours,
+  schedule,
+  timeZone,
+  openLabel,
+  closedLabel,
+  dayNames,
+  variant,
+  copyLabel,
+  copiedLabel,
+  heading,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "ContactCard" });
+
+const resolvedId = id ?? nextId("contact-card");
+---
+
+<div
+  id={resolvedId}
+  class={mergeClasses("contact-card", `contact-card--${variant}`, className)}
+  style={style}
+  data-contact-card
+  data-schedule={schedule.length ? JSON.stringify(schedule) : undefined}
+  data-time-zone={timeZone}
+  data-open-label={openLabel}
+  data-closed-label={closedLabel}
+  data-day-names={JSON.stringify(dayNames)}
+  {...rest}
+>
+  <div class="contact-card__main">
+    <p class="contact-card__status" data-contact-status hidden></p>
+    {
+      phone && (
+        <a class="contact-card__phone" href={phone.href}>
+          <Icon name="phone" class="contact-card__icon" />
+          {phone.label}
+        </a>
+      )
+    }
+    {
+      email && (
+        <p class="contact-card__line">
+          <Icon name="arobase" class="contact-card__icon" />
+          <a href={`mailto:${email}`}>{email}</a>
+          <button
+            type="button"
+            class="contact-card__copy"
+            aria-label={copyLabel}
+            data-copy={email}
+            data-copied-label={copiedLabel}
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <rect x="8" y="8" width="11" height="12" />
+              <path d="M5 16V4h11" />
+            </svg>
+          </button>
+        </p>
+      )
+    }
+    {
+      address && (
+        <p class="contact-card__line">
+          <Icon name="location-pin" class="contact-card__icon" />
+          {address}
+        </p>
+      )
+    }
+    <p class="contact-card__live sr-only" aria-live="polite" data-contact-live></p>
+  </div>
+  {
+    variant === "full" && hours.length > 0 && (
+      <table class="contact-card__hours">
+        {heading && <caption>{heading}</caption>}
+        <tbody>
+          {hours.map((row) => (
+            <tr>
+              <th scope="row">{row.days}</th>
+              <td>{row.time}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+</div>
+
+<script>
+  type Slot = { day: number; open: string; close: string };
+
+  const toMinutes = (hhmm: string) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  // Day (1 = Monday) and minutes since midnight in the business time zone
+  const nowIn = (timeZone: string) => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(new Date());
+    const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+    const day = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(get("weekday")) + 1;
+    return { day, minutes: Number(get("hour")) * 60 + Number(get("minute")) };
+  };
+
+  const formatTime = (hhmm: string, locale: string) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    const date = new Date(Date.UTC(2020, 0, 1, h, m));
+    return new Intl.DateTimeFormat(locale, {
+      hour: "numeric",
+      minute: m ? "2-digit" : undefined,
+      timeZone: "UTC"
+    }).format(date);
+  };
+
+  for (const card of document.querySelectorAll<HTMLElement>("[data-contact-card]")) {
+    const status = card.querySelector<HTMLElement>("[data-contact-status]");
+    const live = card.querySelector<HTMLElement>("[data-contact-live]");
+
+    card.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget as HTMLButtonElement;
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? "");
+        if (live) live.textContent = button.dataset.copiedLabel ?? "";
+      } catch {
+        // Clipboard refused: the address stays selectable next to the button.
+      }
+    });
+
+    if (!status || !card.dataset.schedule) continue;
+    let schedule: Slot[] = [];
+    try {
+      schedule = JSON.parse(card.dataset.schedule);
+    } catch {
+      continue;
+    }
+    const locale = document.documentElement.lang || "en-CA";
+    const dayNames: string[] = JSON.parse(card.dataset.dayNames ?? "[]");
+    const { day, minutes } = nowIn(card.dataset.timeZone ?? "America/Toronto");
+    const today = schedule.find((s) => s.day === day);
+
+    if (today && minutes >= toMinutes(today.open) && minutes < toMinutes(today.close)) {
+      status.textContent = (card.dataset.openLabel ?? "").replace(
+        "{time}",
+        formatTime(today.close, locale)
+      );
+      status.dataset.state = "open";
+    } else {
+      // Next opening: later today, or the next listed day
+      let next: Slot | undefined;
+      if (today && minutes < toMinutes(today.open)) next = today;
+      for (let i = 1; !next && i <= 7; i++) {
+        const d = ((day - 1 + i) % 7) + 1;
+        next = schedule.find((s) => s.day === d);
+      }
+      if (!next) continue;
+      status.textContent = (card.dataset.closedLabel ?? "")
+        .replace("{day}", dayNames[next.day - 1] ?? "")
+        .replace("{time}", formatTime(next.open, locale));
+      status.dataset.state = "closed";
+    }
+    status.hidden = false;
+  }
+</script>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .contact-card {
+    border: 1px solid var(--color-border);
+    background: var(--contact-card-bg, rgb(255 255 255));
+    color: var(--color-fg);
+  }
+
+  .contact-card__main {
+    display: grid;
+    gap: 0.75rem;
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+  }
+
+  .contact-card__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: var(--weight-semibold, 600);
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .contact-card__status[hidden] {
+    display: none;
+  }
+
+  .contact-card__status::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .contact-card__status[data-state="open"] {
+    color: var(--color-success-text, rgb(47 102 56));
+  }
+
+  .contact-card__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 1.1;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .contact-card__phone:hover {
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .contact-card__line {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-size: 1.0625rem;
+  }
+
+  .contact-card :global(.contact-card__icon) {
+    flex: none;
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .contact-card__copy {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline-start: auto;
+    border: 0;
+    background: var(--color-surface);
+    color: var(--accent-text, var(--color-accent));
+    cursor: pointer;
+  }
+
+  .contact-card__copy svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+
+  .contact-card__copy:focus-visible,
+  .contact-card a:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .contact-card__hours {
+    width: calc(100% - 2 * clamp(1.25rem, 3vw, 1.75rem));
+    margin: 0 clamp(1.25rem, 3vw, 1.75rem) clamp(1rem, 2.5vw, 1.5rem);
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .contact-card__hours caption {
+    padding-block: 0.75rem 0.25rem;
+    text-align: start;
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .contact-card__hours th,
+  .contact-card__hours td {
+    padding: 0.625rem 0;
+    border-top: 1px solid var(--color-border);
+    text-align: start;
+    font-weight: var(--weight-regular, 400);
+  }
+
+  .contact-card__hours td {
+    text-align: end;
+    font-weight: var(--weight-semibold, 600);
+  }
+</style>

@@ -1,0 +1,216 @@
+---
+/*
+TrustBar — two to six short guarantees: an icon, a title, a detail.
+Props:
+- items: { title: string, text?: string, icon?: string, href?: string }[] — 2 to 6
+- variant?: "band" | "compact" — compact: titles only, on one line
+- label?: string — accessible name of the list
+- id?: string
+- class?: string
+- style?: string
+Layout:
+- Large screens: one row, as many columns as items.
+- Small screens: two columns; with an odd count the last item spans the full width.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+import Icon from "../Icon/Icon.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        title: z.string(),
+        text: z.string().optional(),
+        icon: z.string().optional(),
+        href: z.string().optional()
+      })
+    )
+    .min(2)
+    .max(6),
+  variant: z.enum(["band", "compact"]).default("band"),
+  label: z.string().default("Our guarantees")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  variant,
+  label,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "TrustBar" });
+---
+
+<ul
+  id={id}
+  class={mergeClasses(
+    "trustbar",
+    `trustbar--${variant}`,
+    items.length % 2 === 1 && "is-odd",
+    className
+  )}
+  style={[`--trustbar-count: ${items.length}`, style].filter(Boolean).join("; ")}
+  aria-label={label}
+  {...rest}
+>
+  {
+    items.map((item) => (
+      <li class="trustbar__item">
+        {item.href ? (
+          <a class="trustbar__link" href={item.href}>
+            <span class="trustbar__title">
+              {item.icon && <Icon name={item.icon} class="trustbar__icon" />}
+              {item.title}
+            </span>
+            {item.text && variant === "band" && <span class="trustbar__text">{item.text}</span>}
+          </a>
+        ) : (
+          <Fragment>
+            <span class="trustbar__title">
+              {item.icon && <Icon name={item.icon} class="trustbar__icon" />}
+              {item.title}
+            </span>
+            {item.text && variant === "band" && <span class="trustbar__text">{item.text}</span>}
+          </Fragment>
+        )}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .trustbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--color-border);
+    background: var(--trustbar-bg, var(--color-bg));
+  }
+
+  .trustbar__item {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+    padding: 1rem;
+    border-left: 1px solid var(--color-border);
+  }
+
+  .trustbar__item:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .trustbar__item:nth-child(n + 3) {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .trustbar.is-odd .trustbar__item:last-child {
+    grid-column: 1 / -1;
+    border-left: 0;
+  }
+
+  .trustbar__link {
+    display: grid;
+    gap: 0.25rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .trustbar__link:hover .trustbar__title {
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .trustbar__link:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .trustbar__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: var(--weight-semibold, 600);
+    line-height: 1.3;
+  }
+
+  .trustbar__text {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .trustbar :global(.trustbar__icon) {
+    flex: none;
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  /* Compact: titles on one line, separated by thin rules */
+  .trustbar--compact {
+    display: flex;
+    flex-wrap: wrap;
+    border: 0;
+    background: none;
+    gap: 0.5rem 0;
+  }
+
+  .trustbar--compact .trustbar__item {
+    padding: 0 1rem;
+    border-top: 0;
+  }
+
+  .trustbar--compact .trustbar__item:first-child {
+    padding-inline-start: 0;
+  }
+
+  .trustbar--compact .trustbar__item:nth-child(odd) {
+    border-left: 1px solid var(--color-border);
+  }
+
+  .trustbar--compact .trustbar__item:first-child,
+  .trustbar--compact.is-odd .trustbar__item:last-child {
+    grid-column: auto;
+  }
+
+  .trustbar--compact .trustbar__item:first-child {
+    border-left: 0;
+  }
+
+  .trustbar--compact .trustbar__title {
+    font-size: 0.9375rem;
+  }
+
+  @media (min-width: 56.25rem) {
+    .trustbar--band {
+      grid-template-columns: repeat(var(--trustbar-count), minmax(0, 1fr));
+    }
+
+    .trustbar--band .trustbar__item {
+      padding: 1.5rem;
+      border-top: 0;
+      border-left: 1px solid var(--color-border);
+    }
+
+    .trustbar--band .trustbar__item:first-child,
+    .trustbar--band.is-odd .trustbar__item:last-child {
+      grid-column: auto;
+    }
+
+    .trustbar--band .trustbar__item:first-child {
+      border-left: 0;
+    }
+
+    .trustbar--band.is-odd .trustbar__item:last-child {
+      border-left: 1px solid var(--color-border);
+    }
+  }
+</style>

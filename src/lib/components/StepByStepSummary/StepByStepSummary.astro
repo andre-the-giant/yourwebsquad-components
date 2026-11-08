@@ -1,0 +1,222 @@
+---
+/*
+StepByStepSummary — the answers already given, each with "Change". Place it in the
+`aside` slot of StepByStepWizard. "Change" goes back to that question, then Continue
+returns to the step in progress.
+Props:
+- title?: string — "Your answers"
+- editLabel?: string — visible link text, "Change"
+- editTemplate?: string — accessible text, "Change: {title}"
+- pendingLabel?: string — current question, "In progress"
+- emptyLabel?: string — questions not reached yet, "–"
+- collapseBelow?: string — width under which the summary folds into
+  "Your answers ({count})" (default 64rem)
+- toggleTemplate?: string — "Your answers ({count})"
+- class?: string
+- style?: string
+States: empty, partial, complete, change in progress.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  class: z.string().optional(),
+  style: z.string().optional(),
+  title: z.string().default("Your answers"),
+  editLabel: z.string().default("Change"),
+  editTemplate: z.string().default("Change: {title}"),
+  pendingLabel: z.string().default("In progress"),
+  emptyLabel: z.string().default("–"),
+  collapseBelow: z.string().default("64rem"),
+  toggleTemplate: z.string().default("Your answers ({count})")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  class: className,
+  style,
+  title,
+  editLabel,
+  editTemplate,
+  pendingLabel,
+  emptyLabel,
+  collapseBelow,
+  toggleTemplate
+} = parseProps(Schema, Astro.props, { component: "StepByStepSummary" });
+---
+
+<details
+  class={mergeClasses("sbs-summary", className)}
+  style={style}
+  open
+  data-sbs-summary
+  data-edit-label={editLabel}
+  data-edit-template={editTemplate}
+  data-pending-label={pendingLabel}
+  data-empty-label={emptyLabel}
+  data-collapse-below={collapseBelow}
+  data-toggle-template={toggleTemplate}
+>
+  <summary class="sbs-summary__toggle" data-toggle>{toggleTemplate.replace("{count}", "0")}</summary>
+  <h2 class="sbs-summary__title">{title}</h2>
+  <dl class="sbs-summary__list" data-list></dl>
+</details>
+
+<script>
+  type StepData = { id: string; title: string; options: { value: string; label: string }[] };
+
+  for (const box of document.querySelectorAll<HTMLDetailsElement>("[data-sbs-summary]")) {
+    const root = box.closest<HTMLElement>("[data-stepbystep]");
+    if (!root) continue;
+    const steps: StepData[] = JSON.parse(root.dataset.steps ?? "[]");
+    const list = box.querySelector<HTMLElement>("[data-list]")!;
+    const toggle = box.querySelector<HTMLElement>("[data-toggle]")!;
+    const d = box.dataset;
+
+    const query = window.matchMedia(`(max-width: ${d.collapseBelow ?? "64rem"})`);
+    const sync = () => {
+      box.classList.toggle("is-collapsible", query.matches);
+      if (!query.matches) box.open = true;
+    };
+    query.addEventListener("change", sync);
+    sync();
+    if (query.matches) box.open = false;
+
+    const render = (answers: Record<string, string>, current: number) => {
+      list.replaceChildren();
+      let count = 0;
+      steps.forEach((step, index) => {
+        const dt = document.createElement("dt");
+        dt.textContent = step.title;
+        const dd = document.createElement("dd");
+        const edit = document.createElement("dd");
+        edit.className = "sbs-summary__edit";
+        const value = answers[step.id];
+        if (value) {
+          count++;
+          dd.textContent = step.options.find((o) => o.value === value)?.label ?? value;
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = d.editLabel ?? "Change";
+          button.setAttribute("aria-label", (d.editTemplate ?? "Change: {title}").replace("{title}", step.title));
+          button.addEventListener("click", () =>
+            root.dispatchEvent(new CustomEvent("stepbystep:goto", { detail: { stepId: step.id } }))
+          );
+          edit.append(button);
+        } else if (index === current) {
+          dd.textContent = d.pendingLabel ?? "";
+          dd.className = "is-pending";
+        } else {
+          dd.textContent = d.emptyLabel ?? "–";
+          dd.className = "is-empty";
+        }
+        list.append(dt, dd, edit);
+      });
+      toggle.textContent = (d.toggleTemplate ?? "").replace("{count}", String(count));
+    };
+
+    root.addEventListener("stepbystep:change", (event) => {
+      const detail = (event as CustomEvent).detail;
+      render(detail.answers ?? {}, detail.current ?? 0);
+    });
+    const state = (root as HTMLElement & { sbsState?: { answers?: Record<string, string>; current?: number } }).sbsState;
+    render(state?.answers ?? {}, state?.current ?? 0);
+  }
+</script>
+
+<style>
+  .sbs-summary {
+    padding: 1.5rem 1.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    background: var(--sbs-summary-bg, rgb(255 255 255));
+    font-size: 0.9375rem;
+  }
+
+  .sbs-summary__toggle {
+    display: none;
+  }
+
+  .sbs-summary__title {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+  }
+
+  .sbs-summary__list {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0 0.875rem;
+    margin: 0;
+  }
+
+  .sbs-summary__list :global(dt),
+  .sbs-summary__list :global(dd) {
+    margin: 0;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .sbs-summary__list :global(dt) {
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs-summary__list :global(dd) {
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .sbs-summary__list :global(dd.is-pending) {
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .sbs-summary__list :global(dd.is-empty) {
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+    font-weight: var(--weight-regular, 400);
+  }
+
+  .sbs-summary__list :global(.sbs-summary__edit button) {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent-text, var(--color-accent));
+    font: inherit;
+    font-weight: var(--weight-medium, 500);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .sbs-summary__list :global(.sbs-summary__edit button:focus-visible),
+  .sbs-summary__toggle:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Folded on small screens */
+  .sbs-summary.is-collapsible {
+    padding: 0;
+  }
+
+  .sbs-summary.is-collapsible .sbs-summary__toggle {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0 1rem;
+    color: var(--accent-text, var(--color-accent));
+    font-weight: var(--weight-semibold, 600);
+    cursor: pointer;
+  }
+
+  .sbs-summary.is-collapsible .sbs-summary__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .sbs-summary.is-collapsible .sbs-summary__list {
+    padding: 0 1rem 0.75rem;
+  }
+</style>

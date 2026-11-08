@@ -1,0 +1,36 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Card from "@lib/components/Card/Card.astro";
+
+const props = [
+  { name: "title", type: "string", description: "Title." },
+  { name: "href", type: "string", description: "Link of the whole card." },
+  { name: "img", type: "string", description: "Photo." },
+  { name: "alt", type: "string", description: "Photo description." },
+  { name: "tag", type: "string", description: "Label above the title." },
+  { name: "text", type: "string", description: "Text." },
+  { name: "meta", type: "string", description: "Line under the text." },
+  { name: "variant", type: "\"standard\" | \"compact\" | \"text\"", default: "\"standard\"", description: "Photo on top, square photo on the left, or no photo." },
+  { name: "ratio", type: "string", default: "\"4/3\"", description: "Photo ratio (standard)." },
+  { name: "as", type: "\"article\" | \"li\" | \"div\"", default: "\"article\"", description: "Root element." },
+  { name: "headingLevel", type: "2 | 3 | 4", default: "3", description: "Heading level of the title." },
+  { name: "tags", type: "string[]", description: "Written to data-tags for a FilterBar." }
+];
+---
+
+<DocLayout title={"Card"} description={"Generic card. The whole card is one link through its title. CardGrid lays cards out; FilterBar filters them by tags."} items={components}>
+  <PropsTable props={props} />
+  <Preview title={"Variants"} code={"<Card title=\"King Street West\" tag=\"Walk-in shower\" meta=\"5 weeks · about $32,000\" href=\"#\" img=\"…\" alt=\"…\" />\n<Card variant=\"compact\" … />\n<Card variant=\"text\" … />"}>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1.5rem;align-items:start">
+      <Card title="King Street West" tag="Walk-in shower" meta="5 weeks · about $32,000" href="#" img="https://picsum.photos/seed/card1/800/600" alt="Blue vanity and marble walls" />
+      <div style="display:grid;gap:1rem">
+        <Card variant="compact" title="Stone house, Sydenham" tag="Heritage home" meta="4 weeks · about $24,000" href="#" img="https://picsum.photos/seed/card2/400/400" alt="Period bathroom" />
+        <Card variant="compact" title="Family bathroom" tag="Small bathroom" meta="Photo missing" href="#" />
+        <Card variant="text" title="Fixed price" text="Once the design is approved, the price does not move." />
+      </div>
+    </div>
+  </Preview>
+</DocLayout>

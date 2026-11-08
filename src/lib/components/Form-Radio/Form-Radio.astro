@@ -102,7 +102,7 @@ const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, className);
 ---
 
-<div class={resolvedClass} role="radiogroup" style={resolvedStyle || undefined}>
+<div class={resolvedClass} style={resolvedStyle || undefined}>
   <label
     class={mergeClasses(
       "radio-row",
@@ -292,12 +292,12 @@ const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, classN
     font-size: 0.9375rem;
     font-weight: var(--weight-regular, 400);
     line-height: 1.45;
-    color: var(--color-muted);
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
   }
 
   .radio-row :global(.radio-icon) {
     flex: none;
-    color: var(--color-accent);
+    color: var(--accent-text, var(--color-accent));
   }
 
   .radio-input:disabled + .radio {

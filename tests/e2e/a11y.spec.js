@@ -29,10 +29,24 @@ const pages = [
   "/components/components/ctaband",
   "/components/components/siteheader",
   "/components/components/sitefooter",
-  "/components/atoms/tag"
+  "/components/atoms/tag",
+  "/components/atoms/form-radio",
+  "/components/atoms/form-checkbox",
+  "/components/components/map",
+  "/components/components/hero",
+  "/components/molecules/card",
+  "/components/molecules/filterbar",
+  "/components/molecules/googlerating",
+  "/components/molecules/tableofcontents",
+  "/components/components/contactcard",
+  "/components/components/lightbox",
+  "/components/components/review",
+  "/components/components/stepbystepwizard",
+  "/components/components/stickyactions",
+  "/components/components/trustbar"
 ];
 
-const allPages = ["light", "plein-jour"].flatMap((theme) => pages.map((path) => ({ path, theme })));
+const allPages = ["light", "plein-jour", "marbre"].flatMap((theme) => pages.map((path) => ({ path, theme })));
 
 for (const { path, theme } of allPages) {
   test(`a11y (${theme}): ${path} has no WCAG A/AA violations`, async ({ page }) => {

@@ -1,0 +1,235 @@
+---
+/*
+Card — a generic card: photo, tag, title, text, meta line. The whole card is one link
+(through the link in its title). For a project here, an article or a service elsewhere.
+CardGrid lays them out.
+Props:
+- title: string
+- href?: string
+- img?: string, alt?: string
+- tag?: string — small label above the title
+- text?: string
+- meta?: string — "5 weeks · about $32,000"
+- variant?: "standard" | "compact" | "text"
+    standard: photo on top · compact: square photo on the left · text: no photo
+- ratio?: string — photo ratio for standard (default "4/3")
+- as?: "article" | "li" | "div"
+- headingLevel?: 2 | 3 | 4 (default 3)
+- tags?: string[] — written to data-tags so a FilterBar can filter
+- id?: string
+- class?: string
+- style?: string
+States: rest, hover (photo grows 4 %, title turns accent), focus (ring around the whole
+card), missing photo (veined placeholder). The zoom stops when reduced motion is asked.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  title: z.string(),
+  href: z.string().optional(),
+  img: z.string().optional(),
+  alt: z.string().optional(),
+  tag: z.string().optional(),
+  text: z.string().optional(),
+  meta: z.string().optional(),
+  variant: z.enum(["standard", "compact", "text"]).default("standard"),
+  ratio: z.string().default("4/3"),
+  as: z.enum(["article", "li", "div"]).default("article"),
+  headingLevel: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
+  tags: z.array(z.string()).optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  title,
+  href,
+  img,
+  alt,
+  tag,
+  text,
+  meta,
+  variant,
+  ratio,
+  as: Tag,
+  headingLevel,
+  tags,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Card" });
+
+const Heading = (["h2", "h3", "h4"] as const)[headingLevel - 2];
+const showMedia = variant !== "text";
+---
+
+<Tag
+  id={id}
+  class={mergeClasses("ycard", `ycard--${variant}`, href && "ycard--link", className)}
+  style={[`--ycard-ratio: ${ratio}`, style].filter(Boolean).join("; ")}
+  data-tags={tags?.length ? tags.join(" ") : undefined}
+  {...rest}
+>
+  {
+    showMedia && (
+      <div class:list={["ycard__media", !img && "ycard__media--empty"]}>
+        {img && <img src={img} alt={alt ?? ""} loading="lazy" decoding="async" />}
+      </div>
+    )
+  }
+  <div class="ycard__body">
+    {tag && <p class="ycard__tag">{tag}</p>}
+    <Heading class="ycard__title">{href ? <a href={href}>{title}</a> : title}</Heading>
+    {text && <p class="ycard__text">{text}</p>}
+    {meta && <p class="ycard__meta">{meta}</p>}
+  </div>
+</Tag>
+
+<style>
+  .ycard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+    margin: 0;
+    color: var(--color-fg);
+  }
+
+  .ycard[hidden] {
+    display: none;
+  }
+
+  .ycard:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .ycard__media {
+    aspect-ratio: var(--ycard-ratio, 4/3);
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+
+  .ycard__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .ycard__media--empty {
+    background:
+      repeating-linear-gradient(120deg, var(--color-border) 0 1px, transparent 1px 22px),
+      var(--color-surface);
+  }
+
+  .ycard__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .ycard__tag {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: var(--weight-semibold, 600);
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .ycard__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--ycard-title-size, clamp(1.375rem, 1.25rem + 0.5vw, 1.625rem));
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.2;
+  }
+
+  .ycard__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* The whole card is the target of the title link */
+  .ycard__title a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .ycard__title a:focus-visible {
+    outline: none;
+  }
+
+  .ycard__title a:focus-visible::after {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .ycard--link:hover .ycard__media img {
+    transform: scale(1.04);
+  }
+
+  .ycard--link:hover .ycard__title {
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .ycard__text {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .ycard__meta {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Compact: square photo on the left */
+  .ycard--compact {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--color-border);
+    background: var(--ycard-bg, var(--color-bg));
+  }
+
+  .ycard--compact .ycard__media {
+    flex: 0 0 6.5rem;
+    aspect-ratio: 1;
+  }
+
+  .ycard--compact .ycard__body {
+    padding-block: 0.75rem;
+    padding-inline-end: 1rem;
+  }
+
+  .ycard--compact .ycard__title {
+    font-size: 1.25rem;
+  }
+
+  /* Text only */
+  .ycard--text {
+    padding: clamp(1.25rem, 2.4vw, 1.75rem);
+    border: 1px solid var(--color-border);
+    background: var(--ycard-bg, var(--color-bg));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ycard__media img {
+      transition: none;
+    }
+
+    .ycard--link:hover .ycard__media img {
+      transform: none;
+    }
+  }
+</style>

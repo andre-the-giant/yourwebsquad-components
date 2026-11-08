@@ -1,0 +1,229 @@
+---
+/*
+TableOfContents — the "On this page" list of a long page.
+Props:
+- items: { label: string, href: string }[] — href is "#section-id"
+- title?: string — "On this page"
+- summaryTemplate?: string — mobile toggle, "On this page ({count} sections)"
+- collapseBelow?: string — CSS width under which the list folds (default 56.25rem)
+- sticky?: boolean — stays in view while scrolling on large screens (default true)
+- id?: string
+- class?: string
+- style?: string
+Behaviour:
+- Large screens: open list beside the text, sticky.
+- Small screens: folded behind a button (a native <details>).
+- The section in view gets aria-current="location".
+- Without JS the list is simply open.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z.array(z.looseObject({ label: z.string(), href: z.string() })).min(1),
+  title: z.string().default("On this page"),
+  summaryTemplate: z.string().default("On this page ({count} sections)"),
+  collapseBelow: z.string().default("56.25rem"),
+  sticky: z.boolean().default(true)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  title,
+  summaryTemplate,
+  collapseBelow,
+  sticky,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "TableOfContents" });
+
+const titleId = nextId("toc-title");
+const summary = summaryTemplate.replace("{count}", String(items.length));
+---
+
+<nav
+  id={id}
+  class={mergeClasses("toc", sticky && "toc--sticky", className)}
+  style={style}
+  aria-labelledby={titleId}
+  data-toc
+  data-collapse-below={collapseBelow}
+  {...rest}
+>
+  <details class="toc__details" open>
+    <summary class="toc__summary">
+      <span>{summary}</span>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </summary>
+    <p id={titleId} class="toc__title">{title}</p>
+    <ol class="toc__list">
+      {
+        items.map((item) => (
+          <li>
+            <a class="toc__link" href={item.href}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </details>
+</nav>
+
+<script>
+  for (const toc of document.querySelectorAll<HTMLElement>("[data-toc]")) {
+    const details = toc.querySelector("details");
+    const query = window.matchMedia(`(max-width: ${toc.dataset.collapseBelow ?? "56.25rem"})`);
+    const sync = () => {
+      if (!details) return;
+      details.open = !query.matches;
+      toc.classList.toggle("is-collapsible", query.matches);
+    };
+    query.addEventListener("change", sync);
+    sync();
+
+    // Highlight the section in view
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>(".toc__link")];
+    const targets = links
+      .map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
+      .filter((el): el is HTMLElement => el !== null);
+    if (!targets.length || !("IntersectionObserver" in window)) continue;
+
+    const setCurrent = (targetId: string) => {
+      for (const link of links) {
+        if (link.hash.slice(1) === targetId) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      }
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length) setCurrent(visible[0].target.id);
+      },
+      { rootMargin: "0px 0px -70% 0px" }
+    );
+    targets.forEach((t) => observer.observe(t));
+    setCurrent(targets[0].id);
+
+    // On phones, fold the list again after a jump
+    links.forEach((link) =>
+      link.addEventListener("click", () => {
+        if (query.matches && details) details.open = false;
+      })
+    );
+  }
+</script>
+
+<style>
+  .toc {
+    font-size: 0.9375rem;
+  }
+
+  .toc--sticky {
+    position: sticky;
+    top: var(--toc-top, 1.5rem);
+    align-self: start;
+  }
+
+  .toc__summary {
+    display: none;
+  }
+
+  .toc__title {
+    margin: 0 0 0.625rem;
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .toc__list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc__link {
+    display: block;
+    padding: 0.5rem 0 0.5rem 0.875rem;
+    border-left: 1.5px solid var(--color-border);
+    color: var(--color-fg);
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .toc__link:hover {
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .toc__link[aria-current="location"] {
+    border-left: 2px solid var(--color-accent);
+    color: var(--accent-text, var(--color-accent));
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .toc__link:focus-visible,
+  .toc__summary:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Folded on small screens */
+  .toc.is-collapsible {
+    position: static;
+    border: 1px solid var(--color-border);
+    background: var(--toc-bg, rgba(255, 255, 255, 0.8));
+  }
+
+  .toc.is-collapsible .toc__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.25rem;
+    padding: 0 1rem;
+    font-weight: var(--weight-semibold, 600);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .toc.is-collapsible .toc__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc.is-collapsible .toc__summary svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    transition: transform 150ms ease;
+  }
+
+  .toc.is-collapsible details[open] .toc__summary svg {
+    transform: rotate(180deg);
+  }
+
+  .toc.is-collapsible .toc__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .toc.is-collapsible .toc__list {
+    padding: 0 1rem 1rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toc.is-collapsible .toc__summary svg {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,34 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Review from "@lib/components/Review/Review.astro";
+
+const props = [
+  { name: "review", type: "{ quote, author, place?, project?, date?, rating?, source? }", description: "The review." },
+  { name: "variant", type: "\"full\" | \"compact\"", default: "\"full\"", description: "compact: one line." },
+  { name: "showRating", type: "{ rating, count?, href?, locale?, label? }", description: "Adds the overall Google rating." },
+  { name: "allReviewsHref", type: "string", description: "Adds a link to all reviews." },
+  { name: "allReviewsLabel", type: "string", default: "\"Read all reviews\"", description: "Its text." },
+  { name: "projectHref", type: "string", description: "Adds a link to the project." },
+  { name: "projectLabel", type: "string", default: "\"See the project\"", description: "Its text." },
+  { name: "video", type: "{ src, poster?, label, duration?, captions?, transcript? }", description: "Native video above the text, never autoplay." },
+  { name: "moreAfter", type: "number", default: "280", description: "Characters before Read more." },
+  { name: "moreLabel", type: "string", default: "\"Read more\"", description: "Its text." },
+  { name: "transcriptLabel", type: "string", default: "\"Read the transcript\"", description: "Video transcript toggle." }
+];
+---
+
+<DocLayout title={"Review"} description={"One customer review, set by its parameters. Stars from StarRating, overall rating from GoogleRating. Quotes follow the page language."} items={components}>
+  <PropsTable props={props} />
+  <Preview title={"Full, with rating"} code={"<Review review={{ quote: \"…\", author: \"Luc P.\", place: \"Old Kingston\" }} showRating={{ rating: 4.9, count: 127 }} allReviewsHref=\"#\" />"}>
+    <Review review={{ quote: "The final price was within the range shown online. Nothing moved after we signed.", author: "Luc P.", place: "Old Kingston", project: "Main bathroom", date: "2026" }} showRating={{ rating: 4.9, count: 127 }} allReviewsHref="#" />
+  </Preview>
+  <Preview title={"Long text and project link"} code={"<Review review={{ quote: \"…long…\" }} projectHref=\"#\" />"}>
+    <Review review={{ quote: "Our house is 120 years old. They found the old cast iron behind the wall and called us before touching anything. Every evening the site was clean, every Friday we had news. The marble niche is set to the millimetre and the shower has no step, which matters for the years ahead.", author: "Claire and Marc D.", place: "King Street West" }} projectHref="#" />
+  </Preview>
+  <Preview title={"Compact"} code={"<Review variant=\"compact\" review={{ … }} />"}>
+    <Review variant="compact" review={{ quote: "I wrote on a Sunday night, they called me back Monday at 8:15.", author: "Julie M.", place: "Williamsville" }} />
+  </Preview>
+</DocLayout>

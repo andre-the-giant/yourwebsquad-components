@@ -1,0 +1,41 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import TrustBar from "@lib/components/TrustBar/TrustBar.astro";
+
+const props = [
+  { name: "items", type: "{ title, text?, icon?, href? }[]", description: "2 to 6 guarantees." },
+  { name: "variant", type: "\"band\" | \"compact\"", default: "\"band\"", description: "compact: titles only, on one line." },
+  { name: "label", type: "string", default: "\"Our guarantees\"", description: "Accessible name of the list." }
+];
+---
+
+<DocLayout title={"TrustBar"} description={"Two to six short guarantees. One row on large screens, two columns on phones (an odd last item spans the row)."} items={components}>
+  <PropsTable props={props} />
+  <Preview title={"Band, 4 items"} code={"<TrustBar items={[{ icon: \"shield\", title: \"5-year warranty\", text: \"on labour\" }, …]} />"}>
+    <TrustBar items={[
+      { icon: "check", title: "Fixed price", text: "once the design is approved" },
+      { icon: "pdf-download", title: "Permits handled", text: "application, plans, inspections" },
+      { icon: "shield", title: "5-year warranty", text: "on labour" },
+      { icon: "verified", title: "Insured $5M", text: "licensed plumber, WSIB" }
+    ]} />
+  </Preview>
+  <Preview title={"Band, 5 items"} code={"<TrustBar items={[…5 items]} />"}>
+    <TrustBar items={[
+      { icon: "check", title: "Fixed price", text: "once the design is approved" },
+      { icon: "pdf-download", title: "Permits handled", text: "application, plans" },
+      { icon: "shield", title: "5-year warranty", text: "on labour" },
+      { icon: "verified", title: "Insured $5M", text: "licensed plumber" },
+      { icon: "calendar", title: "Free visit", text: "45 minutes at home" }
+    ]} />
+  </Preview>
+  <Preview title={"Compact"} code={"<TrustBar variant=\"compact\" items={[…]} />"}>
+    <TrustBar variant="compact" items={[
+      { icon: "check", title: "Fixed price" },
+      { icon: "shield", title: "5-year warranty" },
+      { icon: "verified", title: "Insured $5M" }
+    ]} />
+  </Preview>
+</DocLayout>
