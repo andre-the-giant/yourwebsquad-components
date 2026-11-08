@@ -75,10 +75,20 @@ const {
         <span data-lightbox-caption>{images[0].caption}</span>
       </figcaption>
     </figure>
-    <button type="button" class="lightbox__nav lightbox__nav--prev" aria-label={prevLabel} data-lightbox-prev>
+    <button
+      type="button"
+      class="lightbox__nav lightbox__nav--prev"
+      aria-label={prevLabel}
+      data-lightbox-prev
+    >
       <Icon name="arrow-left" />
     </button>
-    <button type="button" class="lightbox__nav lightbox__nav--next" aria-label={nextLabel} data-lightbox-next>
+    <button
+      type="button"
+      class="lightbox__nav lightbox__nav--next"
+      aria-label={nextLabel}
+      data-lightbox-next
+    >
       <Icon name="arrow-right" />
     </button>
   </div>
@@ -116,7 +126,9 @@ const {
     // Triggers: links to the full image, upgraded to open the viewer
     document.addEventListener("click", (event) => {
       const trigger =
-        event.target instanceof Element ? event.target.closest<HTMLElement>(`[data-lightbox-open="${id}"]`) : null;
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>(`[data-lightbox-open="${id}"]`)
+          : null;
       if (!trigger) return;
       event.preventDefault();
       show(Number(trigger.dataset.lightboxIndex ?? 0));

@@ -491,8 +491,7 @@ html[data-theme="marbre"] .compare .after {
 }
 
 /* ── Form fields ───────────────────────────────────────────────────────────── */
-html[data-theme="marbre"]
-  :is(.form-input, .form-select, .form-textarea, .form-date, .form-upload) {
+html[data-theme="marbre"] :is(.form-input, .form-select, .form-textarea, .form-date, .form-upload) {
   border-radius: 0;
   font-family: var(--font-body);
 }

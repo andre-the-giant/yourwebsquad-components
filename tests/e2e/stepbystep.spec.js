@@ -63,7 +63,10 @@ test("FilterBar: filters the list, announces the count and keeps the URL", async
   const list = page.locator("#filter-demo > li");
   await expect(list).toHaveCount(3);
   await bar.getByRole("button", { name: /Bathtub/ }).click();
-  await expect(bar.getByRole("button", { name: /Bathtub/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(bar.getByRole("button", { name: /Bathtub/ })).toHaveAttribute(
+    "aria-pressed",
+    "true"
+  );
   await expect(page.locator("#filter-demo > li:visible")).toHaveCount(1);
   await expect(bar.getByRole("status")).toHaveText("1 projects");
   await expect(page).toHaveURL(/type=tub/);

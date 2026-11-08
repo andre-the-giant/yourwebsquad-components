@@ -60,7 +60,12 @@ const props = [
     description:
       "Show this many cards, then a button that adds as many. All cards stay in the HTML; the focus moves to the first new card."
   },
-  { name: "moreLabel", type: "string", default: '"Show more"', description: "Label of the Show more button." },
+  {
+    name: "moreLabel",
+    type: "string",
+    default: '"Show more"',
+    description: "Label of the Show more button."
+  },
   {
     name: "countLabel",
     type: "string",
@@ -90,12 +95,54 @@ const props = [
 ];
 
 const photoItems = [
-  { title: "King Street West", tag: "Walk-in shower", meta: "5 weeks · about $32,000", href: "#", img: "https://picsum.photos/seed/bath1/800/600", alt: "Blue vanity and marble walls" },
-  { title: "Stone house, Sydenham", tag: "Heritage home", meta: "4 weeks · about $24,000", href: "#", img: "https://picsum.photos/seed/bath2/800/600", alt: "Period bathroom with a tall window" },
-  { title: "Freestanding tub", tag: "Bathtub", meta: "5 weeks · about $38,000", href: "#", img: "https://picsum.photos/seed/bath3/800/600", alt: "White tub next to a window" },
-  { title: "Family bathroom", tag: "Small bathroom", meta: "3 weeks · about $19,000", href: "#", img: "https://picsum.photos/seed/bath4/800/600", alt: "White vanity and glass shower" },
-  { title: "Marble suite", tag: "High end", meta: "6 weeks · about $44,000", href: "#", img: "https://picsum.photos/seed/bath5/800/600", alt: "Oval marble tub" },
-  { title: "Step-free shower", tag: "Walk-in shower", meta: "4 weeks · about $27,000", href: "#", img: "https://picsum.photos/seed/bath6/800/600", alt: "Shower by a window" }
+  {
+    title: "King Street West",
+    tag: "Walk-in shower",
+    meta: "5 weeks · about $32,000",
+    href: "#",
+    img: "https://picsum.photos/seed/bath1/800/600",
+    alt: "Blue vanity and marble walls"
+  },
+  {
+    title: "Stone house, Sydenham",
+    tag: "Heritage home",
+    meta: "4 weeks · about $24,000",
+    href: "#",
+    img: "https://picsum.photos/seed/bath2/800/600",
+    alt: "Period bathroom with a tall window"
+  },
+  {
+    title: "Freestanding tub",
+    tag: "Bathtub",
+    meta: "5 weeks · about $38,000",
+    href: "#",
+    img: "https://picsum.photos/seed/bath3/800/600",
+    alt: "White tub next to a window"
+  },
+  {
+    title: "Family bathroom",
+    tag: "Small bathroom",
+    meta: "3 weeks · about $19,000",
+    href: "#",
+    img: "https://picsum.photos/seed/bath4/800/600",
+    alt: "White vanity and glass shower"
+  },
+  {
+    title: "Marble suite",
+    tag: "High end",
+    meta: "6 weeks · about $44,000",
+    href: "#",
+    img: "https://picsum.photos/seed/bath5/800/600",
+    alt: "Oval marble tub"
+  },
+  {
+    title: "Step-free shower",
+    tag: "Walk-in shower",
+    meta: "4 weeks · about $27,000",
+    href: "#",
+    img: "https://picsum.photos/seed/bath6/800/600",
+    alt: "Shower by a window"
+  }
 ];
 const photoCode = `<CardGrid heading="Our projects" items={[{ title, tag, meta, href, img, alt }, …]} initial={3} moreLabel="Show 3 more projects" />`;
 const compactCode = `<CardGrid columns={3} compact items={…} />`;
@@ -107,7 +154,12 @@ const compactCode = `<CardGrid columns={3} compact items={…} />`;
     <CardGrid {...examples[0]} />
   </Preview>
   <Preview title="Photo cards and Show more" code={photoCode}>
-    <CardGrid heading="Our projects" items={photoItems} initial={3} moreLabel="Show 3 more projects" />
+    <CardGrid
+      heading="Our projects"
+      items={photoItems}
+      initial={3}
+      moreLabel="Show 3 more projects"
+    />
   </Preview>
   <Preview title="Compact" code={compactCode}>
     <CardGrid columns={3} compact items={photoItems.slice(0, 3)} />

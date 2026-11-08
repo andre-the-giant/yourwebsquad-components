@@ -127,7 +127,13 @@ const stepsData = steps.map((step) => ({
   data-seconds={String(secondsPerStep)}
   data-has-start={start ? "true" : undefined}
 >
-  {Astro.slots.has("header") && <div class="sbs__header"><slot name="header" /></div>}
+  {
+    Astro.slots.has("header") && (
+      <div class="sbs__header">
+        <slot name="header" />
+      </div>
+    )
+  }
   <div class="sbs__progress" aria-hidden="true"><span data-progress></span></div>
 
   <div class:list={["sbs__layout", Astro.slots.has("aside") && "has-aside"]}>
@@ -205,7 +211,9 @@ const stepsData = steps.map((step) => ({
         </div>
       </form>
 
-      <p class="sbs__calculating" data-calculating hidden aria-live="polite">{labels.calculating}</p>
+      <p class="sbs__calculating" data-calculating hidden aria-live="polite">
+        {labels.calculating}
+      </p>
       <div class="sbs__result" data-result-wrap hidden>
         <slot name="result" />
       </div>

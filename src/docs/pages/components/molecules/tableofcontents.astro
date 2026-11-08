@@ -7,23 +7,48 @@ import TableOfContents from "@lib/components/TableOfContents/TableOfContents.ast
 
 const props = [
   { name: "items", type: "{ label, href }[]", description: "Sections; href is #id." },
-  { name: "title", type: "string", default: "\"On this page\"", description: "Title." },
-  { name: "summaryTemplate", type: "string", default: "\"On this page ({count} sections)\"", description: "Toggle on phones." },
-  { name: "collapseBelow", type: "string", default: "\"56.25rem\"", description: "Width under which it folds." },
-  { name: "sticky", type: "boolean", default: "true", description: "Stays in view on large screens." }
+  { name: "title", type: "string", default: '"On this page"', description: "Title." },
+  {
+    name: "summaryTemplate",
+    type: "string",
+    default: '"On this page ({count} sections)"',
+    description: "Toggle on phones."
+  },
+  {
+    name: "collapseBelow",
+    type: "string",
+    default: '"56.25rem"',
+    description: "Width under which it folds."
+  },
+  {
+    name: "sticky",
+    type: "boolean",
+    default: "true",
+    description: "Stays in view on large screens."
+  }
 ];
 ---
 
-<DocLayout title={"TableOfContents"} description={"The \"On this page\" list of a long page: sticky beside the text on large screens, folded on phones, current section highlighted."} items={components}>
+<DocLayout
+  title={"TableOfContents"}
+  description={'The "On this page" list of a long page: sticky beside the text on large screens, folded on phones, current section highlighted.'}
+  items={components}
+>
   <PropsTable props={props} />
-  <Preview title={"Preview"} code={"<TableOfContents items={[{ label: \"What we collect\", href: \"#c1\" }, …]} />"}>
+  <Preview
+    title={"Preview"}
+    code={'<TableOfContents items={[{ label: "What we collect", href: "#c1" }, …]} />'}
+  >
     <div style="max-width:18rem">
-      <TableOfContents sticky={false} items={[
-        { label: "What we collect", href: "#c1" },
-        { label: "Why we use it", href: "#c2" },
-        { label: "Cookies", href: "#c3" },
-        { label: "Your rights", href: "#c4" }
-      ]} />
+      <TableOfContents
+        sticky={false}
+        items={[
+          { label: "What we collect", href: "#c1" },
+          { label: "Why we use it", href: "#c2" },
+          { label: "Cookies", href: "#c3" },
+          { label: "Your rights", href: "#c4" }
+        ]}
+      />
     </div>
   </Preview>
 </DocLayout>

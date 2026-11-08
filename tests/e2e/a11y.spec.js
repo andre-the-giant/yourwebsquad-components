@@ -46,7 +46,9 @@ const pages = [
   "/components/components/trustbar"
 ];
 
-const allPages = ["light", "plein-jour", "marbre"].flatMap((theme) => pages.map((path) => ({ path, theme })));
+const allPages = ["light", "plein-jour", "marbre"].flatMap((theme) =>
+  pages.map((path) => ({ path, theme }))
+);
 
 for (const { path, theme } of allPages) {
   test(`a11y (${theme}): ${path} has no WCAG A/AA violations`, async ({ page }) => {

@@ -59,7 +59,12 @@ const {
   data-hide-from={hideFrom}
   {...rest}
 >
-  <Button href={primary.href} label={primary.label} variant="solid" class="sticky-actions__primary" />
+  <Button
+    href={primary.href}
+    label={primary.label}
+    variant="solid"
+    class="sticky-actions__primary"
+  />
   {
     secondary && (
       <Button href={secondary.href} variant="outline" class="sticky-actions__secondary">
@@ -74,7 +79,9 @@ const {
   // Hide the bar while a text field has the focus: the on-screen keyboard is open.
   const typing = (el: EventTarget | null) =>
     el instanceof HTMLElement &&
-    (el.matches("input:not([type=checkbox], [type=radio], [type=submit], [type=button]), textarea, select") ||
+    (el.matches(
+      "input:not([type=checkbox], [type=radio], [type=submit], [type=button]), textarea, select"
+    ) ||
       el.isContentEditable);
 
   document.addEventListener("focusin", (event) => {

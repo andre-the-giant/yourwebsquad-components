@@ -14,21 +14,38 @@ const propsTable = [
     type: "string",
     description: "URL of the embed you get on google maps from the business."
   },
-  { name: "title", type: "string", default: '"Google map"', description: "Accessible name of the map frame." },
+  {
+    name: "title",
+    type: "string",
+    default: '"Google map"',
+    description: "Accessible name of the map frame."
+  },
   {
     name: "loadOnClick",
     type: "boolean",
     default: "false",
-    description: "Show a placeholder and load Google only when the visitor asks. Nothing is requested from Google before the click."
+    description:
+      "Show a placeholder and load Google only when the visitor asks. Nothing is requested from Google before the click."
   },
-  { name: "buttonLabel", type: "string", default: '"Show the interactive map"', description: "Label of the load button." },
-  { name: "notice", type: "string", default: '"The map loads from Google when you ask for it."', description: "Short line under the button." },
+  {
+    name: "buttonLabel",
+    type: "string",
+    default: '"Show the interactive map"',
+    description: "Label of the load button."
+  },
+  {
+    name: "notice",
+    type: "string",
+    default: '"The map loads from Google when you ask for it."',
+    description: "Short line under the button."
+  },
   { name: "poster", type: "string", description: "Static image behind the placeholder." },
   {
     name: "loadWithConsent",
     type: "boolean",
     default: "false",
-    description: "With loadOnClick: load at once when the visitor already accepted marketing in the Pipeda banner."
+    description:
+      "With loadOnClick: load at once when the visitor already accepted marketing in the Pipeda banner."
   }
 ];
 const styleVars = [

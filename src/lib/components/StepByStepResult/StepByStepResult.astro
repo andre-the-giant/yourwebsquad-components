@@ -114,9 +114,9 @@ const config = {
   {
     variant === "range" ? (
       <Fragment>
-        <p class="sbs-result__figure" data-figure></p>
+        <p class="sbs-result__figure" data-figure />
         <p class="sbs-result__meta">
-          <span data-duration></span>
+          <span data-duration />
           <span>{taxNote}</span>
         </p>
         <p class="sbs-result__wide" data-wide hidden>
@@ -125,13 +125,25 @@ const config = {
       </Fragment>
     ) : (
       <Fragment>
-        <p class="sbs-result__title" data-title></p>
-        <p class="sbs-result__text" data-text></p>
+        <p class="sbs-result__title" data-title />
+        <p class="sbs-result__text" data-text />
       </Fragment>
     )
   }
-  {Astro.slots.has("default") && <div class="sbs-result__notes"><slot /></div>}
-  {Astro.slots.has("actions") && <div class="sbs-result__actions"><slot name="actions" /></div>}
+  {
+    Astro.slots.has("default") && (
+      <div class="sbs-result__notes">
+        <slot />
+      </div>
+    )
+  }
+  {
+    Astro.slots.has("actions") && (
+      <div class="sbs-result__actions">
+        <slot name="actions" />
+      </div>
+    )
+  }
 </section>
 
 <script>
@@ -200,7 +212,8 @@ const config = {
         currency: c.currency,
         maximumFractionDigits: 0
       });
-      box.querySelector("[data-figure]")!.textContent = `${money.format(min)} – ${money.format(max)}`;
+      box.querySelector("[data-figure]")!.textContent =
+        `${money.format(min)} – ${money.format(max)}`;
       box.querySelector<HTMLElement>("[data-wide]")!.hidden = !wide;
 
       if (c.duration) {

@@ -190,15 +190,17 @@ const resolvedId = id ?? nextId("contact-card");
     const status = card.querySelector<HTMLElement>("[data-contact-status]");
     const live = card.querySelector<HTMLElement>("[data-contact-live]");
 
-    card.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async (event) => {
-      const button = event.currentTarget as HTMLButtonElement;
-      try {
-        await navigator.clipboard.writeText(button.dataset.copy ?? "");
-        if (live) live.textContent = button.dataset.copiedLabel ?? "";
-      } catch {
-        // Clipboard refused: the address stays selectable next to the button.
-      }
-    });
+    card
+      .querySelector<HTMLButtonElement>("[data-copy]")
+      ?.addEventListener("click", async (event) => {
+        const button = event.currentTarget as HTMLButtonElement;
+        try {
+          await navigator.clipboard.writeText(button.dataset.copy ?? "");
+          if (live) live.textContent = button.dataset.copiedLabel ?? "";
+        } catch {
+          // Clipboard refused: the address stays selectable next to the button.
+        }
+      });
 
     if (!status || !card.dataset.schedule) continue;
     let schedule: Slot[] = [];

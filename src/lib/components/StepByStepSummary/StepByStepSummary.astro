@@ -59,7 +59,8 @@ const {
   data-collapse-below={collapseBelow}
   data-toggle-template={toggleTemplate}
 >
-  <summary class="sbs-summary__toggle" data-toggle>{toggleTemplate.replace("{count}", "0")}</summary>
+  <summary class="sbs-summary__toggle" data-toggle>{toggleTemplate.replace("{count}", "0")}</summary
+  >
   <h2 class="sbs-summary__title">{title}</h2>
   <dl class="sbs-summary__list" data-list></dl>
 </details>
@@ -100,7 +101,10 @@ const {
           const button = document.createElement("button");
           button.type = "button";
           button.textContent = d.editLabel ?? "Change";
-          button.setAttribute("aria-label", (d.editTemplate ?? "Change: {title}").replace("{title}", step.title));
+          button.setAttribute(
+            "aria-label",
+            (d.editTemplate ?? "Change: {title}").replace("{title}", step.title)
+          );
           button.addEventListener("click", () =>
             root.dispatchEvent(new CustomEvent("stepbystep:goto", { detail: { stepId: step.id } }))
           );
@@ -121,7 +125,9 @@ const {
       const detail = (event as CustomEvent).detail;
       render(detail.answers ?? {}, detail.current ?? 0);
     });
-    const state = (root as HTMLElement & { sbsState?: { answers?: Record<string, string>; current?: number } }).sbsState;
+    const state = (
+      root as HTMLElement & { sbsState?: { answers?: Record<string, string>; current?: number } }
+    ).sbsState;
     render(state?.answers ?? {}, state?.current ?? 0);
   }
 </script>

@@ -162,7 +162,9 @@ const sortId = `${resolvedId}-sort`;
     if (bar.dataset.showCounts === "true") {
       for (const chip of chips) {
         const value = chip.dataset.filterValue ?? "";
-        const n = value ? items().filter((el) => tagsOf(el).includes(value)).length : items().length;
+        const n = value
+          ? items().filter((el) => tagsOf(el).includes(value)).length
+          : items().length;
         const count = chip.querySelector<HTMLElement>("[data-count]");
         if (count) count.textContent = String(n);
       }
@@ -175,7 +177,10 @@ const sortId = `${resolvedId}-sort`;
     const apply = (updateUrl: boolean) => {
       // A CardGrid "Show more" would hide matches: reveal everything while filtering
       if (active.length) {
-        list.closest(".cardgrid")?.querySelectorAll<HTMLElement>("[data-cardgrid-more]").forEach((m) => (m.hidden = true));
+        list
+          .closest(".cardgrid")
+          ?.querySelectorAll<HTMLElement>("[data-cardgrid-more]")
+          .forEach((m) => (m.hidden = true));
       }
       let shown = 0;
       for (const el of items()) {

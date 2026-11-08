@@ -9,26 +9,95 @@ import Card from "@lib/components/Card/Card.astro";
 const props = [
   { name: "target", type: "string", description: "Id of the list to filter." },
   { name: "filters", type: "{ label, value }[]", description: "Filters." },
-  { name: "allLabel", type: "string", default: "\"All\"", description: "First filter." },
+  { name: "allLabel", type: "string", default: '"All"', description: "First filter." },
   { name: "multiple", type: "boolean", default: "false", description: "Several filters at once." },
-  { name: "showCounts", type: "boolean", default: "true", description: "Item count on each filter." },
-  { name: "param", type: "string", default: "\"type\"", description: "URL parameter." },
-  { name: "sort", type: "{ label, options: { label, value, key, order? }[] }", description: "Optional sort select; key names data-sort-<key> on items." },
-  { name: "countTemplate", type: "string", default: "\"{count} items\"", description: "Announced count." },
-  { name: "emptyText", type: "string", default: "\"Nothing for this filter yet.\"", description: "Empty state." },
-  { name: "resetLabel", type: "string", default: "\"Show all\"", description: "Reset button." },
-  { name: "label", type: "string", default: "\"Filter by type\"", description: "Accessible name of the group." }
+  {
+    name: "showCounts",
+    type: "boolean",
+    default: "true",
+    description: "Item count on each filter."
+  },
+  { name: "param", type: "string", default: '"type"', description: "URL parameter." },
+  {
+    name: "sort",
+    type: "{ label, options: { label, value, key, order? }[] }",
+    description: "Optional sort select; key names data-sort-<key> on items."
+  },
+  {
+    name: "countTemplate",
+    type: "string",
+    default: '"{count} items"',
+    description: "Announced count."
+  },
+  {
+    name: "emptyText",
+    type: "string",
+    default: '"Nothing for this filter yet."',
+    description: "Empty state."
+  },
+  { name: "resetLabel", type: "string", default: '"Show all"', description: "Reset button." },
+  {
+    name: "label",
+    type: "string",
+    default: '"Filter by type"',
+    description: "Accessible name of the group."
+  }
 ];
 ---
 
-<DocLayout title={"FilterBar"} description={"Toggle filters for any list on the page. Items carry data-tags. The filter is kept in the URL; without JS the filters are links and the list stays whole."} items={components}>
+<DocLayout
+  title={"FilterBar"}
+  description={"Toggle filters for any list on the page. Items carry data-tags. The filter is kept in the URL; without JS the filters are links and the list stays whole."}
+  items={components}
+>
   <PropsTable props={props} />
-  <Preview title={"With a CardGrid"} code={"<FilterBar target=\"projects-list\" filters={[{ label: \"Walk-in shower\", value: \"shower\" }, …]} />\n<CardGrid id=\"projects\" items={[{ …, tags: [\"shower\"] }]} />"}>
-    <FilterBar target="filter-demo" filters={[{ label: "Walk-in shower", value: "shower" }, { label: "Bathtub", value: "tub" }, { label: "Heritage home", value: "heritage" }]} countTemplate="{count} projects" />
-    <ul id="filter-demo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem;list-style:none;padding:0;margin:1.5rem 0 0">
-      <Card as="li" title="King Street West" tag="Walk-in shower" meta="5 weeks" href="#" img="https://picsum.photos/seed/f1/800/600" alt="Marble shower" tags={["shower", "heritage"]} />
-      <Card as="li" title="Portsmouth" tag="Bathtub" meta="5 weeks" href="#" img="https://picsum.photos/seed/f2/800/600" alt="Bathtub" tags={["tub"]} />
-      <Card as="li" title="Sydenham" tag="Heritage home" meta="4 weeks" href="#" img="https://picsum.photos/seed/f3/800/600" alt="Period bathroom" tags={["heritage"]} />
+  <Preview
+    title={"With a CardGrid"}
+    code={'<FilterBar target="projects-list" filters={[{ label: "Walk-in shower", value: "shower" }, …]} />\n<CardGrid id="projects" items={[{ …, tags: ["shower"] }]} />'}
+  >
+    <FilterBar
+      target="filter-demo"
+      filters={[
+        { label: "Walk-in shower", value: "shower" },
+        { label: "Bathtub", value: "tub" },
+        { label: "Heritage home", value: "heritage" }
+      ]}
+      countTemplate="{count} projects"
+    />
+    <ul
+      id="filter-demo"
+      style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem;list-style:none;padding:0;margin:1.5rem 0 0"
+    >
+      <Card
+        as="li"
+        title="King Street West"
+        tag="Walk-in shower"
+        meta="5 weeks"
+        href="#"
+        img="https://picsum.photos/seed/f1/800/600"
+        alt="Marble shower"
+        tags={["shower", "heritage"]}
+      />
+      <Card
+        as="li"
+        title="Portsmouth"
+        tag="Bathtub"
+        meta="5 weeks"
+        href="#"
+        img="https://picsum.photos/seed/f2/800/600"
+        alt="Bathtub"
+        tags={["tub"]}
+      />
+      <Card
+        as="li"
+        title="Sydenham"
+        tag="Heritage home"
+        meta="4 weeks"
+        href="#"
+        img="https://picsum.photos/seed/f3/800/600"
+        alt="Period bathroom"
+        tags={["heritage"]}
+      />
     </ul>
   </Preview>
 </DocLayout>

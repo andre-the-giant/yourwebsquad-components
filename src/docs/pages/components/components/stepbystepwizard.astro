@@ -26,23 +26,62 @@ const wizardProps = [
     description:
       "step, remaining, back, next, finish, error, errorHint, resume, resumeContinue, resumeRestart, calculating."
   },
-  { name: "storageKey", type: "string", description: "Answers are kept in the browser under this key." },
-  { name: "secondsPerStep", type: "number", default: "15", description: "For the remaining-time line." }
+  {
+    name: "storageKey",
+    type: "string",
+    description: "Answers are kept in the browser under this key."
+  },
+  {
+    name: "secondsPerStep",
+    type: "number",
+    default: "15",
+    description: "For the remaining-time line."
+  }
 ];
 
 const summaryProps = [
   { name: "title", type: "string", default: '"Your answers"', description: "Title." },
   { name: "editLabel", type: "string", default: '"Change"', description: "Visible link text." },
-  { name: "editTemplate", type: "string", default: '"Change: {title}"', description: "Accessible text." },
-  { name: "pendingLabel", type: "string", default: '"In progress"', description: "Current question." },
+  {
+    name: "editTemplate",
+    type: "string",
+    default: '"Change: {title}"',
+    description: "Accessible text."
+  },
+  {
+    name: "pendingLabel",
+    type: "string",
+    default: '"In progress"',
+    description: "Current question."
+  },
   { name: "emptyLabel", type: "string", default: '"–"', description: "Questions not reached yet." },
-  { name: "collapseBelow", type: "string", default: '"64rem"', description: "Folds under this width." },
-  { name: "toggleTemplate", type: "string", default: '"Your answers ({count})"', description: "Toggle on phones." }
+  {
+    name: "collapseBelow",
+    type: "string",
+    default: '"64rem"',
+    description: "Folds under this width."
+  },
+  {
+    name: "toggleTemplate",
+    type: "string",
+    default: '"Your answers ({count})"',
+    description: "Toggle on phones."
+  }
 ];
 
 const resultProps = [
-  { name: "variant", type: '"range" | "text"', default: '"range"', description: "Price range or text." },
-  { name: "eyebrow", type: "string", default: '"Your estimate"', description: "Title of the screen." },
+  {
+    name: "variant",
+    type: '"range" | "text"',
+    default: '"range"',
+    description: "Price range or text."
+  },
+  {
+    name: "eyebrow",
+    type: "string",
+    default: '"Your estimate"',
+    description: "Title of the screen."
+  },
   {
     name: "pricing",
     type: "{ base: { min, max }, rules?: { [stepId]: { [value]: { factor?, add?, widen? } } }, round? }",
@@ -53,14 +92,38 @@ const resultProps = [
     type: "{ base: { min, max }, rules? }",
     description: "Duration computation, shown with durationTemplate."
   },
-  { name: "durationTemplate", type: "string", default: '"{min} to {max} weeks"', description: "Duration line." },
+  {
+    name: "durationTemplate",
+    type: "string",
+    default: '"{min} to {max} weeks"',
+    description: "Duration line."
+  },
   { name: "currency", type: "string", default: '"CAD"', description: "ISO currency." },
   { name: "locale", type: "string", default: '"en-CA"', description: "fr-CA gives 22 000 $." },
-  { name: "unsureValue", type: "string", default: '"unsure"', description: "Value meaning not sure yet." },
-  { name: "wideAfter", type: "number", default: "2", description: "Unsure answers before the range widens." },
+  {
+    name: "unsureValue",
+    type: "string",
+    default: '"unsure"',
+    description: "Value meaning not sure yet."
+  },
+  {
+    name: "wideAfter",
+    type: "number",
+    default: "2",
+    description: "Unsure answers before the range widens."
+  },
   { name: "wideNote", type: "string", description: "Shown when the range widens." },
-  { name: "taxNote", type: "string", default: '"taxes extra"', description: "Next to the duration." },
-  { name: "outcomeStep / outcomes", type: "string / { [value]: { title, text } }", description: "Text variant." }
+  {
+    name: "taxNote",
+    type: "string",
+    default: '"taxes extra"',
+    description: "Next to the duration."
+  },
+  {
+    name: "outcomeStep / outcomes",
+    type: "string / { [value]: { title, text } }",
+    description: "Text variant."
+  }
 ];
 
 const steps = [
@@ -92,10 +155,22 @@ const steps = [
     question: "Which level of finish do you picture?",
     help: "It helps us pick the materials of the estimate. You can change everything at the design stage.",
     options: [
-      { value: "essential", label: "Essential", description: "Ceramic, chrome fixtures, stock vanity." },
-      { value: "comfort", label: "Comfort", description: "Large porcelain, glass shower, custom vanity." },
+      {
+        value: "essential",
+        label: "Essential",
+        description: "Ceramic, chrome fixtures, stock vanity."
+      },
+      {
+        value: "comfort",
+        label: "Comfort",
+        description: "Large porcelain, glass shower, custom vanity."
+      },
       { value: "premium", label: "Premium", description: "Marble, heated floor, custom niche." },
-      { value: "unsure", label: "Not sure yet", description: "We will show you samples at the visit." }
+      {
+        value: "unsure",
+        label: "Not sure yet",
+        description: "We will show you samples at the visit."
+      }
     ]
   }
 ];
@@ -153,10 +228,16 @@ const code = `<StepByStepWizard id="quote" steps={steps} start={{ title: "How mu
       <StepByStepSummary slot="aside" />
       <StepByStepResult slot="result" pricing={pricing} duration={duration}>
         <p>
-          <b>Indicative price.</b> It varies with the materials, the exact size and the state of the
-          room. The price is fixed once the design is approved.
+          <b>Indicative price.</b> It varies with the materials, the exact size and the state of the room.
+          The price is fixed once the design is approved.
         </p>
-        <List items={["Design, plans and city permit", "Demolition, plumbing, electrical", "5-year warranty on labour"]} />
+        <List
+          items={[
+            "Design, plans and city permit",
+            "Demolition, plumbing, electrical",
+            "5-year warranty on labour"
+          ]}
+        />
       </StepByStepResult>
       <input type="hidden" name="answers" data-stepbystep-answers />
       <input type="hidden" name="range" data-stepbystep-result />

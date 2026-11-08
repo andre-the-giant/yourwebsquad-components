@@ -8,24 +8,58 @@ import Lightbox from "@lib/components/Lightbox/Lightbox.astro";
 const props = [
   { name: "id", type: "string", description: "Referenced by triggers (data-lightbox-open)." },
   { name: "images", type: "{ src, alt, caption? }[]", description: "Photos." },
-  { name: "label", type: "string", default: "\"Photos\"", description: "Accessible name." },
-  { name: "closeLabel", type: "string", default: "\"Close\"", description: "Close button." },
-  { name: "prevLabel", type: "string", default: "\"Previous photo\"", description: "Previous button." },
-  { name: "nextLabel", type: "string", default: "\"Next photo\"", description: "Next button." },
-  { name: "counterTemplate", type: "string", default: "\"{index} / {total}\"", description: "Counter." }
+  { name: "label", type: "string", default: '"Photos"', description: "Accessible name." },
+  { name: "closeLabel", type: "string", default: '"Close"', description: "Close button." },
+  {
+    name: "prevLabel",
+    type: "string",
+    default: '"Previous photo"',
+    description: "Previous button."
+  },
+  { name: "nextLabel", type: "string", default: '"Next photo"', description: "Next button." },
+  {
+    name: "counterTemplate",
+    type: "string",
+    default: '"{index} / {total}"',
+    description: "Counter."
+  }
 ];
 ---
 
-<DocLayout title={"Lightbox"} description={"Full-screen photo viewer built on Modal (size=\"full\"). Arrows, counter, caption, swipe; left/right keys, Escape closes, focus returns to the photo."} items={components}>
+<DocLayout
+  title={"Lightbox"}
+  description={'Full-screen photo viewer built on Modal (size="full"). Arrows, counter, caption, swipe; left/right keys, Escape closes, focus returns to the photo.'}
+  items={components}
+>
   <PropsTable props={props} />
-  <Preview title={"Preview"} code={"<a href=\"full.jpg\" data-lightbox-open=\"gallery\" data-lightbox-index=\"0\"><img src=\"thumb.jpg\" alt=\"…\" /></a>\n<Lightbox id=\"gallery\" images={[…]} />"}>
+  <Preview
+    title={"Preview"}
+    code={'<a href="full.jpg" data-lightbox-open="gallery" data-lightbox-index="0"><img src="thumb.jpg" alt="…" /></a>\n<Lightbox id="gallery" images={[…]} />'}
+  >
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;max-width:36rem">
-      {[1, 2, 3].map((n, i) => (
-        <a href={`https://picsum.photos/seed/lb${n}/1600/1100`} data-lightbox-open="lightbox-demo" data-lightbox-index={i}>
-          <img src={`https://picsum.photos/seed/lb${n}/400/300`} alt={`Photo ${n} of the project`} style="display:block;width:100%" />
-        </a>
-      ))}
+      {
+        [1, 2, 3].map((n, i) => (
+          <a
+            href={`https://picsum.photos/seed/lb${n}/1600/1100`}
+            data-lightbox-open="lightbox-demo"
+            data-lightbox-index={i}
+          >
+            <img
+              src={`https://picsum.photos/seed/lb${n}/400/300`}
+              alt={`Renovated bathroom, view ${n}`}
+              style="display:block;width:100%"
+            />
+          </a>
+        ))
+      }
     </div>
-    <Lightbox id="lightbox-demo" images={[1, 2, 3].map((n) => ({ src: `https://picsum.photos/seed/lb${n}/1600/1100`, alt: `Photo ${n} of the project`, caption: `Detail ${n}` }))} />
+    <Lightbox
+      id="lightbox-demo"
+      images={[1, 2, 3].map((n) => ({
+        src: `https://picsum.photos/seed/lb${n}/1600/1100`,
+        alt: `Renovated bathroom, view ${n}`,
+        caption: `Detail ${n}`
+      }))}
+    />
   </Preview>
 </DocLayout>
