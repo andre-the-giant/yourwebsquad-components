@@ -46,6 +46,7 @@
     "./tokens.css": "./src/lib/styles/tokens.css",
     "./themes": "./src/lib/themes/index.js",
     "./themes/plein-jour.css": "./src/lib/themes/plein-jour.css",
+    "./themes/marbre.css": "./src/lib/themes/marbre.css",
     "./Accordion": "./src/lib/components/Accordion/Accordion.astro",
     "./Alert": "./src/lib/components/Alert/Alert.astro",
     "./Button": "./src/lib/components/Button/Button.astro",

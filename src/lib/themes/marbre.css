@@ -1,0 +1,827 @@
+/* =============================================================================
+   Marbre — theme of the bathroom-renovation template (demo: BathroomMate)
+
+   Opt-in only:
+     import "yourwebsquad-components/tokens.css";
+     import "yourwebsquad-components/themes/marbre.css";
+     <html data-theme="marbre">
+
+   Every rule sits behind [data-theme="marbre"], so a site that does not set
+   this attribute renders exactly as before, even if it imports this file.
+
+   Look: white marble, soft spa blue, lake blue for actions, warm charcoal for
+   text and dark sections. Square corners everywhere and no drop shadows:
+   surfaces are told apart by their background and, when needed, a 1px rule.
+   Never navy.
+
+   Fonts are not shipped here. Marcellus and Manrope are SIL OFL: the site
+   self-hosts them (for example @fontsource/marcellus and
+   @fontsource-variable/manrope). The stacks below fall back to system fonts.
+
+   Contrast (WCAG 2.2 AA), checked on the charte:
+     charcoal #2A2826 on marble #F7F8F7 13.8:1 · muted #5E5B57 6.3:1
+     lake #3F6F86 on marble 5.15:1 · white on lake 5.48:1
+     charcoal on spa #A9C7D3 8.25:1 (button in dark sections)
+     field border #7D7A75 ≥ 3.9:1 on every light background
+   ============================================================================= */
+
+html[data-theme="marbre"] {
+  color-scheme: light;
+
+  /* ── §1 Theme contract ───────────────────────────────────────────────────── */
+  --color-bg-rgb: 247, 248, 247;
+  --color-fg-rgb: 42, 40, 38;
+  --color-bg: rgb(var(--color-bg-rgb));
+  --color-fg: rgb(var(--color-fg-rgb));
+  --color-surface: rgb(239, 245, 247);
+  --color-border: rgb(201, 210, 215);
+  --color-muted: rgb(94, 91, 87);
+
+  --color-accent: rgb(63, 111, 134);
+  --color-accent-contrast: rgb(255, 255, 255);
+  --color-accent-muted: rgb(227, 238, 242);
+  --color-focus: rgb(63, 111, 134);
+
+  --color-shadow: transparent;
+  --color-scrim: rgba(42, 40, 38, 0.55);
+
+  --color-inverse-surface: rgb(42, 40, 38);
+  --color-inverse-fg: rgb(244, 242, 238);
+
+  --color-info-rgb: 36, 92, 128;
+  --color-success-rgb: 47, 102, 56;
+  --color-warning-rgb: 125, 86, 0;
+  --color-danger-rgb: 161, 53, 42;
+  --color-info-text: rgb(36, 92, 128);
+  --color-success-text: rgb(47, 102, 56);
+  --color-warning-text: rgb(125, 86, 0);
+  --color-danger-text: rgb(161, 53, 42);
+
+  /* Theme-only colours (not part of the shared contract) */
+  --marbre-surface-raised: rgb(255, 255, 255);
+  --marbre-border-strong: rgb(125, 122, 117);
+  --marbre-accent-hover: rgb(51, 90, 109);
+  --marbre-spa: rgb(169, 199, 211);
+  --marbre-spa-hover: rgb(195, 217, 226);
+  --marbre-inverse-muted: rgb(189, 184, 177);
+  --marbre-focus-inverse: rgb(207, 227, 235);
+
+  /* ── §2 Scale ────────────────────────────────────────────────────────────── */
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Marcellus", "Trajan Pro", Georgia, serif;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  --type-heading-weight: 400;
+  --type-h1: clamp(2.375rem, 1.56rem + 3.6vw, 4.375rem);
+  --type-h1-line: 1.04;
+  --type-h1-tracking: -0.01em;
+  --type-h2: clamp(1.75rem, 1.28rem + 2.1vw, 2.75rem);
+  --type-h2-line: 1.12;
+  --type-h2-tracking: 0;
+  --type-h3: clamp(1.375rem, 1.27rem + 0.45vw, 1.625rem);
+  --type-h3-line: 1.22;
+  --type-h3-tracking: 0;
+  --type-lead: clamp(1.0625rem, 1.01rem + 0.25vw, 1.25rem);
+
+  /* ── §3 Components ───────────────────────────────────────────────────────── */
+  --form-field-gap: 0.375rem;
+  --form-label-font-size: 0.9375rem;
+  --form-input-padding: 0.75rem 0.875rem;
+  --form-input-border: 1px solid var(--marbre-border-strong);
+  --form-input-border-radius: 0;
+  --form-input-bg: var(--marbre-surface-raised);
+  --form-input-focus: var(--color-focus);
+  --color-fg-muted: var(--color-muted);
+
+  --button-font: var(--font-body);
+  --button-solid-bg: var(--color-accent);
+  --button-solid-fg: var(--color-accent-contrast);
+  --button-solid-border: var(--color-accent);
+  --button-solid-shadow: none;
+  --button-solid-hover-bg: var(--marbre-accent-hover);
+  --button-solid-hover-fg: var(--color-accent-contrast);
+  /* "outline" is the white secondary button of this theme */
+  --button-outline-bg: var(--marbre-surface-raised);
+  --button-outline-fg: var(--color-fg);
+  --button-outline-border: var(--color-border);
+  --button-outline-hover-bg: var(--marbre-surface-raised);
+  --button-outline-hover-fg: var(--color-fg);
+  --button-ghost-fg: var(--color-accent);
+  --button-focus: var(--color-focus);
+
+  --modal-surface: var(--marbre-surface-raised);
+  --modal-border: var(--color-border);
+  --modal-shadow: none;
+  --modal-radius: 0;
+
+  --plan-featured-muted: var(--color-muted);
+  --star-filled: var(--color-accent);
+  --star-empty: var(--color-border);
+
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+/* ── Base type ─────────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] *,
+html[data-theme="marbre"] *::before,
+html[data-theme="marbre"] *::after {
+  box-sizing: border-box;
+}
+
+html[data-theme="marbre"] body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="marbre"] h1,
+html[data-theme="marbre"] h2,
+html[data-theme="marbre"] h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+html[data-theme="marbre"] h4,
+html[data-theme="marbre"] h5,
+html[data-theme="marbre"] h6 {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+html[data-theme="marbre"] h1 {
+  font-size: var(--type-h1);
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+html[data-theme="marbre"] h2 {
+  font-size: var(--type-h2);
+  line-height: var(--type-h2-line);
+}
+
+html[data-theme="marbre"] h3 {
+  font-size: var(--type-h3);
+  line-height: var(--type-h3-line);
+}
+
+html[data-theme="marbre"] h4 {
+  font-size: clamp(1.125rem, 1.08rem + 0.2vw, 1.25rem);
+  line-height: 1.35;
+}
+
+html[data-theme="marbre"] h5 {
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
+html[data-theme="marbre"] h6 {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+html[data-theme="marbre"] p {
+  text-wrap: pretty;
+}
+
+/* Links in running text: lake blue, underline thickens on hover */
+html[data-theme="marbre"] a:not(.button) {
+  color: var(--color-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition:
+    color 150ms ease-out,
+    text-decoration-thickness 150ms ease-out;
+}
+
+html[data-theme="marbre"] a:not(.button):hover {
+  color: var(--marbre-accent-hover);
+  text-decoration-thickness: 2px;
+}
+
+html[data-theme="marbre"] :is(a, button, summary, input, select, textarea):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* The focus never slides under the sticky header or the mobile bar (WCAG 2.4.11) */
+html[data-theme="marbre"] {
+  scroll-padding-top: 5rem;
+  scroll-padding-bottom: 5rem;
+}
+
+/* ── Button: square, flat, lake blue ───────────────────────────────────────── */
+html[data-theme="marbre"] .button {
+  min-height: 3.375rem;
+  padding: 0 1.75rem;
+  border-width: 1.5px;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    color 150ms ease-out;
+}
+
+html[data-theme="marbre"] .button--solid {
+  background: var(--button-solid-bg);
+  border-color: var(--button-solid-border);
+  color: var(--button-solid-fg);
+}
+
+html[data-theme="marbre"] .button--solid:hover {
+  background: var(--button-solid-hover-bg);
+  border-color: var(--button-solid-hover-bg);
+  color: var(--button-solid-hover-fg);
+  box-shadow: none;
+  transform: none;
+}
+
+html[data-theme="marbre"] .button--outline {
+  background: var(--button-outline-bg);
+  border-color: var(--button-outline-border);
+  color: var(--button-outline-fg);
+}
+
+html[data-theme="marbre"] .button--outline:hover {
+  background: var(--button-outline-hover-bg);
+  border-color: var(--color-accent);
+  color: var(--button-outline-hover-fg);
+  box-shadow: none;
+  transform: none;
+}
+
+html[data-theme="marbre"] .button--ghost,
+html[data-theme="marbre"] .button--ghost:hover {
+  min-height: 2.75rem;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: var(--button-ghost-fg);
+}
+
+html[data-theme="marbre"] .button--ghost:hover {
+  color: var(--marbre-accent-hover);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
+}
+
+html[data-theme="marbre"] .button--lg {
+  min-height: 3.75rem;
+  padding: 0 2rem;
+  font-size: 1.0625rem;
+}
+
+html[data-theme="marbre"] .button--sm,
+html[data-theme="marbre"] .button--xs {
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  font-size: 0.9375rem;
+}
+
+html[data-theme="marbre"] .button:is(:disabled, [aria-disabled="true"]) {
+  background: rgb(233, 237, 238);
+  border-color: rgb(233, 237, 238);
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+@media (max-width: 39.99rem) {
+  html[data-theme="marbre"] .button--lg {
+    width: 100%;
+    padding: 0 1.25rem;
+  }
+}
+
+/* ── Bands ─────────────────────────────────────────────────────────────────── */
+/* Charcoal sections (call-to-action blocks, one section per long page) */
+html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) {
+  background: var(--color-inverse-surface);
+  color: var(--color-inverse-fg);
+  --color-muted: var(--marbre-inverse-muted);
+  --color-border: rgb(74, 70, 66);
+  --color-focus: var(--marbre-focus-inverse);
+  --button-solid-bg: var(--marbre-spa);
+  --button-solid-border: var(--marbre-spa);
+  --button-solid-fg: var(--color-fg);
+  --button-solid-hover-bg: var(--marbre-spa-hover);
+  --button-solid-hover-fg: rgb(42, 40, 38);
+  --button-outline-bg: transparent;
+  --button-outline-fg: var(--color-inverse-fg);
+  --button-outline-border: var(--marbre-inverse-muted);
+  --button-outline-hover-bg: transparent;
+  --button-outline-hover-fg: var(--color-inverse-fg);
+  --button-ghost-fg: var(--marbre-spa);
+  --star-filled: var(--marbre-spa);
+}
+
+html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) .button--solid {
+  color: rgb(42, 40, 38);
+}
+
+html[data-theme="marbre"] :is(.band--inverse, [data-tone="inverse"]) a:not(.button) {
+  color: var(--marbre-spa);
+}
+
+/* Soft spa band, laid on the marble */
+html[data-theme="marbre"] .band--accent {
+  background: var(--color-accent-muted);
+  color: var(--color-fg);
+}
+
+html[data-theme="marbre"] .band--surface {
+  background: var(--color-surface);
+}
+
+html[data-theme="marbre"] .plan--featured {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  background: var(--marbre-surface-raised);
+  color: var(--color-fg);
+  box-shadow: none;
+}
+
+/* ── Forms ─────────────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] :is(.form-input, .form-select, .form-textarea) {
+  min-height: 3.25rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-fg);
+}
+
+html[data-theme="marbre"] .form-label {
+  font-weight: 600;
+}
+
+html[data-theme="marbre"] .form-error {
+  font-weight: 500;
+}
+
+html[data-theme="marbre"] :is(.form-input, .form-select, .form-textarea)[aria-invalid="true"] {
+  border-color: var(--color-danger-text);
+  border-width: 2px;
+}
+
+/* ── Modal ─────────────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] .modal {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-theme="marbre"] .modal::backdrop {
+  background: var(--color-scrim);
+  backdrop-filter: none;
+}
+
+html[data-theme="marbre"] .modal__close {
+  border: 0;
+  border-radius: 0;
+  background: rgb(239, 245, 247);
+  color: var(--color-accent);
+}
+
+html[data-theme="marbre"] .modal__close:hover {
+  background: var(--color-accent-muted);
+}
+
+html[data-theme="marbre"] .modal__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.4rem + 1vw, 2.25rem);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+/* ── Motion ────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="marbre"] :is(.button, a, img) {
+    transition: none;
+  }
+
+  html[data-theme="marbre"] {
+    scroll-behavior: auto;
+  }
+}
+
+/* ── Accordion: plain ruled list ───────────────────────────────────────────── */
+html[data-theme="marbre"] .accordion {
+  border-top: 1px solid var(--color-border);
+}
+
+html[data-theme="marbre"] .accordion [data-accordion] {
+  min-height: 4.25rem;
+  padding-block: 1rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: none;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: start;
+}
+
+html[data-theme="marbre"] .accordion [data-accordion]:hover {
+  color: var(--color-accent);
+}
+
+html[data-theme="marbre"] .accordion [data-accordion-target] {
+  --accordion-panel-padding: 0 3.5rem 1.5rem 0;
+  color: var(--color-muted);
+}
+
+/* ── Alert: tinted background, tone in the icon ────────────────────────────── */
+html[data-theme="marbre"] .alert.alert {
+  --alert-bg: rgba(var(--alert-tone), 0.1);
+  --alert-fg: var(--color-fg);
+  border: 0;
+  border-radius: 0;
+}
+
+html[data-theme="marbre"] .alert.alert--solid {
+  --alert-bg: rgb(var(--alert-tone));
+  --alert-fg: rgb(255, 255, 255);
+}
+
+html[data-theme="marbre"] .alert .alert__icon {
+  color: rgb(var(--alert-tone));
+}
+
+html[data-theme="marbre"] .alert.alert--solid .alert__icon {
+  color: inherit;
+}
+
+html[data-theme="marbre"] .alert .alert__title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* ── Comparison slider ─────────────────────────────────────────────────────── */
+html[data-theme="marbre"] .compare {
+  --comparison-border: 2px solid rgb(255, 255, 255);
+  --comparison-before-bg: rgb(255, 255, 255) !important;
+  --comparison-before-color: var(--color-fg) !important;
+  --comparison-after-bg: rgb(255, 255, 255) !important;
+  --comparison-after-color: var(--color-fg) !important;
+}
+
+html[data-theme="marbre"] .compare .before,
+html[data-theme="marbre"] .compare .after {
+  border-radius: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ── Form fields ───────────────────────────────────────────────────────────── */
+html[data-theme="marbre"]
+  :is(.form-input, .form-select, .form-textarea, .form-date, .form-upload) {
+  border-radius: 0;
+  font-family: var(--font-body);
+}
+
+html[data-theme="marbre"] .form-date {
+  min-height: 3.25rem;
+  font-size: 1rem;
+}
+
+html[data-theme="marbre"] .form-textarea {
+  min-height: 8rem;
+}
+
+html[data-theme="marbre"] .form-select {
+  appearance: none;
+  padding-inline-end: 3rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-fg) 50%),
+    linear-gradient(135deg, var(--color-fg) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.375rem) 50%,
+    calc(100% - 0.9375rem) 50%;
+  background-size: 0.4375rem 0.4375rem;
+  background-repeat: no-repeat;
+}
+
+html[data-theme="marbre"] :is(.form-input, .form-select, .form-textarea, .form-date):disabled {
+  border-color: var(--color-border);
+  background-color: rgb(233, 237, 238);
+  color: var(--color-muted);
+  opacity: 1;
+}
+
+html[data-theme="marbre"] .form-help {
+  font-size: 0.9375rem;
+  color: var(--color-muted);
+}
+
+html[data-theme="marbre"] .form-error {
+  font-size: 0.9375rem;
+}
+
+html[data-theme="marbre"] .form-title {
+  font-family: var(--font-display);
+  font-size: var(--type-h3);
+  font-weight: 400;
+}
+
+html[data-theme="marbre"] .form-alert-link {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--marbre-surface-raised);
+  font-weight: 600;
+}
+
+html[data-theme="marbre"] .form-alert-link:hover {
+  transform: none;
+  border-color: var(--color-accent);
+}
+
+/* Fieldset: one question of StepByStepWizard, legend in the display face */
+html[data-theme="marbre"] .form-fieldset {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  gap: 1rem;
+}
+
+html[data-theme="marbre"] .form-fieldset__legend {
+  font-family: var(--font-display);
+  font-size: var(--type-h3);
+  font-weight: 400;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+html[data-theme="marbre"] .form-fieldset__body {
+  gap: 0.75rem;
+}
+
+/* Checkbox (switch) : square track, lake blue when on */
+html[data-theme="marbre"] .form-field .toggle {
+  --toggle-radius: 0 !important;
+  --toggle-unchecked: rgb(255, 255, 255) !important;
+  --toggle-checked: var(--color-accent) !important;
+  --toggle-thumb: var(--marbre-border-strong) !important;
+  box-shadow: inset 0 0 0 1px var(--marbre-border-strong);
+}
+
+html[data-theme="marbre"] .form-field .toggle::after {
+  box-shadow: none;
+}
+
+html[data-theme="marbre"] .form-field .toggle-input:checked + .toggle {
+  box-shadow: none;
+}
+
+html[data-theme="marbre"] .form-field .toggle-input:checked + .toggle::after {
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="marbre"] .toggle-input:focus-visible + .toggle {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+html[data-theme="marbre"] :is(.toggle-row, .radio-row) {
+  min-height: 3rem;
+}
+
+html[data-theme="marbre"] :is(.toggle-row, .radio-row) .label-text {
+  font-size: 1rem;
+}
+
+/* Radio: square, filled lake blue when chosen */
+html[data-theme="marbre"] .radio {
+  --radio-color: var(--color-accent) !important;
+  --radio-size: 1.25rem !important;
+  border: 1.5px solid var(--marbre-border-strong);
+  border-radius: 0;
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="marbre"] .radio-input:checked + .radio {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+html[data-theme="marbre"] .radio::after {
+  border-radius: 0;
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="marbre"] .radio-input:focus-visible + .radio {
+  box-shadow: none;
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* Upload */
+html[data-theme="marbre"] .form-upload {
+  border: 1px dashed var(--marbre-border-strong);
+  background: var(--color-bg);
+}
+
+html[data-theme="marbre"] .form-upload-trigger,
+html[data-theme="marbre"] .form-upload-thumb__remove {
+  --form-upload-button-padding: 0 1rem;
+  min-height: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: rgb(255, 255, 255);
+  color: var(--color-fg);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+html[data-theme="marbre"] .form-upload-trigger:hover,
+html[data-theme="marbre"] .form-upload-thumb__remove:hover {
+  filter: none;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+html[data-theme="marbre"] .form-upload-thumb {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+/* ── Google reviews ────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] .googlereviews {
+  --googlereviews-radius: 0 !important;
+  --googlereviews-shadow: none !important;
+  --googlereviews-bg: transparent !important;
+  --googlereviews-button-bg: var(--color-accent) !important;
+  --googlereviews-button-color: rgb(255, 255, 255) !important;
+  --googlereviews-button-radius: 0 !important;
+  --googlereviews-button-shadow: none !important;
+  --googlereviews-card-bg: rgb(255, 255, 255) !important;
+  --googlereviews-card-radius: 0 !important;
+  --googlereviews-card-shadow: none !important;
+  --googlereviews-link-color: var(--color-accent) !important;
+  --googlereviews-star-color: var(--color-accent) !important;
+}
+
+html[data-theme="marbre"] .googlereviews .title,
+html[data-theme="marbre"] .googlereviews .rating-value {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+html[data-theme="marbre"] .googlereviews .avatar {
+  border-radius: 0;
+}
+
+html[data-theme="marbre"] .googlereviews .button.review-button:hover {
+  background: var(--marbre-accent-hover);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Hero: text on the marble, photo beside it ─────────────────────────────── */
+html[data-theme="marbre"] .hero {
+  --hero-gradient-start: rgba(42, 40, 38, 0.05) !important;
+  --hero-gradient-end: rgba(42, 40, 38, 0.55) !important;
+  border-radius: 0;
+}
+
+html[data-theme="marbre"] .hero .hero-content h2 {
+  font-family: var(--font-display);
+  font-size: var(--type-h1);
+  font-weight: 400;
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+html[data-theme="marbre"] .hero .hero-content p {
+  font-size: var(--type-lead);
+  line-height: 1.6;
+}
+
+/* ── List ──────────────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] .list .list__dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 0;
+  background: var(--color-accent);
+}
+
+html[data-theme="marbre"] .list .list__marker--number {
+  --list-num-weight: 400 !important;
+  --list-num-size: 1.5em !important;
+  --list-num-radius: 0 !important;
+  font-family: var(--font-display);
+  color: var(--marbre-spa);
+}
+
+/* ── Locale switch ─────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] .localeSwitch {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* ── Photo roll ────────────────────────────────────────────────────────────── */
+html[data-theme="marbre"] .photo-roll .photo-roll__control {
+  border: 0;
+  border-radius: 0;
+  background: rgb(255, 255, 255);
+  box-shadow: none;
+  color: var(--color-fg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-theme="marbre"] .photo-roll .photo-roll__control:hover,
+html[data-theme="marbre"] .photo-roll .photo-roll__control:focus-visible {
+  background: var(--color-accent);
+  box-shadow: none;
+  color: rgb(255, 255, 255);
+}
+
+html[data-theme="marbre"] .photo-roll [class*="bullet"] {
+  border-radius: 0;
+}
+
+/* ── Cookie banner and settings ────────────────────────────────────────────── */
+html[data-theme="marbre"] .pipeda-banner {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: rgb(255, 255, 255);
+  box-shadow: none;
+}
+
+html[data-theme="marbre"] :is(.pipeda-banner__fieldset, .pipeda-settings__fieldset) {
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: rgb(255, 255, 255);
+}
+
+html[data-theme="marbre"] :is(.pipeda-banner__legend, .pipeda-settings__legend) {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+html[data-theme="marbre"] :is(.pipeda-banner__description, .pipeda-settings__description) {
+  opacity: 1;
+  color: var(--color-muted);
+}
+
+/* ── Rotator, stars, tooltip ───────────────────────────────────────────────── */
+html[data-theme="marbre"] .rotator {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+html[data-theme="marbre"] .star-rating .star-rating__value {
+  font-weight: 700;
+}
+
+html[data-theme="marbre"] .tooltip .tooltip__content {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--color-inverse-surface);
+  color: var(--color-inverse-fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ── Tag, site header and footer ───────────────────────────────────────────── */
+html[data-theme="marbre"] .tag {
+  border-radius: 0;
+  background: var(--color-accent-muted);
+  color: rgb(47, 90, 110);
+  font-weight: 600;
+}
+
+html[data-theme="marbre"] .siteheader {
+  border-bottom: 1px solid var(--color-border);
+  background: rgb(255, 255, 255);
+  box-shadow: none;
+}
+
+/* Light footer: pale stone, charcoal text */
+html[data-theme="marbre"] .sitefooter {
+  border-top: 1px solid var(--color-border);
+  background: rgb(238, 242, 243);
+  color: var(--color-fg);
+}
