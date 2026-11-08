@@ -1,6 +1,6 @@
 {
   "name": "yourwebsquad-components",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -95,6 +95,18 @@
     "./SiteHeader": "./src/lib/components/SiteHeader/SiteHeader.astro",
     "./SiteFooter": "./src/lib/components/SiteFooter/SiteFooter.astro",
     "./Tag": "./src/lib/components/Tag/Tag.astro",
+    "./Card": "./src/lib/components/Card/Card.astro",
+    "./ContactCard": "./src/lib/components/ContactCard/ContactCard.astro",
+    "./FilterBar": "./src/lib/components/FilterBar/FilterBar.astro",
+    "./GoogleRating": "./src/lib/components/GoogleRating/GoogleRating.astro",
+    "./Lightbox": "./src/lib/components/Lightbox/Lightbox.astro",
+    "./Review": "./src/lib/components/Review/Review.astro",
+    "./StepByStepWizard": "./src/lib/components/StepByStepWizard/StepByStepWizard.astro",
+    "./StepByStepSummary": "./src/lib/components/StepByStepSummary/StepByStepSummary.astro",
+    "./StepByStepResult": "./src/lib/components/StepByStepResult/StepByStepResult.astro",
+    "./StickyActions": "./src/lib/components/StickyActions/StickyActions.astro",
+    "./TableOfContents": "./src/lib/components/TableOfContents/TableOfContents.astro",
+    "./TrustBar": "./src/lib/components/TrustBar/TrustBar.astro",
     "./forms-integration": "./forms-integration.js",
     "./forms-content-schema": "./forms-content-schema.js"
   }
