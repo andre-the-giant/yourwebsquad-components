@@ -52,3 +52,7 @@ export { default as StepByStepResult } from "./components/StepByStepResult/StepB
 export { default as StickyActions } from "./components/StickyActions/StickyActions.astro";
 export { default as TableOfContents } from "./components/TableOfContents/TableOfContents.astro";
 export { default as TrustBar } from "./components/TrustBar/TrustBar.astro";
+export { default as PriceTicket } from "./components/PriceTicket/PriceTicket.astro";
+export { default as SegmentedControl } from "./components/SegmentedControl/SegmentedControl.astro";
+export { default as Marquee } from "./components/Marquee/Marquee.astro";
+export { default as NoticeBar } from "./components/NoticeBar/NoticeBar.astro";

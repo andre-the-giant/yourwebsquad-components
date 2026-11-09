@@ -3,6 +3,15 @@
 Button — renders an <a> when `href` is set, otherwise a <button>.
 Props are validated with zod (see Schema). `rel` defaults to "noreferrer"
 when `target` is "_blank".
+Theme variables (all optional, neutral defaults):
+- --button-skew: slants the button (such as -8deg); the label is straightened back
+- --button-text-transform, --button-letter-spacing: label case and tracking
+- --button-border-width: default 1px
+- --button-min-height: default auto
+- --button-solid-hover-bg, --button-solid-hover-fg, --button-solid-hover-border
+- --button-solid-hover-shadow: shadow of the solid button on hover
+- --button-solid-hover-lift: vertical move on hover, default -1px
+- --button-solid-active-shadow: shadow while pressed
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -64,7 +73,9 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
       style={resolvedStyle || undefined}
       {...rest}
     >
-      <slot>{label}</slot>
+      <span class="button__label">
+        <slot>{label}</slot>
+      </span>
       {screenreader && <span class="sr-only">{screenreader}</span>}
     </a>
   ) : (
@@ -76,7 +87,9 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
       style={resolvedStyle || undefined}
       {...rest}
     >
-      <slot>{label}</slot>
+      <span class="button__label">
+        <slot>{label}</slot>
+      </span>
       {screenreader && <span class="sr-only">{screenreader}</span>}
     </button>
   )
@@ -89,20 +102,32 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
     place-content: center;
     gap: var(--space-2);
     padding: 0.65rem 1.5rem;
+    min-height: var(--button-min-height, auto);
     border-radius: 0;
-    border: 1px solid transparent;
+    border: var(--button-border-width, 1px) solid transparent;
     font-family: var(--button-font, var(--font-body));
     font-weight: var(--weight-semibold);
     font-size: var(--size-md);
     line-height: var(--line-tight);
+    letter-spacing: var(--button-letter-spacing, normal);
+    text-transform: var(--button-text-transform, none);
     text-decoration: none;
     cursor: pointer;
+    transform: skewX(var(--button-skew, 0deg));
     transition:
       transform 120ms ease,
       box-shadow 120ms ease,
       background 120ms ease,
       color 120ms ease,
       border-color 120ms ease;
+  }
+
+  /* The label stays upright when the theme slants the button */
+  .button__label {
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
+    transform: skewX(calc(var(--button-skew, 0deg) * -1));
   }
 
   .button:focus-visible {
@@ -124,7 +149,24 @@ const resolvedClass = mergeClasses("button", `button--${variant}`, `button--${si
   }
 
   .button--solid:hover {
-    transform: translateY(-1px);
+    background-color: var(--button-solid-hover-bg, var(--button-solid-bg));
+    color: var(--button-solid-hover-fg, var(--button-solid-fg));
+    border-color: var(--button-solid-hover-border, var(--button-solid-border));
+    box-shadow: var(--button-solid-hover-shadow, var(--button-solid-shadow));
+    transform: translateY(var(--button-solid-hover-lift, -1px)) skewX(var(--button-skew, 0deg));
+  }
+
+  .button--solid:active {
+    box-shadow: var(--button-solid-active-shadow, var(--button-solid-shadow));
+    transform: skewX(var(--button-skew, 0deg));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button,
+    .button--solid:hover {
+      transition: none;
+      transform: skewX(var(--button-skew, 0deg));
+    }
   }
 
   .button--outline {

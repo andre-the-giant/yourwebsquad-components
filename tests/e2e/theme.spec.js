@@ -38,7 +38,7 @@ const contrast = (a, b) => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
-for (const theme of ["light", "plein-jour", "marbre"]) {
+for (const theme of ["light", "plein-jour", "marbre", "chantier"]) {
   test(`Form-Radio: a checked radio is visible (${theme})`, async ({ page }) => {
     await page.goto(`/components/atoms/form-radio?theme=${theme}`);
     const label = page.locator("label:has(.radio-input)").first();
@@ -71,7 +71,7 @@ for (const theme of ["light", "plein-jour", "marbre"]) {
   });
 }
 
-for (const theme of ["light", "plein-jour", "marbre"]) {
+for (const theme of ["light", "plein-jour", "marbre", "chantier"]) {
   test(`Form-Checkbox: checked switches and boxes are visible (${theme})`, async ({ page }) => {
     await page.goto(`/components/atoms/form-checkbox?theme=${theme}`);
     const toggles = page.locator(".toggle-input:not(:disabled):not(:checked) + .toggle");

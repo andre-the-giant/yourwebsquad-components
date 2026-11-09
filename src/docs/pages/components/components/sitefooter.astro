@@ -22,7 +22,13 @@ const props = [
     default: "[]",
     description: "Link columns."
   },
-  { name: "legal", type: "string", description: "Line at the bottom." }
+  { name: "legal", type: "string", description: "Line at the bottom." },
+  {
+    name: "--sitefooter-band / --sitefooter-band-height",
+    type: "CSS variables",
+    default: "none / 0",
+    description: "Decorative band along the top edge (stripes, a colour)."
+  }
 ];
 
 const slots = [

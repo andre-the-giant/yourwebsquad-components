@@ -7,6 +7,11 @@ Props:
 - caption: string — required, also names the scrollable region
 - columns: string[]
 - rows: string[][] — the first cell of each row is the row header
+- alignEnd?: number[] — indexes of the columns to right-align (prices, weights), with
+  tabular figures
+- stackBelow?: "none" | "sm" | "md" — below this width of the table's own box (sm 40rem,
+  md 48rem), each row becomes a block: the row header, then each value with its column
+  name. Row and cell roles keep the table structure for screen readers.
 - tone?: "default" | "surface"
 - flush?: boolean
 - id?: string
@@ -27,6 +32,8 @@ const Schema = z.looseObject({
   caption: z.string(),
   columns: z.array(z.string()).default([]),
   rows: z.array(z.array(z.string())).default([]),
+  alignEnd: z.array(z.number().int().nonnegative()).default([]),
+  stackBelow: z.enum(["none", "sm", "md"]).default("none"),
   tone: z.enum(["default", "surface"]).default("default"),
   flush: z.boolean().default(false)
 });
@@ -41,6 +48,8 @@ const {
   caption,
   columns,
   rows,
+  alignEnd,
+  stackBelow,
   tone,
   flush
 } = parseProps(Schema, Astro.props, { component: "DataTable" });
@@ -48,11 +57,15 @@ const {
 const headingId = nextId("datatable");
 const captionId = nextId("datatable-caption");
 const isWide = columns.length > 2;
+const stacks = stackBelow !== "none";
+// Explicit roles only when the table may be restyled as blocks (display drops them)
+const role = (name: string) => (stacks ? (name as any) : undefined);
+const end = (index: number) => alignEnd.includes(index) && "is-end";
 ---
 
 <Band
   id={id}
-  class={mergeClasses("datatable", className)}
+  class={mergeClasses("datatable", stacks && `datatable--stack-${stackBelow}`, className)}
   style={style}
   tone={tone}
   flush={flush}
@@ -66,18 +79,37 @@ const isWide = columns.length > 2;
     )
   }
   <div class="datatable__scroll" role="region" aria-labelledby={captionId} tabindex="0">
-    <table class:list={["datatable__table", isWide && "datatable__table--wide"]}>
+    <table
+      class:list={["datatable__table", isWide && "datatable__table--wide"]}
+      role={role("table")}
+    >
       <caption id={captionId}>{caption}</caption>
-      <thead>
-        <tr>{columns.map((column) => <th scope="col">{column}</th>)}</tr>
+      <thead role={role("rowgroup")}>
+        <tr role={role("row")}>
+          {
+            columns.map((column, index) => (
+              <th scope="col" class:list={[end(index)]} role={role("columnheader")}>
+                {column}
+              </th>
+            ))
+          }
+        </tr>
       </thead>
-      <tbody>
+      <tbody role={role("rowgroup")}>
         {
           rows.map((row) => (
-            <tr>
-              <th scope="row">{row[0]}</th>
-              {row.slice(1).map((cell) => (
-                <td>{cell}</td>
+            <tr role={role("row")}>
+              <th scope="row" role={role("rowheader")}>
+                {row[0]}
+              </th>
+              {row.slice(1).map((cell, index) => (
+                <td
+                  class:list={[end(index + 1)]}
+                  data-label={stacks ? columns[index + 1] : undefined}
+                  role={role("cell")}
+                >
+                  {cell}
+                </td>
               ))}
             </tr>
           ))
@@ -92,6 +124,7 @@ const isWide = columns.length > 2;
     max-width: 18ch;
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h2-line, 1.1);
@@ -147,5 +180,105 @@ const isWide = columns.length > 2;
   tbody th {
     width: 30%;
     font-weight: var(--weight-bold);
+  }
+
+  .is-end {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  thead th.is-end,
+  tbody td.is-end {
+    text-align: end;
+  }
+
+  :is(.datatable--stack-sm, .datatable--stack-md) .datatable__scroll {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 40rem) {
+    .datatable--stack-sm .datatable__table {
+      min-width: 0;
+    }
+
+    .datatable--stack-sm :is(thead) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .datatable--stack-sm :is(tbody, tr, th, td) {
+      display: block;
+      width: auto;
+    }
+
+    .datatable--stack-sm tbody tr {
+      padding-block: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .datatable--stack-sm tbody :is(th, td) {
+      padding: 0.25rem 0;
+      border: 0;
+    }
+
+    .datatable--stack-sm tbody td {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      text-align: end;
+    }
+
+    .datatable--stack-sm tbody td::before {
+      content: attr(data-label);
+      text-align: start;
+      color: var(--muted-text, var(--color-muted));
+    }
+  }
+
+  @container (max-width: 48rem) {
+    .datatable--stack-md .datatable__table {
+      min-width: 0;
+    }
+
+    .datatable--stack-md :is(thead) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    .datatable--stack-md :is(tbody, tr, th, td) {
+      display: block;
+      width: auto;
+    }
+
+    .datatable--stack-md tbody tr {
+      padding-block: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .datatable--stack-md tbody :is(th, td) {
+      padding: 0.25rem 0;
+      border: 0;
+    }
+
+    .datatable--stack-md tbody td {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      text-align: end;
+    }
+
+    .datatable--stack-md tbody td::before {
+      content: attr(data-label);
+      text-align: start;
+      color: var(--muted-text, var(--color-muted));
+    }
   }
 </style>

@@ -2,7 +2,7 @@
 /*
 StepByStepWizard — one question at a time, with a progress bar, then a result.
 It knows nothing about quotes: it receives questions; StepByStepResult computes the
-outcome (a price range here, a text for a quiz elsewhere).
+outcome (a price range or a line-by-line total here, a text for a quiz elsewhere).
 Props:
 - id: string
 - steps: {
@@ -10,7 +10,28 @@ Props:
     question: string,
     title?: string,          // short name shown in the summary, defaults to the question
     help?: string,
-    options: { value: string, label: string, description?: string, icon?: string }[]
+    type?: "radio" | "checkbox" | "date" | "text" | "upload" | "fields"   (default "radio")
+    options?: { value, label, description?, icon?, group?, exclusive? }[]
+        radio: 2 or more · checkbox: 1 or more. `group` gathers tiles under a small
+        heading (all models of one category); `exclusive` (checkbox) unticks the others
+        ("None").
+    fields?: { name, label, type?: "text"|"tel"|"email"|"number"|"date"|"textarea"|"select"|"checkbox",
+        required?, help?, placeholder?, inputmode?, autocomplete?, min?, max?, pattern?,
+        options?: { value, label }[], error?: string, when?: string | string[] }[]
+        small inputs under the options (a postal code under "Delivery"); `when` shows a
+        field only for those option values of the same step. For type "fields" the step
+        is only these inputs. "min": "today" on a date means today or later.
+    when?: { step: string, is: string | string[] }
+        the step is asked only when that earlier answer is (one of) these values: one
+        wizard holds several paths. The counter follows the chosen path.
+    optional?: boolean       // checkbox, text, upload: may be left empty
+    error?: string           // message when the step is not answered (default labels.error)
+    min?: string             // date: "today" or YYYY-MM-DD
+    multiline?: boolean      // text: a textarea
+    placeholder?: string     // text
+    accept?: string, maxFiles?: number, form?: string
+        upload: the files belong to the form whose id is `form` (the contact form after
+        the result), so they are sent with it; the summary lists their names
   }[]
 - start?: { eyebrow?: string, title: string, text?: string, bullets?: string[], button: string }
   — optional start screen
@@ -19,10 +40,14 @@ Props:
     back?: "Back", next?: "Continue", finish?: "See the result",
     error?: "Choose an option to continue.", errorHint?: string,
     resume?: "You started ({count} of {total} answers).", resumeContinue?: "Pick up where I left off",
-    resumeRestart?: "Start over", calculating?: "Calculating…"
+    resumeRestart?: "Start over", calculating?: "Calculating…",
+    optional?: "(optional)", dateMin?: "The date must be today or later.",
+    fieldError?: "Fill in this field."
   }
 - storageKey?: string — answers are kept in the browser under this key
 - secondsPerStep?: number — for the remaining-time line (default 15)
+- prefill?: boolean — URL parameters named like a step fill it (?service=rental&machine=x):
+  the wizard then opens on the first step still unanswered
 - class?: string
 - style?: string
 Slots:
@@ -33,15 +58,23 @@ Slots:
 Events on the root (bubbling):
 - stepbystep:change { answers, current } · stepbystep:complete { answers }
 - listen to stepbystep:goto { stepId } to jump back to a question
+Answers: radio, date and text give a string; checkbox and upload give a list; each field
+adds its own answer under its name. Answers of steps left out of the chosen path are
+dropped from what the wizard reports.
 Hidden fields: any input[data-stepbystep-answers] inside receives the answers as JSON.
 Accessibility: each question is a fieldset with its legend; the focus moves to the
 question at each step; "Step 5 of 7" is written, not only drawn; Enter = Continue;
-Back keeps every answer; no auto-advance.
+Back keeps every answer; no auto-advance; errors are announced and point at the field.
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
 import { mergeClasses } from "../../utils/style.js";
 import FormRadio from "../Form-Radio/Form-Radio.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+import FormInput from "../Form-Input/Form-Input.astro";
+import FormTextarea from "../Form-Textarea/Form-Textarea.astro";
+import FormSelect from "../Form-Select/Form-Select.astro";
+import FormUpload from "../Form-Upload/Form-Upload.astro";
 import Button from "../Button/Button.astro";
 import Icon from "../Icon/Icon.astro";
 
@@ -49,24 +82,63 @@ const Option = z.looseObject({
   value: z.string(),
   label: z.string(),
   description: z.string().optional(),
-  icon: z.string().optional()
+  icon: z.string().optional(),
+  group: z.string().optional(),
+  exclusive: z.boolean().default(false)
 });
+
+const OneOrMany = z.union([z.string(), z.array(z.string())]);
+
+const Field = z.looseObject({
+  name: z.string(),
+  label: z.string(),
+  type: z
+    .enum(["text", "tel", "email", "number", "date", "textarea", "select", "checkbox"])
+    .default("text"),
+  required: z.boolean().default(false),
+  help: z.string().optional(),
+  placeholder: z.string().optional(),
+  inputmode: z.string().optional(),
+  autocomplete: z.string().optional(),
+  min: z.string().optional(),
+  max: z.string().optional(),
+  pattern: z.string().optional(),
+  options: z.array(z.looseObject({ value: z.string(), label: z.string() })).default([]),
+  error: z.string().optional(),
+  when: OneOrMany.optional()
+});
+
+const Step = z
+  .looseObject({
+    id: z.string(),
+    question: z.string(),
+    title: z.string().optional(),
+    help: z.string().optional(),
+    type: z.enum(["radio", "checkbox", "date", "text", "upload", "fields"]).default("radio"),
+    options: z.array(Option).default([]),
+    fields: z.array(Field).default([]),
+    when: z.looseObject({ step: z.string(), is: OneOrMany }).optional(),
+    optional: z.boolean().default(false),
+    error: z.string().optional(),
+    min: z.string().optional(),
+    multiline: z.boolean().default(false),
+    placeholder: z.string().optional(),
+    accept: z.string().default("image/*"),
+    maxFiles: z.number().int().positive().default(5),
+    form: z.string().optional()
+  })
+  .refine((step) => step.type !== "radio" || step.options.length >= 2, {
+    message: "A radio step needs at least 2 options"
+  })
+  .refine((step) => step.type !== "checkbox" || step.options.length >= 1, {
+    message: "A checkbox step needs at least 1 option"
+  });
 
 const Schema = z.looseObject({
   id: z.string(),
   class: z.string().optional(),
   style: z.string().optional(),
-  steps: z
-    .array(
-      z.looseObject({
-        id: z.string(),
-        question: z.string(),
-        title: z.string().optional(),
-        help: z.string().optional(),
-        options: z.array(Option).min(2)
-      })
-    )
-    .min(1),
+  steps: z.array(Step).min(1),
   start: z
     .looseObject({
       eyebrow: z.string().optional(),
@@ -78,7 +150,8 @@ const Schema = z.looseObject({
     .optional(),
   labels: z.looseObject({}).default({}),
   storageKey: z.string().optional(),
-  secondsPerStep: z.number().positive().default(15)
+  secondsPerStep: z.number().positive().default(15),
+  prefill: z.boolean().default(false)
 });
 
 type Props = z.input<typeof Schema>;
@@ -91,7 +164,8 @@ const {
   start,
   labels: labelProps,
   storageKey,
-  secondsPerStep
+  secondsPerStep,
+  prefill
 } = parseProps(Schema, Astro.props, { component: "StepByStepWizard" });
 
 const labels = {
@@ -106,14 +180,44 @@ const labels = {
   resumeContinue: "Pick up where I left off",
   resumeRestart: "Start over",
   calculating: "Calculating…",
+  optional: "(optional)",
+  dateMin: "The date must be today or later.",
+  fieldError: "Fill in this field.",
   ...(labelProps as Record<string, string>)
 };
+
+const list = (value?: string | string[]) =>
+  value === undefined ? undefined : Array.isArray(value) ? value : [value];
 
 const stepsData = steps.map((step) => ({
   id: step.id,
   title: step.title ?? step.question,
-  options: step.options.map(({ value, label }) => ({ value, label }))
+  type: step.type,
+  optional: step.optional,
+  when: step.when ? { step: step.when.step, is: list(step.when.is) } : undefined,
+  options: step.options.map(({ value, label, exclusive }) => ({ value, label, exclusive })),
+  fields: step.fields.map((field) => ({
+    name: field.name,
+    label: field.label,
+    type: field.type,
+    required: field.required,
+    error: field.error,
+    when: list(field.when),
+    options: field.options
+  }))
 }));
+
+// Options grouped under small headings, in their first order of appearance
+const groupsOf = (options: z.infer<typeof Option>[]) => {
+  const map = new Map<string, z.infer<typeof Option>[]>();
+  options.forEach((option) => {
+    const key = option.group ?? "";
+    map.set(key, [...(map.get(key) ?? []), option]);
+  });
+  return [...map.entries()];
+};
+const fieldLabel = (field: z.infer<typeof Field>) =>
+  field.required ? field.label : `${field.label} ${labels.optional}`;
 ---
 
 <div
@@ -126,6 +230,7 @@ const stepsData = steps.map((step) => ({
   data-storage-key={storageKey ?? `stepbystep-${id}`}
   data-seconds={String(secondsPerStep)}
   data-has-start={start ? "true" : undefined}
+  data-prefill={prefill ? "true" : undefined}
 >
   {
     Astro.slots.has("header") && (
@@ -171,7 +276,7 @@ const stepsData = steps.map((step) => ({
         <p class="sbs__counter" data-counter aria-live="polite"></p>
         {
           steps.map((step) => (
-            <fieldset class="sbs__step" data-step={step.id}>
+            <fieldset class="sbs__step" data-step={step.id} data-type={step.type}>
               <legend class="sbs__question" tabindex="-1">
                 {step.question}
               </legend>
@@ -179,23 +284,154 @@ const stepsData = steps.map((step) => ({
               <div class="sbs__error" role="alert" data-error hidden>
                 <Icon name="warning" />
                 <span>
-                  <b>{labels.error}</b>
+                  <b data-error-text>{step.error ?? labels.error}</b>
                   {labels.errorHint && <span class="sbs__error-hint">{labels.errorHint}</span>}
                 </span>
               </div>
-              <div class="sbs__options">
-                {step.options.map((option, index) => (
-                  <FormRadio
-                    appearance="tile"
-                    id={`${id}-${step.id}-${index}`}
-                    name={`${id}-${step.id}`}
-                    value={option.value}
-                    label={option.label}
-                    description={option.description}
-                    icon={option.icon}
+              {step.type === "radio" &&
+                groupsOf(step.options).map(([group, options]) => (
+                  <div class:list={["sbs__group", group && "has-label"]}>
+                    {group && <p class="sbs__group-label">{group}</p>}
+                    <div class="sbs__options">
+                      {options.map((option) => (
+                        <FormRadio
+                          appearance="tile"
+                          id={`${id}-${step.id}-${step.options.indexOf(option)}`}
+                          name={`${id}-${step.id}`}
+                          value={option.value}
+                          label={option.label}
+                          description={option.description}
+                          icon={option.icon}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              {step.type === "checkbox" && (
+                <div class="sbs__checks">
+                  {step.options.map((option, index) => (
+                    <FormCheckbox
+                      appearance="checkbox"
+                      id={`${id}-${step.id}-${index}`}
+                      name={`${id}-${step.id}`}
+                      value={option.value}
+                      label={option.label}
+                      data-exclusive={option.exclusive ? "true" : undefined}
+                    />
+                  ))}
+                </div>
+              )}
+              {step.type === "date" && (
+                <FormInput
+                  type="date"
+                  id={`${id}-${step.id}-input`}
+                  label={step.title ?? step.question}
+                  class="sbs__single"
+                  data-answer
+                  data-min={step.min}
+                  aria-required={step.optional ? undefined : "true"}
+                />
+              )}
+              {step.type === "text" &&
+                (step.multiline ? (
+                  <FormTextarea
+                    id={`${id}-${step.id}-input`}
+                    label={step.title ?? step.question}
+                    placeholder={step.placeholder}
+                    rows={4}
+                    class="sbs__single"
+                    data-answer
+                    aria-required={step.optional ? undefined : "true"}
+                  />
+                ) : (
+                  <FormInput
+                    id={`${id}-${step.id}-input`}
+                    label={step.title ?? step.question}
+                    placeholder={step.placeholder}
+                    class="sbs__single"
+                    data-answer
+                    aria-required={step.optional ? undefined : "true"}
                   />
                 ))}
-              </div>
+              {step.type === "upload" && (
+                <FormUpload
+                  id={`${id}-${step.id}-input`}
+                  name={`${step.id}[]`}
+                  label={step.title ?? step.question}
+                  accept={step.accept}
+                  multiple
+                  maxFiles={step.maxFiles}
+                  form={step.form}
+                  data-answer
+                />
+              )}
+              {step.fields.length > 0 && (
+                <div class="sbs__fields">
+                  {step.fields.map((field) => {
+                    const fid = `${id}-${step.id}-${field.name}`;
+                    const helpId = field.help ? `${fid}-help` : undefined;
+                    const errorId = `${fid}-error`;
+                    const common = {
+                      id: fid,
+                      name: field.name,
+                      helpId,
+                      errorId,
+                      "data-field-input": field.name,
+                      "aria-required": field.required ? "true" : undefined
+                    };
+                    return (
+                      <div
+                        class="sbs__field"
+                        data-field={field.name}
+                        data-when={list(field.when)?.join(" ")}
+                        hidden={Boolean(field.when)}
+                      >
+                        {field.type === "textarea" ? (
+                          <FormTextarea
+                            {...common}
+                            label={fieldLabel(field)}
+                            placeholder={field.placeholder}
+                            rows={4}
+                          />
+                        ) : field.type === "select" ? (
+                          <FormSelect
+                            {...common}
+                            label={fieldLabel(field)}
+                            options={field.options}
+                          />
+                        ) : field.type === "checkbox" ? (
+                          <FormCheckbox
+                            {...common}
+                            appearance="checkbox"
+                            label={field.label}
+                            value="yes"
+                          />
+                        ) : (
+                          <FormInput
+                            {...common}
+                            type={field.type}
+                            label={fieldLabel(field)}
+                            placeholder={field.placeholder}
+                            inputmode={field.inputmode}
+                            autocomplete={field.autocomplete}
+                            pattern={field.pattern}
+                            data-min={field.min}
+                            max={field.max}
+                          />
+                        )}
+                        {field.help && (
+                          <p id={helpId} class="sbs__field-help">
+                            {field.help}
+                          </p>
+                        )}
+                        <p id={errorId} class="sbs__field-error" data-field-error hidden>
+                          {field.error ?? labels.fieldError}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </fieldset>
           ))
         }
@@ -232,7 +468,36 @@ const stepsData = steps.map((step) => ({
 </div>
 
 <script>
-  type StepData = { id: string; title: string; options: { value: string; label: string }[] };
+  type Answer = string | string[];
+  type FieldData = {
+    name: string;
+    label: string;
+    type: string;
+    required: boolean;
+    error?: string;
+    when?: string[];
+    options: { value: string; label: string }[];
+  };
+  type StepData = {
+    id: string;
+    title: string;
+    type: string;
+    optional: boolean;
+    when?: { step: string; is: string[] };
+    options: { value: string; label: string; exclusive?: boolean }[];
+    fields: FieldData[];
+  };
+
+  const has = (value?: Answer) => (Array.isArray(value) ? value.length > 0 : Boolean(value));
+  const isIn = (value: Answer | undefined, values: string[]) =>
+    Array.isArray(value)
+      ? value.some((v) => values.includes(v))
+      : value !== undefined && values.includes(value);
+  // Today as YYYY-MM-DD in local time
+  const today = () => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  };
 
   for (const root of document.querySelectorAll<HTMLElement>("[data-stepbystep]")) {
     const steps: StepData[] = JSON.parse(root.dataset.steps ?? "[]");
@@ -250,10 +515,55 @@ const stepsData = steps.map((step) => ({
     const after = root.querySelector<HTMLElement>("[data-after]")!;
     const calculating = root.querySelector<HTMLElement>("[data-calculating]")!;
     const resume = root.querySelector<HTMLElement>("[data-resume]")!;
+    const fieldsetOf = (stepId: string) => fieldsets.find((fs) => fs.dataset.step === stepId)!;
+    const stepOf = (stepId: string) => steps.find((s) => s.id === stepId);
 
-    let current = 0;
-    let returnTo: number | null = null;
-    let answers: Record<string, string> = {};
+    let currentId = steps[0].id;
+    let returnTo: string | null = null;
+    let answers: Record<string, Answer> = {};
+
+    // "today" on a date means today or later
+    root.querySelectorAll<HTMLInputElement>("input[data-min]").forEach((input) => {
+      input.min = input.dataset.min === "today" ? today() : (input.dataset.min ?? "");
+    });
+
+    // The steps of the chosen path, in order: a step counts only if the step it depends
+    // on is itself in the path and has one of the expected answers
+    // With `guess`, an unanswered branching question counts as its first option, so
+    // the counter announces a likely total before the path is chosen
+    const path = (guess = false) => {
+      const kept = new Set<string>();
+      return steps.filter((step) => {
+        let value = step.when ? answers[step.when.step] : undefined;
+        if (step.when && guess && !has(value)) value = stepOf(step.when.step)?.options[0]?.value;
+        const ok = !step.when || (kept.has(step.when.step) && isIn(value, step.when.is));
+        if (ok) kept.add(step.id);
+        return ok;
+      });
+    };
+    const fieldShown = (step: StepData, field: FieldData) =>
+      !field.when || isIn(answers[step.id], field.when);
+    const needsAnswer = (step: StepData) =>
+      ["radio", "checkbox", "date", "text"].includes(step.type) && !step.optional;
+
+    // What the wizard reports: only the answers of the chosen path
+    const report = () => {
+      const out: Record<string, Answer> = {};
+      for (const step of path()) {
+        if (has(answers[step.id])) out[step.id] = answers[step.id];
+        for (const field of step.fields) {
+          if (fieldShown(step, field) && has(answers[field.name]))
+            out[field.name] = answers[field.name];
+        }
+      }
+      return out;
+    };
+    const firstMissing = () =>
+      path().find(
+        (step) =>
+          (needsAnswer(step) && !has(answers[step.id])) ||
+          step.fields.some((f) => f.required && fieldShown(step, f) && !has(answers[f.name]))
+      )?.id ?? null;
 
     const load = () => {
       try {
@@ -264,21 +574,43 @@ const stepsData = steps.map((step) => ({
     };
     const save = () => {
       try {
-        localStorage.setItem(key, JSON.stringify({ answers, current }));
+        localStorage.setItem(key, JSON.stringify({ answers, currentId }));
       } catch {
         // Storage unavailable: answers live for this visit only.
       }
     };
 
+    // Fields that depend on an option show only with that option
+    const syncFields = (step: StepData) => {
+      const fs = fieldsetOf(step.id);
+      for (const field of step.fields) {
+        const box = fs.querySelector<HTMLElement>(`[data-field="${field.name}"]`);
+        if (box) box.hidden = !fieldShown(step, field);
+      }
+    };
+
     const syncInputs = () => {
-      for (const fieldset of fieldsets) {
-        const value = answers[fieldset.dataset.step ?? ""];
-        fieldset.querySelectorAll<HTMLInputElement>("input[type=radio]").forEach((input) => {
-          input.checked = input.value === value;
+      for (const step of steps) {
+        const fs = fieldsetOf(step.id);
+        const value = answers[step.id];
+        fs.querySelectorAll<HTMLInputElement>(`input[name$="-${step.id}"]`).forEach((input) => {
+          if (input.type === "radio") input.checked = input.value === value;
+          if (input.type === "checkbox")
+            input.checked = Array.isArray(value) && value.includes(input.value);
         });
+        const single = fs.querySelector<HTMLInputElement>("[data-answer]:not([type=file])");
+        if (single && typeof value === "string") single.value = value;
+        for (const field of step.fields) {
+          const input = fs.querySelector<HTMLInputElement>(`[data-field-input="${field.name}"]`);
+          const v = answers[field.name];
+          if (!input) continue;
+          if (input.type === "checkbox") input.checked = v === "yes";
+          else if (typeof v === "string") input.value = v;
+        }
+        syncFields(step);
       }
       root.querySelectorAll<HTMLInputElement>("input[data-stepbystep-answers]").forEach((input) => {
-        input.value = JSON.stringify(answers);
+        input.value = JSON.stringify(report());
       });
     };
 
@@ -287,29 +619,48 @@ const stepsData = steps.map((step) => ({
       (root as HTMLElement & { sbsState?: object }).sbsState = detail;
       root.dispatchEvent(new CustomEvent(name, { bubbles: true, detail }));
     };
+    const state = () => ({
+      answers: report(),
+      current: steps.findIndex((s) => s.id === currentId),
+      currentId,
+      path: path().map((s) => s.id)
+    });
 
-    const show = (index: number, focus = true) => {
-      current = Math.max(0, Math.min(steps.length - 1, index));
-      fieldsets.forEach((fs, i) => (fs.hidden = i !== current));
-      fieldsets[current].querySelector<HTMLElement>("[data-error]")!.hidden = true;
-      const total = steps.length;
-      const minutes = Math.max(1, Math.ceil(((total - current) * seconds) / 60));
-      counter.textContent = `${labels.step.replace("{index}", String(current + 1)).replace("{total}", String(total))} · ${steps[current].title} · ${labels.remaining.replace("{minutes}", String(minutes))}`;
-      progress.style.width = `${(current / total) * 100}%`;
-      back.hidden = current === 0 && !start;
-      nextLabel.textContent = current === total - 1 ? labels.finish : labels.next;
-      save();
-      emit("stepbystep:change", { answers, current });
-      if (focus) fieldsets[current].querySelector<HTMLElement>("legend")?.focus();
+    const clearErrors = (stepId: string) => {
+      const fs = fieldsetOf(stepId);
+      const error = fs.querySelector<HTMLElement>("[data-error]")!;
+      error.hidden = true;
+      fs.querySelectorAll<HTMLElement>("[data-field-error]").forEach((el) => (el.hidden = true));
+      fs.querySelectorAll("[aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
     };
 
-    const begin = (index = 0) => {
+    const show = (stepId: string, focus = true) => {
+      const steps_ = path(true);
+      const index = Math.max(
+        0,
+        steps_.findIndex((s) => s.id === stepId)
+      );
+      currentId = steps_[index].id;
+      fieldsets.forEach((fs) => (fs.hidden = fs.dataset.step !== currentId));
+      clearErrors(currentId);
+      const total = steps_.length;
+      const minutes = Math.max(1, Math.ceil(((total - index) * seconds) / 60));
+      counter.textContent = `${labels.step.replace("{index}", String(index + 1)).replace("{total}", String(total))} · ${steps_[index].title} · ${labels.remaining.replace("{minutes}", String(minutes))}`;
+      progress.style.width = `${(index / total) * 100}%`;
+      back.hidden = index === 0 && !start;
+      nextLabel.textContent = index === total - 1 ? labels.finish : labels.next;
+      save();
+      emit("stepbystep:change", state());
+      if (focus) fieldsetOf(currentId).querySelector<HTMLElement>("legend")?.focus();
+    };
+
+    const begin = (stepId = path()[0].id, focus = true) => {
       if (start) start.hidden = true;
       resume.hidden = true;
       form.hidden = false;
       resultWrap.hidden = true;
       after.hidden = true;
-      show(index);
+      show(stepId, focus);
     };
 
     const finish = () => {
@@ -325,79 +676,178 @@ const stepsData = steps.map((step) => ({
         calculating.hidden = true;
         resultWrap.hidden = false;
         after.hidden = false;
-        emit("stepbystep:complete", { answers });
+        emit("stepbystep:complete", { answers: report(), path: path().map((s) => s.id) });
         resultWrap.querySelector<HTMLElement>("h1, h2, [tabindex='-1']")?.focus();
       }, 450);
     };
 
-    form.addEventListener("change", (event) => {
-      const input = event.target as HTMLInputElement;
-      if (input.type !== "radio") return;
-      const stepId = input.closest<HTMLElement>("[data-step]")?.dataset.step;
-      if (!stepId) return;
-      answers[stepId] = input.value;
-      input.closest("[data-step]")!.querySelector<HTMLElement>("[data-error]")!.hidden = true;
-      syncInputs();
+    // Read what was typed, ticked or chosen
+    const read = (target: EventTarget | null) => {
+      const input = target as HTMLInputElement;
+      const fs = input.closest<HTMLElement>("[data-step]");
+      const step = stepOf(fs?.dataset.step ?? "");
+      if (!step || !fs) return;
+      const fieldName = input.dataset.fieldInput;
+      if (fieldName) {
+        answers[fieldName] = input.type === "checkbox" ? (input.checked ? "yes" : "") : input.value;
+      } else if (input.type === "radio") {
+        answers[step.id] = input.value;
+      } else if (input.type === "checkbox") {
+        const boxes = [
+          ...fs.querySelectorAll<HTMLInputElement>(`input[type=checkbox][name$="-${step.id}"]`)
+        ];
+        // An exclusive choice ("None") unticks the others, and the others untick it
+        if (input.checked) {
+          const exclusive = input.dataset.exclusive === "true";
+          boxes.forEach((box) => {
+            if (box !== input && (exclusive || box.dataset.exclusive === "true"))
+              box.checked = false;
+          });
+        }
+        answers[step.id] = boxes.filter((box) => box.checked).map((box) => box.value);
+      } else if (input.type === "file") {
+        answers[step.id] = [...(input.files ?? [])].map((file) => file.name);
+      } else if (input.matches("[data-answer]")) {
+        answers[step.id] = input.value.trim();
+      } else {
+        return;
+      }
+      syncFields(step);
+      fs.querySelector<HTMLElement>("[data-error]")!.hidden = true;
+      root.querySelectorAll<HTMLInputElement>("input[data-stepbystep-answers]").forEach((el) => {
+        el.value = JSON.stringify(report());
+      });
       save();
-      emit("stepbystep:change", { answers, current });
+      emit("stepbystep:change", state());
+    };
+    form.addEventListener("change", (event) => read(event.target));
+    form.addEventListener("input", (event) => {
+      const el = event.target as HTMLElement;
+      if (el.matches("[data-answer], [data-field-input]")) read(el);
     });
+
+    // Returns the element to focus when the step is not complete, else null
+    const validate = (step: StepData) => {
+      const fs = fieldsetOf(step.id);
+      clearErrors(step.id);
+      const error = fs.querySelector<HTMLElement>("[data-error]")!;
+      const text = fs.querySelector<HTMLElement>("[data-error-text]")!;
+      text.dataset.default ??= text.textContent ?? "";
+      text.textContent = text.dataset.default;
+      let first: HTMLElement | null = null;
+      const mainInput = fs.querySelector<HTMLInputElement>(
+        "input[type=radio], input[type=checkbox]:not([data-field-input]), [data-answer]"
+      );
+      if (needsAnswer(step) && !has(answers[step.id])) {
+        error.hidden = false;
+        first = mainInput;
+      }
+      const single = fs.querySelector<HTMLInputElement>("input[type=date][data-answer]");
+      if (single && single.value && single.min && single.value < single.min) {
+        text.textContent = labels.dateMin;
+        error.hidden = false;
+        single.setAttribute("aria-invalid", "true");
+        first ??= single;
+      }
+      for (const field of step.fields) {
+        if (!fieldShown(step, field)) continue;
+        const input = fs.querySelector<HTMLInputElement>(`[data-field-input="${field.name}"]`);
+        if (!input) continue;
+        const value = answers[field.name];
+        const empty = field.required && !has(value);
+        const invalid = Boolean(input.value) && input.type !== "checkbox" && !input.checkValidity();
+        const early = input.type === "date" && input.value && input.min && input.value < input.min;
+        const message = fs.querySelector<HTMLElement>(
+          `[data-field="${field.name}"] [data-field-error]`
+        );
+        if (empty || invalid || early) {
+          if (message) {
+            message.textContent = early ? labels.dateMin : (field.error ?? labels.fieldError);
+            message.hidden = false;
+          }
+          input.setAttribute("aria-invalid", "true");
+          first ??= input;
+        }
+      }
+      return first;
+    };
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const stepId = steps[current].id;
-      if (!answers[stepId]) {
-        const error = fieldsets[current].querySelector<HTMLElement>("[data-error]")!;
-        error.hidden = false;
-        fieldsets[current].querySelector<HTMLInputElement>("input[type=radio]")?.focus();
+      const step = stepOf(currentId)!;
+      const bad = validate(step);
+      if (bad) {
+        bad.focus();
         return;
       }
       if (returnTo !== null) {
-        const target = returnTo;
+        // A changed answer may open new questions: ask them before going back
+        const target = firstMissing() ?? returnTo;
         returnTo = null;
         show(target);
         return;
       }
-      if (current < steps.length - 1) show(current + 1);
+      const steps_ = path();
+      const index = steps_.findIndex((s) => s.id === currentId);
+      if (index < steps_.length - 1) show(steps_[index + 1].id);
       else finish();
     });
 
     back.addEventListener("click", () => {
-      if (current === 0 && start) {
+      const steps_ = path();
+      const index = steps_.findIndex((s) => s.id === currentId);
+      if (index <= 0 && start) {
         form.hidden = true;
         start.hidden = false;
         start.querySelector<HTMLElement>("h1")?.setAttribute("tabindex", "-1");
         start.querySelector<HTMLElement>("h1")?.focus();
         return;
       }
-      show(current - 1);
+      show(steps_[Math.max(0, index - 1)].id);
     });
 
     root.addEventListener("stepbystep:goto", (event) => {
       const stepId = (event as CustomEvent).detail?.stepId;
-      const index = steps.findIndex((s) => s.id === stepId);
-      if (index < 0) return;
-      if (form.hidden) begin(index);
+      if (!path().some((s) => s.id === stepId)) return;
+      if (form.hidden) begin(stepId);
       else {
-        returnTo = current;
-        show(index);
+        returnTo = currentId;
+        show(stepId);
       }
     });
 
-    root.querySelector("[data-begin]")?.addEventListener("click", () => begin(0));
+    root.querySelector("[data-begin]")?.addEventListener("click", () => begin());
 
-    // Resume a run left unfinished
+    // Answers given in the address (a "Book this machine" link)
+    const fromUrl: Record<string, Answer> = {};
+    if (root.dataset.prefill === "true") {
+      const params = new URLSearchParams(location.search);
+      for (const step of steps) {
+        const values = params
+          .getAll(step.id)
+          .filter((v) => step.options.some((o) => o.value === v));
+        if (!values.length) continue;
+        fromUrl[step.id] = step.type === "checkbox" ? values : values[0];
+      }
+    }
+
     const saved = load();
     const count = saved?.answers ? Object.keys(saved.answers).length : 0;
-    if (count > 0 && count < steps.length + 1) {
+    if (Object.keys(fromUrl).length) {
+      answers = fromUrl;
+      syncInputs();
+      begin(firstMissing() ?? path()[0].id, false);
+    } else if (count > 0) {
       resume.querySelector("[data-resume-text]")!.textContent = labels.resume
         .replace("{count}", String(count))
-        .replace("{total}", String(steps.length));
+        .replace("{total}", String(path().length));
       resume.hidden = false;
       form.hidden = true;
+      if (start) start.hidden = true;
       resume.querySelector("[data-resume-continue]")?.addEventListener("click", () => {
         answers = saved.answers;
         syncInputs();
-        begin(Math.min(saved.current ?? 0, steps.length - 1));
+        begin(path().some((s) => s.id === saved.currentId) ? saved.currentId : path()[0].id);
       });
       resume.querySelector("[data-resume-restart]")?.addEventListener("click", () => {
         answers = {};
@@ -405,12 +855,13 @@ const stepsData = steps.map((step) => ({
         if (start) {
           resume.hidden = true;
           start.hidden = false;
-        } else begin(0);
+        } else begin();
       });
     } else if (start) {
       form.hidden = true;
     } else {
-      begin(0);
+      // On page load, the focus stays where the visitor is
+      begin(path()[0].id, false);
     }
     syncInputs();
   }
@@ -497,6 +948,7 @@ const stepsData = steps.map((step) => ({
   .sbs__start-title {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h1, clamp(2.25rem, 5vw, 3.5rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.08;
@@ -550,6 +1002,7 @@ const stepsData = steps.map((step) => ({
     margin-bottom: 0.25rem;
     padding: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h2, clamp(1.75rem, 3.6vw, 2.75rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.12;
@@ -597,6 +1050,58 @@ const stepsData = steps.map((step) => ({
     .sbs__options {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+  }
+
+  .sbs__group {
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .sbs__group-label {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    font-weight: var(--weight-semibold, 600);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .sbs__checks {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 40rem) {
+    .sbs__checks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .sbs__fields {
+    display: grid;
+    gap: 1rem;
+    max-width: 30rem;
+  }
+
+  .sbs__field {
+    display: grid;
+    gap: 0.375rem;
+  }
+
+  .sbs__field-help {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-text, color-mix(in srgb, var(--color-muted) 78%, var(--color-fg)));
+  }
+
+  .sbs__field-error {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: var(--weight-semibold, 600);
+    color: var(--color-danger-text, rgb(176 0 32));
+  }
+
+  .sbs__step :global(.sbs__single) {
+    max-width: 30rem;
   }
 
   .sbs__nav {

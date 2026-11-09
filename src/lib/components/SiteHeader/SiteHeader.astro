@@ -19,6 +19,10 @@ Props:
 - id?: string
 - class?: string
 - style?: string
+Theme variables:
+- --siteheader-band, --siteheader-band-height: a decorative band along the top edge
+  (any background, such as stripes); height 0 by default, so nothing shows
+- --siteheader-bg, --siteheader-border: background and bottom rule
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -191,9 +195,16 @@ const menuId = nextId("siteheader-menu");
 <style>
   .siteheader {
     position: relative;
-    background: var(--color-bg);
+    background: var(--siteheader-bg, var(--color-bg));
     color: var(--color-fg);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: var(--siteheader-border, 1px solid var(--color-border));
+  }
+
+  .siteheader::before {
+    content: "";
+    display: block;
+    height: var(--siteheader-band-height, 0);
+    background: var(--siteheader-band, none);
   }
 
   .siteheader__skip {
@@ -269,6 +280,7 @@ const menuId = nextId("siteheader-menu");
     background: none;
     color: inherit;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: 2.25rem;
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1;
@@ -304,6 +316,7 @@ const menuId = nextId("siteheader-menu");
     min-height: 1.5rem;
     color: inherit;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: 1.5rem;
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.2;

@@ -23,6 +23,11 @@ const props = [
     type: "string",
     default: '"64rem"',
     description: "Width from which the bar disappears."
+  },
+  {
+    name: "lead / leadNote",
+    type: "string",
+    description: "Short line before the main button (a price), replaces the secondary action."
   }
 ];
 ---
@@ -41,6 +46,20 @@ const props = [
     <StickyActions
       primary={{ label: "Get a quote", href: "#" }}
       secondary={{ label: "Call", href: "#" }}
+    />
+  </Preview>
+  <Preview
+    title="With a price on the left"
+    code={'<StickyActions lead="$329/day" leadNote="taxes extra" primary={{ label: "Book", href: "/request?machine=mini-35" }} />'}
+  >
+    <p>On a product page, the price and one button are enough. (Shown in place here.)</p>
+    <StickyActions
+      lead="$329/day"
+      leadNote="taxes extra"
+      label="Book this machine"
+      hideFrom="200rem"
+      primary={{ label: "Book", href: "#" }}
+      style="position: static"
     />
   </Preview>
 </DocLayout>

@@ -1,0 +1,195 @@
+---
+/*
+SegmentedControl — 2 to 4 exclusive choices that change how a zone looks, without
+hiding anything in it: which price stands out on every card, list or map view, metric
+or imperial units. FilterBar hides items; SegmentedControl changes their presentation.
+The two combine in one toolbar.
+Props:
+- label: string — visible name of the group ("Show the price")
+- options: { label: string, value: string }[] — 2 to 4
+- value?: string — chosen at first (default: the first option)
+- target?: string — id of the zone that receives the choice
+- attribute?: string — data attribute written on the target (default "view" → data-view)
+- param?: string — URL parameter that keeps the choice, so the link can be shared
+- id?: string
+- class?: string
+- style?: string
+Events: the root dispatches "segmentedcontrol:change" { value } (bubbling).
+Accessibility: toggle buttons (aria-pressed) in a group named by the visible label;
+left and right arrows move and choose; 44px targets. Without JavaScript the first choice
+stays shown and the buttons do nothing.
+Theme variables: --segmented-border, --segmented-bg, --segmented-fg,
+--segmented-active-bg, --segmented-active-fg, --segmented-font, --segmented-transform
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  label: z.string(),
+  options: z
+    .array(z.looseObject({ label: z.string(), value: z.string() }))
+    .min(2)
+    .max(4),
+  value: z.string().optional(),
+  target: z.string().optional(),
+  attribute: z
+    .string()
+    .regex(/^[a-z][a-z0-9-]*$/)
+    .default("view"),
+  param: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  label,
+  options,
+  value,
+  target,
+  attribute,
+  param,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "SegmentedControl" });
+
+const resolvedId = id ?? nextId("segmented");
+const labelId = `${resolvedId}-label`;
+const chosen = options.some((option) => option.value === value) ? value : options[0].value;
+---
+
+<div
+  id={resolvedId}
+  class={mergeClasses("segmented", className)}
+  style={style}
+  data-segmented
+  data-target={target}
+  data-attribute={attribute}
+  data-param={param}
+  {...rest}
+>
+  <span id={labelId} class="segmented__label">{label}</span>
+  <div class="segmented__group" role="group" aria-labelledby={labelId}>
+    {
+      options.map((option) => (
+        <button
+          type="button"
+          class="segmented__option"
+          data-value={option.value}
+          aria-pressed={option.value === chosen ? "true" : "false"}
+          tabindex={option.value === chosen ? "0" : "-1"}
+        >
+          {option.label}
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-segmented]")) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>("[data-value]")];
+    const target = root.dataset.target ? document.getElementById(root.dataset.target) : null;
+    const attribute = root.dataset.attribute ?? "view";
+    const param = root.dataset.param;
+
+    const choose = (button: HTMLButtonElement, updateUrl: boolean) => {
+      const value = button.dataset.value ?? "";
+      for (const other of buttons) {
+        const on = other === button;
+        other.setAttribute("aria-pressed", String(on));
+        other.tabIndex = on ? 0 : -1;
+      }
+      target?.setAttribute(`data-${attribute}`, value);
+      if (param && updateUrl) {
+        const url = new URL(location.href);
+        url.searchParams.set(param, value);
+        history.replaceState(null, "", url);
+      }
+      root.dispatchEvent(
+        new CustomEvent("segmentedcontrol:change", { bubbles: true, detail: { value } })
+      );
+    };
+
+    buttons.forEach((button, index) => {
+      button.addEventListener("click", () => choose(button, true));
+      button.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const next = buttons[(index + step + buttons.length) % buttons.length];
+        next.focus();
+        choose(next, true);
+      });
+    });
+
+    // A shared link keeps the choice
+    const fromUrl = param ? new URLSearchParams(location.search).get(param) : null;
+    const initial =
+      buttons.find((button) => button.dataset.value === fromUrl) ??
+      buttons.find((button) => button.getAttribute("aria-pressed") === "true") ??
+      buttons[0];
+    if (initial) choose(initial, false);
+  }
+</script>
+
+<style>
+  .segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .segmented__label {
+    font-size: 0.9375rem;
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .segmented__group {
+    display: inline-flex;
+    border: var(--segmented-border, 1px solid var(--color-border));
+    background: var(--segmented-bg, var(--color-bg));
+  }
+
+  .segmented__option {
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 0;
+    background: transparent;
+    color: var(--segmented-fg, var(--color-fg));
+    font: inherit;
+    font-family: var(--segmented-font, inherit);
+    font-size: 0.9375rem;
+    font-weight: var(--weight-semibold, 600);
+    text-transform: var(--segmented-transform, none);
+    cursor: pointer;
+  }
+
+  .segmented__option + .segmented__option {
+    border-inline-start: var(--segmented-border, 1px solid var(--color-border));
+  }
+
+  .segmented__option:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .segmented__option[aria-pressed="true"] {
+    background: var(--segmented-active-bg, var(--color-fg));
+    color: var(--segmented-active-fg, var(--color-bg));
+    text-decoration: none;
+  }
+
+  .segmented__option:focus-visible {
+    position: relative;
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+</style>

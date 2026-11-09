@@ -46,6 +46,23 @@ const props = [
     type: "string",
     default: '"Filter by type"',
     description: "Accessible name of the group."
+  },
+  {
+    name: "groups",
+    type: "{ label, param, filters, allLabel?, multiple? }[]",
+    description: "Several groups combined (category AND weight), each with its URL parameter."
+  },
+  {
+    name: "panel",
+    type: "boolean",
+    default: "groups > 1",
+    description: "Below 48rem, the groups and the sort move into a full-screen panel."
+  },
+  {
+    name: "panelLabel / applyTemplate / closeLabel",
+    type: "string",
+    default: '"Filters" / "Show {count} items" / "Close the filters"',
+    description: "Panel button and title, closing button, close icon name."
   }
 ];
 ---
@@ -160,5 +177,80 @@ const props = [
       ]}
       style="--band-gutter: 0px; --band-padding: 1.5rem"
     />
+  </Preview>
+  <Preview
+    title="Two groups, panel on phones"
+    code={'<FilterBar target="fleet" groups={[{ label: "Category", param: "cat", filters: […] }, { label: "Weight", param: "weight", filters: […] }]} sort={…} />'}
+  >
+    <div style="display:grid;gap:1.25rem">
+      <FilterBar
+        target="fleet-demo"
+        countTemplate="{count} machines"
+        applyTemplate="Show {count} machines"
+        emptyText="No machine matches. Try another weight."
+        resetLabel="Clear the filters"
+        groups={[
+          {
+            label: "Category",
+            param: "cat",
+            filters: [
+              { label: "Excavators", value: "excavator" },
+              { label: "Loaders", value: "loader" }
+            ]
+          },
+          {
+            label: "Weight",
+            param: "weight",
+            filters: [
+              { label: "Under 4 t", value: "light" },
+              { label: "4 t and more", value: "heavy" }
+            ]
+          }
+        ]}
+        sort={{
+          label: "Sort",
+          options: [
+            { label: "Price, low to high", value: "price-asc", key: "price" },
+            { label: "Price, high to low", value: "price-desc", key: "price", order: "desc" }
+          ]
+        }}
+      />
+      <CardGrid
+        id="fleet-demo"
+        flush
+        items={[
+          {
+            title: "Mini excavator 1.8 t",
+            text: "Day $249",
+            tags: ["excavator", "light"],
+            sort: { price: 249 }
+          },
+          {
+            title: "Mini excavator 3.5 t",
+            text: "Day $329",
+            tags: ["excavator", "light"],
+            sort: { price: 329 }
+          },
+          {
+            title: "Excavator 8 t",
+            text: "Day $590",
+            tags: ["excavator", "heavy"],
+            sort: { price: 590 }
+          },
+          {
+            title: "Skid steer 2.8 t",
+            text: "Day $389",
+            tags: ["loader", "light"],
+            sort: { price: 389 }
+          },
+          {
+            title: "Wheel loader 9 t",
+            text: "Day $690",
+            tags: ["loader", "heavy"],
+            sort: { price: 690 }
+          }
+        ]}
+      />
+    </div>
   </Preview>
 </DocLayout>

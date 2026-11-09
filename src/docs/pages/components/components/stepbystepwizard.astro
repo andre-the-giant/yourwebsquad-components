@@ -198,6 +198,22 @@ const code = `<StepByStepWizard id="quote" steps={steps} start={{ title: "How mu
   </StepByStepResult>
   <form>… <input type="hidden" name="answers" data-stepbystep-answers /> …</form>
 </StepByStepWizard>`;
+const branchCode = `<StepByStepWizard id="request" prefill steps={[
+  { id: "service", question: "What can we do for you?", options: [{ value: "rental", label: "Rent a machine" }, { value: "works", label: "Get work done" }] },
+  { id: "machine", question: "Which machine?", when: { step: "service", is: "rental" }, options: [{ value: "mini-35", label: "Mini excavator 3.5 t", group: "Excavators" }, …] },
+  { id: "duration", question: "When and for how long?", when: { step: "service", is: "rental" }, options: […], fields: [{ name: "start", label: "Start date", type: "date", min: "today", required: true }] },
+  { id: "delivery", question: "How does it get to you?", when: …, options: […], fields: [{ name: "postal", label: "Site postal code", when: "truck", required: true }] },
+  { id: "extras", question: "Options", type: "checkbox", optional: true, when: …, options: [{ value: "breaker", label: "Hydraulic breaker" }, { value: "none", label: "None", exclusive: true }] },
+  { id: "works", question: "What work?", when: { step: "service", is: "works" }, options: […] },
+  { id: "photos", question: "Photos of the lot?", type: "upload", optional: true, form: "contact", when: … }
+]}>
+  <StepByStepResult slot="result" variant="total" when={{ step: "service", is: "rental" }} total={{ lines: [
+    { label: "{label:machine}, {label:duration}", table: { step: "machine", values: { "mini-35": { day: 329, week: 1290 } }, column: { step: "duration", map: { "1d": "day", "1w": "week" } } } },
+    { label: "Delivery, 2 trips", when: { step: "delivery", is: "truck" }, amount: 145, quantity: 2 },
+    { label: "Damage protection 12 %", when: { step: "extras", is: "protection" }, percent: 12 }
+  ] }} />
+  <StepByStepResult slot="result" when={{ step: "service", is: "works" }} pricing={{ base: { min: 5000, max: 9000 }, ranges: [{ step: "works", values: { septic: { min: 18000, max: 28000 } } }] }} />
+</StepByStepWizard>`;
 ---
 
 <DocLayout
@@ -241,6 +257,191 @@ const code = `<StepByStepWizard id="quote" steps={steps} start={{ title: "How mu
       </StepByStepResult>
       <input type="hidden" name="answers" data-stepbystep-answers />
       <input type="hidden" name="range" data-stepbystep-result />
+    </StepByStepWizard>
+  </Preview>
+  <Preview title="Several paths, more question types, line-by-line total" code={branchCode}>
+    <StepByStepWizard
+      id="request-demo"
+      storageKey="docs-request-demo"
+      prefill
+      steps={[
+        {
+          id: "service",
+          question: "What can we do for you?",
+          title: "Service",
+          options: [
+            { value: "rental", label: "Rent a machine", description: "You drive, we deliver." },
+            {
+              value: "works",
+              label: "Get work done",
+              description: "We come with the machine and the operator."
+            }
+          ]
+        },
+        {
+          id: "machine",
+          question: "Which machine?",
+          title: "Machine",
+          when: { step: "service", is: "rental" },
+          options: [
+            {
+              value: "mini-18",
+              label: "Mini excavator 1.8 t",
+              description: "$249/day",
+              group: "Excavators"
+            },
+            {
+              value: "mini-35",
+              label: "Mini excavator 3.5 t",
+              description: "$329/day",
+              group: "Excavators"
+            },
+            {
+              value: "skid-28",
+              label: "Skid steer 2.8 t",
+              description: "$389/day",
+              group: "Loaders"
+            },
+            { value: "unsure", label: "Not sure, advise me", group: "Other" }
+          ],
+          fields: [
+            {
+              name: "job",
+              label: "Describe the job",
+              type: "textarea",
+              when: "unsure",
+              required: true
+            }
+          ]
+        },
+        {
+          id: "duration",
+          question: "When and for how long?",
+          title: "Duration",
+          when: { step: "service", is: "rental" },
+          options: [
+            { value: "1d", label: "1 day" },
+            { value: "3d", label: "2 or 3 days" },
+            { value: "1w", label: "1 week" }
+          ],
+          fields: [
+            { name: "start", label: "Start date", type: "date", min: "today", required: true }
+          ]
+        },
+        {
+          id: "delivery",
+          question: "How does the machine get to you?",
+          title: "Delivery",
+          when: { step: "service", is: "rental" },
+          help: "Your vehicle must tow 3,500 kg for a 3.5 t mini excavator.",
+          options: [
+            { value: "truck", label: "Delivery by float truck" },
+            { value: "pickup", label: "I pick it up with my trailer" }
+          ],
+          fields: [
+            {
+              name: "postal",
+              label: "Site postal code",
+              when: "truck",
+              required: true,
+              autocomplete: "postal-code",
+              pattern: "[A-Za-z]\\d[A-Za-z] ?\\d[A-Za-z]\\d",
+              error: "Enter a postal code, such as K8N 4Z5."
+            }
+          ]
+        },
+        {
+          id: "extras",
+          question: "Options",
+          type: "checkbox",
+          optional: true,
+          when: { step: "service", is: "rental" },
+          options: [
+            { value: "breaker", label: "Hydraulic breaker ($95/day)" },
+            { value: "protection", label: "Damage protection (12 %)" },
+            { value: "none", label: "None", exclusive: true }
+          ]
+        },
+        {
+          id: "works",
+          question: "What work?",
+          title: "Work",
+          when: { step: "service", is: "works" },
+          options: [
+            { value: "septic", label: "Septic system" },
+            { value: "driveway", label: "Driveway" },
+            { value: "other", label: "Something else" }
+          ],
+          fields: [{ name: "other", label: "Tell us more", when: "other", required: true }]
+        },
+        {
+          id: "photos",
+          question: "Photos of the lot?",
+          title: "Photos",
+          type: "upload",
+          optional: true,
+          maxFiles: 5,
+          when: { step: "service", is: "works" },
+          help: "One wide shot and one of the access for the machine help a lot."
+        }
+      ]}
+    >
+      <StepByStepSummary slot="aside" />
+      <StepByStepResult
+        slot="result"
+        variant="total"
+        when={{ step: "service", is: "rental" }}
+        eyebrow="Your estimate"
+        taxNote="taxes extra"
+        total={{
+          lines: [
+            {
+              label: "{label:machine}, {label:duration}",
+              table: {
+                step: "machine",
+                values: {
+                  "mini-18": { day: 249, week: 990 },
+                  "mini-35": { day: 329, week: 1290 },
+                  "skid-28": { day: 389, week: 1590 }
+                },
+                column: { step: "duration", map: { "1d": "day", "3d": "day", "1w": "week" } }
+              },
+              quantity: { step: "duration", map: { "1d": 1, "3d": 3, "1w": 1 } }
+            },
+            {
+              label: "Delivery, 2 trips",
+              when: { step: "delivery", is: "truck" },
+              amount: 145,
+              quantity: 2
+            },
+            {
+              label: "Hydraulic breaker",
+              when: { step: "extras", is: "breaker" },
+              amount: 95,
+              quantity: { step: "duration", map: { "1d": 1, "3d": 3, "1w": 5 } }
+            },
+            {
+              label: "Damage protection 12 %",
+              when: { step: "extras", is: "protection" },
+              percent: 12
+            }
+          ],
+          fallback: "We call you back with a price."
+        }}
+      />
+      <StepByStepResult
+        slot="result"
+        when={{ step: "service", is: "works" }}
+        pricing={{
+          base: { min: 4000, max: 9000 },
+          ranges: [
+            {
+              step: "works",
+              values: { septic: { min: 18000, max: 28000 }, driveway: { min: 4500, max: 12000 } }
+            }
+          ]
+        }}
+      />
     </StepByStepWizard>
   </Preview>
 </DocLayout>

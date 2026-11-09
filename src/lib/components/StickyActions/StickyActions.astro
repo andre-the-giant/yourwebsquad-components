@@ -5,6 +5,9 @@ one main action and one secondary action (call).
 Props:
 - primary: { label: string, href: string }
 - secondary?: { label: string, href: string, icon?: string }
+- lead?: string — a short line before the main button, such as a price ("$329/day");
+  it takes the place of the secondary action
+- leadNote?: string — small text under the lead ("taxes extra")
 - label?: string — accessible name of the bar
 - hideFrom?: string — CSS length; the bar disappears from this width (default 64rem)
 - id?: string
@@ -31,6 +34,8 @@ const Schema = z.looseObject({
   secondary: z
     .looseObject({ label: z.string(), href: z.string(), icon: z.string().optional() })
     .optional(),
+  lead: z.string().optional(),
+  leadNote: z.string().optional(),
   label: z.string().default("Quick actions"),
   hideFrom: z.string().default("64rem")
 });
@@ -43,6 +48,8 @@ const {
   style,
   primary,
   secondary,
+  lead,
+  leadNote,
   label,
   hideFrom,
   ...rest
@@ -52,13 +59,21 @@ const {
 <div class="sticky-actions-spacer" aria-hidden="true"></div>
 <nav
   id={id}
-  class={mergeClasses("sticky-actions", className)}
+  class={mergeClasses("sticky-actions", lead && "sticky-actions--lead", className)}
   style={style}
   aria-label={label}
   data-sticky-actions
   data-hide-from={hideFrom}
   {...rest}
 >
+  {
+    lead && (
+      <p class="sticky-actions__lead">
+        <b>{lead}</b>
+        {leadNote && <small>{leadNote}</small>}
+      </p>
+    )
+  }
   <Button
     href={primary.href}
     label={primary.label}
@@ -66,7 +81,7 @@ const {
     class="sticky-actions__primary"
   />
   {
-    secondary && (
+    secondary && !lead && (
       <Button href={secondary.href} variant="outline" class="sticky-actions__secondary">
         <Icon name={secondary.icon ?? "phone"} />
         {secondary.label}
@@ -112,6 +127,7 @@ const {
 <style>
   .sticky-actions {
     position: fixed;
+    border-top: var(--sticky-actions-border, 1px solid var(--color-border));
     inset: auto 0 0;
     z-index: var(--z-bottom-bar, 50);
     display: grid;
@@ -119,8 +135,29 @@ const {
     gap: 0.5rem;
     padding: 0.625rem max(0.75rem, env(safe-area-inset-right, 0px))
       calc(0.75rem + env(safe-area-inset-bottom, 0px)) max(0.75rem, env(safe-area-inset-left, 0px));
-    border-top: 1px solid var(--color-border);
-    background: rgba(var(--color-bg-rgb), 0.96);
+    background: var(--sticky-actions-bg, rgba(var(--color-bg-rgb), 0.96));
+  }
+
+  .sticky-actions--lead {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .sticky-actions__lead {
+    display: grid;
+    margin: 0;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sticky-actions__lead b {
+    font-family: var(--sticky-actions-lead-font, inherit);
+    font-size: 1.25rem;
+  }
+
+  .sticky-actions__lead small {
+    font-size: 0.8125rem;
+    color: var(--muted-text, var(--color-muted));
   }
 
   .sticky-actions[hidden],

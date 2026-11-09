@@ -52,6 +52,33 @@ const props = [
     name: "screenreader",
     type: "string",
     description: "Visually hidden text announced after the label/slot."
+  },
+  {
+    name: "--button-skew",
+    type: "CSS variable",
+    default: "0deg",
+    description: "Slants the button; the label stays upright."
+  },
+  {
+    name: "--button-text-transform / --button-letter-spacing",
+    type: "CSS variables",
+    description: "Label case and tracking."
+  },
+  {
+    name: "--button-border-width / --button-min-height",
+    type: "CSS variables",
+    default: "1px / auto",
+    description: "Border width and minimum height."
+  },
+  {
+    name: "--button-solid-hover-bg / -fg / -border / -shadow / -lift",
+    type: "CSS variables",
+    description: "Solid button on hover (lift default -1px)."
+  },
+  {
+    name: "--button-solid-active-shadow",
+    type: "CSS variable",
+    description: "Shadow while pressed."
   }
 ];
 
@@ -161,6 +188,18 @@ const styleVars = [
         label="Accent override"
         style="--color-accent: #e85d04; --color-accent-contrast: #0b090a;"
       />
+    </div>
+  </Preview>
+  <Preview
+    title="Slanted, capitals, hard shadow (theme variables)"
+    code={'<div style="--button-skew: -8deg; --button-text-transform: uppercase; --button-border-width: 2px; --button-solid-shadow: 4px 4px 0 #17150f">\n  <Button label="Rent a machine" />\n</div>'}
+  >
+    <div
+      style="display:flex;flex-wrap:wrap;gap:1rem;--button-skew:-8deg;--button-text-transform:uppercase;--button-letter-spacing:0.06em;--button-border-width:2px;--button-min-height:3rem"
+    >
+      <Button label="Rent a machine" />
+      <Button label="Get it dug" variant="outline" />
+      <Button label="Fully booked" disabled />
     </div>
   </Preview>
 </DocLayout>

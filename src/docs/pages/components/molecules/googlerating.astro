@@ -38,6 +38,17 @@ const props = [
     type: "string",
     default: '"en-CA"',
     description: "Number format: fr-CA gives 4,9."
+  },
+  {
+    name: "variant=sticker",
+    type: "variant",
+    description: "Tilted label to lay over a photo; tilt from --rating-sticker-rotate."
+  },
+  {
+    name: "--rating-sticker-rotate / -bg / -fg / -border / -shadow",
+    type: "CSS variables",
+    default: "0deg",
+    description: "Look of the sticker."
   }
 ];
 ---
@@ -56,6 +67,25 @@ const props = [
       <GoogleRating rating={4.9} count={127} href="https://www.google.com/maps" />
       <GoogleRating variant="inline" rating={4.9} count={127} />
       <GoogleRating variant="mini" rating={4.9} locale="fr-CA" />
+    </div>
+  </Preview>
+  <Preview
+    title="Sticker on a photo"
+    code={'<GoogleRating variant="sticker" rating={4.8} count={212} style="--rating-sticker-rotate: 3deg" />'}
+  >
+    <div style="position:relative;max-width:28rem">
+      <img
+        src="https://picsum.photos/seed/sticker/900/600"
+        alt="Excavator at work"
+        style="display:block;width:100%"
+      />
+      <GoogleRating
+        variant="sticker"
+        rating={4.8}
+        count={212}
+        href="#"
+        style="position:absolute;right:1rem;bottom:1rem;--rating-sticker-rotate:3deg"
+      />
     </div>
   </Preview>
 </DocLayout>

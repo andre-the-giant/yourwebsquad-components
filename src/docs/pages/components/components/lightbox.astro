@@ -22,6 +22,11 @@ const props = [
     type: "string",
     default: '"{index} / {total}"',
     description: "Counter."
+  },
+  {
+    name: "groups",
+    type: "{ images, panel?: { title, text?, facts?, quote?, author?, link? } }[]",
+    description: "Several series, each with a text panel beside the photos."
   }
 ];
 ---
@@ -60,6 +65,73 @@ const props = [
         alt: `Renovated bathroom, view ${n}`,
         caption: `Detail ${n}`
       }))}
+    />
+  </Preview>
+  <Preview
+    title="Series with a panel (a whole project each)"
+    code={'<Lightbox id="projects" groups={[{ images: […], panel: { title: "Septic system, Ameliasburgh", facts: [{ label: "Duration", value: "4 days" }] } }, …]} />\n<a href="…" data-lightbox-open="projects" data-lightbox-group="1">…</a>'}
+  >
+    <div style="display:flex;flex-wrap:wrap;gap:1rem">
+      <a
+        href="https://picsum.photos/seed/lbg1/1600/1000"
+        data-lightbox-open="lightbox-groups"
+        data-lightbox-group="0"
+        data-lightbox-index="0"
+      >
+        <img
+          src="https://picsum.photos/seed/lbg1/320/200"
+          alt="Septic system, Ameliasburgh: open the photos"
+          width="160"
+          height="100"
+        />
+      </a>
+      <a
+        href="https://picsum.photos/seed/lbg3/1600/1000"
+        data-lightbox-open="lightbox-groups"
+        data-lightbox-group="1"
+        data-lightbox-index="0"
+      >
+        <img
+          src="https://picsum.photos/seed/lbg3/320/200"
+          alt="Gravel driveway, Stirling: open the photos"
+          width="160"
+          height="100"
+        />
+      </a>
+    </div>
+    <Lightbox
+      id="lightbox-groups"
+      label="Projects"
+      groups={[
+        {
+          images: [
+            {
+              src: "https://picsum.photos/seed/lbg1/1600/1000",
+              alt: "Open trench for the septic tank"
+            },
+            { src: "https://picsum.photos/seed/lbg2/1600/1000", alt: "Finished field bed, seeded" }
+          ],
+          panel: {
+            title: "Septic system, Ameliasburgh",
+            text: "Raised bed on clay, two steps from the bay.",
+            facts: [
+              { label: "Duration", value: "4 days" },
+              { label: "Price", value: "about $31,000" }
+            ],
+            quote: "They left the lawn cleaner than they found it.",
+            author: "Martine L."
+          }
+        },
+        {
+          images: [
+            {
+              src: "https://picsum.photos/seed/lbg3/1600/1000",
+              alt: "New gravel driveway with a culvert"
+            }
+          ],
+          panel: { title: "Gravel driveway, Stirling", facts: [{ label: "Length", value: "80 m" }] }
+        }
+      ]}
     />
   </Preview>
 </DocLayout>

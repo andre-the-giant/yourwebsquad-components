@@ -3,7 +3,13 @@
 Lightbox — full-screen photo viewer, built on Modal (size="full").
 Props:
 - id: string — referenced by the triggers
-- images: { src: string, alt: string, caption?: string }[]
+- images?: { src: string, alt: string, caption?: string }[] — one series
+- groups?: { images: { src, alt, caption? }[], panel?: {
+      title: string, text?: string, facts?: { label: string, value: string }[],
+      quote?: string, author?: string, link?: { label: string, href: string } } }[]
+  — several series (a whole project each). The panel sits beside the photo on large
+  screens and under it on phones. The arrows go through the photos, then on to the next
+  series. Use `groups` or `images`.
 - label?: string — accessible name of the dialog, "Photos"
 - closeLabel?: string — "Close"
 - prevLabel?: string — "Previous photo"
@@ -14,6 +20,8 @@ Props:
 Triggers:
 - Any element with data-lightbox-open="<id>" and data-lightbox-index="<n>" (0-based)
   opens the viewer on that photo. Use a link to the full image so it works without JS.
+- With groups, add data-lightbox-group="<n>" (0-based): the index counts inside that
+  series.
 Keyboard: left and right arrows, Escape closes, the focus goes back to the trigger.
 Touch: swipe left or right. First / last photo disable their arrow.
 */
@@ -29,7 +37,28 @@ const Schema = z.looseObject({
   style: z.string().optional(),
   images: z
     .array(z.looseObject({ src: z.string(), alt: z.string(), caption: z.string().optional() }))
-    .min(1),
+    .default([]),
+  groups: z
+    .array(
+      z.looseObject({
+        images: z
+          .array(
+            z.looseObject({ src: z.string(), alt: z.string(), caption: z.string().optional() })
+          )
+          .min(1),
+        panel: z
+          .looseObject({
+            title: z.string(),
+            text: z.string().optional(),
+            facts: z.array(z.looseObject({ label: z.string(), value: z.string() })).default([]),
+            quote: z.string().optional(),
+            author: z.string().optional(),
+            link: z.looseObject({ label: z.string(), href: z.string() }).optional()
+          })
+          .optional()
+      })
+    )
+    .default([]),
   label: z.string().default("Photos"),
   closeLabel: z.string().default("Close"),
   prevLabel: z.string().default("Previous photo"),
@@ -43,13 +72,19 @@ const {
   id,
   class: className,
   style,
-  images,
+  images: single,
+  groups: groupProp,
   label,
   closeLabel,
   prevLabel,
   nextLabel,
   counterTemplate
 } = parseProps(Schema, Astro.props, { component: "Lightbox" });
+const groups = groupProp.length ? groupProp : [{ images: single, panel: undefined }];
+// One flat list of photos, each knowing its series
+const images = groups.flatMap((group, g) => group.images.map((image) => ({ ...image, g })));
+const hasPanels = groups.some((group) => group.panel);
+if (!images.length) throw new Error("Lightbox: give it `images` or `groups`.");
 ---
 
 <Modal
@@ -61,7 +96,7 @@ const {
   style={style}
 >
   <div
-    class="lightbox__stage"
+    class:list={["lightbox__stage", hasPanels && "lightbox__stage--panel"]}
     data-lightbox={id}
     data-images={JSON.stringify(images)}
     data-counter-template={counterTemplate}
@@ -75,6 +110,45 @@ const {
         <span data-lightbox-caption>{images[0].caption}</span>
       </figcaption>
     </figure>
+    {
+      hasPanels && (
+        <div class="lightbox__panels">
+          {groups.map((group, g) =>
+            group.panel ? (
+              <section class="lightbox__panel" data-lightbox-panel={g} hidden={g !== 0}>
+                <h2 class="lightbox__panel-title">{group.panel.title}</h2>
+                {group.panel.text && <p class="lightbox__panel-text">{group.panel.text}</p>}
+                {group.panel.facts.length > 0 && (
+                  <dl class="lightbox__facts">
+                    {group.panel.facts.map((fact) => (
+                      <div>
+                        <dt>{fact.label}</dt>
+                        <dd>{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                {group.panel.quote && (
+                  <figure class="lightbox__quote">
+                    <blockquote>
+                      <p>{group.panel.quote}</p>
+                    </blockquote>
+                    {group.panel.author && <figcaption>{group.panel.author}</figcaption>}
+                  </figure>
+                )}
+                {group.panel.link && (
+                  <a class="lightbox__panel-link" href={group.panel.link.href}>
+                    {group.panel.link.label}
+                  </a>
+                )}
+              </section>
+            ) : (
+              <section class="lightbox__panel" data-lightbox-panel={g} hidden />
+            )
+          )}
+        </div>
+      )
+    }
     <button
       type="button"
       class="lightbox__nav lightbox__nav--prev"
@@ -95,7 +169,7 @@ const {
 </Modal>
 
 <script>
-  type Photo = { src: string; alt: string; caption?: string };
+  type Photo = { src: string; alt: string; caption?: string; g: number };
 
   for (const stage of document.querySelectorAll<HTMLElement>("[data-lightbox]")) {
     const id = stage.dataset.lightbox ?? "";
@@ -108,6 +182,7 @@ const {
     const counter = stage.querySelector<HTMLElement>("[data-lightbox-counter]")!;
     const prev = stage.querySelector<HTMLButtonElement>("[data-lightbox-prev]")!;
     const next = stage.querySelector<HTMLButtonElement>("[data-lightbox-next]")!;
+    const panels = [...stage.querySelectorAll<HTMLElement>("[data-lightbox-panel]")];
     let index = 0;
 
     const show = (i: number) => {
@@ -121,6 +196,13 @@ const {
         .replace("{total}", String(photos.length));
       prev.disabled = index === 0;
       next.disabled = index === photos.length - 1;
+      panels.forEach((panel) => (panel.hidden = Number(panel.dataset.lightboxPanel) !== photo.g));
+    };
+
+    // Index of a photo inside its series → index in the flat list
+    const flatIndex = (group: number, inGroup: number) => {
+      const first = photos.findIndex((photo) => photo.g === group);
+      return first < 0 ? inGroup : first + inGroup;
     };
 
     // Triggers: links to the full image, upgraded to open the viewer
@@ -131,7 +213,12 @@ const {
           : null;
       if (!trigger) return;
       event.preventDefault();
-      show(Number(trigger.dataset.lightboxIndex ?? 0));
+      const inGroup = Number(trigger.dataset.lightboxIndex ?? 0);
+      show(
+        trigger.dataset.lightboxGroup !== undefined
+          ? flatIndex(Number(trigger.dataset.lightboxGroup), inGroup)
+          : inGroup
+      );
       window.dispatchEvent(new CustomEvent("modal:open", { detail: { id } }));
     });
 
@@ -202,6 +289,110 @@ const {
   .lightbox__counter {
     font-variant-numeric: tabular-nums;
     opacity: 0.8;
+  }
+
+  /* Series with a text panel: photo and panel side by side from 64rem */
+  .lightbox__stage--panel {
+    place-items: stretch;
+    align-content: start;
+    gap: 1.25rem;
+    overflow-y: auto;
+  }
+
+  .lightbox__stage--panel .lightbox__img {
+    max-height: min(60dvh, 40rem);
+    margin-inline: auto;
+  }
+
+  .lightbox__panel {
+    display: grid;
+    align-content: start;
+    gap: 0.875rem;
+    max-width: 40rem;
+    padding-inline: 0.25rem;
+  }
+
+  .lightbox__panel[hidden] {
+    display: none;
+  }
+
+  .lightbox__panel-title {
+    margin: 0;
+    font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1.1;
+  }
+
+  .lightbox__panel-text {
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .lightbox__facts {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .lightbox__facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.375rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.2);
+  }
+
+  .lightbox__facts dd {
+    margin: 0;
+    font-weight: var(--weight-semibold, 600);
+    text-align: end;
+  }
+
+  .lightbox__quote {
+    margin: 0;
+  }
+
+  .lightbox__quote blockquote {
+    margin: 0;
+    font-style: italic;
+  }
+
+  .lightbox__quote p {
+    margin: 0;
+  }
+
+  .lightbox__quote figcaption {
+    margin-top: 0.375rem;
+    font-size: 0.875rem;
+  }
+
+  .lightbox__panel-link {
+    justify-self: start;
+    color: inherit;
+    font-weight: var(--weight-semibold, 600);
+  }
+
+  .lightbox__panel-link:focus-visible {
+    outline: 3px solid var(--color-focus-inverse, #cfe3eb);
+    outline-offset: 3px;
+  }
+
+  @media (min-width: 64rem) {
+    .lightbox__stage--panel {
+      grid-template-columns: minmax(0, 1fr) 22rem;
+      align-items: center;
+      overflow: visible;
+    }
+
+    .lightbox__stage--panel .lightbox__img {
+      max-height: calc(100dvh - 9rem);
+    }
+
+    .lightbox__stage--panel .lightbox__nav--next {
+      right: calc(22rem + 1.25rem + max(0.5rem, env(safe-area-inset-right, 0px)));
+    }
   }
 
   .lightbox__nav {

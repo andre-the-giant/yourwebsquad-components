@@ -49,7 +49,18 @@ const props = [
     description: "Buttons below."
   },
   { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
-  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." },
+  {
+    name: "items[].meta",
+    type: "string",
+    description: "Short line under the title, such as a duration."
+  },
+  {
+    name: "layout",
+    type: '"list" | "timeline"',
+    default: '"list"',
+    description: "timeline: markers joined by a line, across on large screens, down on phones."
+  }
 ];
 ---
 
@@ -57,5 +68,21 @@ const props = [
   <PropsTable props={props} />
   <Preview title="Three steps" code={codes[0]}>
     <Steps {...examples[0]} />
+  </Preview>
+  <Preview
+    title="Timeline with durations"
+    code={'<Steps layout="timeline" items={[{ title: "Free visit", meta: "Within 48 h", text: "…" }, …]} />'}
+  >
+    <Steps
+      flush
+      layout="timeline"
+      items={[
+        { title: "Free visit", meta: "Within 48 h", text: "We walk the lot and check the soil." },
+        { title: "Permit", meta: "2 to 4 weeks", text: "We file the septic permit." },
+        { title: "Dig and install", meta: "3 to 5 days", text: "Tank, field bed, backfill." },
+        { title: "Inspection", meta: "1 day", text: "The inspector signs off." },
+        { title: "Grading", meta: "1 day", text: "Topsoil, seed, clean up." }
+      ]}
+    />
   </Preview>
 </DocLayout>

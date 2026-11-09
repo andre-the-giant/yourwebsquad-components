@@ -1,0 +1,57 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import NoticeBar from "@lib/components/NoticeBar/NoticeBar.astro";
+
+const props = [
+  { name: "text", type: "string", description: "The notice." },
+  { name: "link", type: "{ label, href }", description: "Optional link after the text." },
+  { name: "tone", type: '"inverse" | "surface"', default: '"inverse"', description: "Colours." },
+  { name: "label", type: "string", default: '"Notice"', description: "Name of the region." },
+  {
+    name: "dismissible",
+    type: "boolean",
+    default: "false",
+    description: "Adds a close button, remembered in the browser."
+  },
+  {
+    name: "dismissLabel",
+    type: "string",
+    default: '"Close the notice"',
+    description: "Name of that button."
+  },
+  { name: "storageKey", type: "string", default: '"noticebar"', description: "Key of that choice." }
+];
+---
+
+<DocLayout
+  title={"NoticeBar"}
+  description={"A thin band above the site header, for a notice about the whole site. A paragraph in a named region, placed before the skip link; no alert role, since nothing in it is urgent."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Both tones"}
+    code={'<NoticeBar text="Fictional business: a Your Web Squad demo site." />\n<NoticeBar tone="surface" … />'}
+  >
+    <div style="display:grid;gap:1rem">
+      <NoticeBar text="Fictional business: a Your Web Squad demo site." label="Notice" />
+      <NoticeBar
+        tone="surface"
+        text="Closed December 24 to January 2. Snow removal runs as usual."
+        link={{ label: "Winter hours", href: "#" }}
+        label="Holiday notice"
+      />
+    </div>
+  </Preview>
+  <Preview title={"Dismissible"} code={'<NoticeBar dismissible storageKey="storm" text="…" />'}>
+    <NoticeBar
+      dismissible
+      storageKey="docs-demo"
+      text="Storm warning: deliveries may be late on Friday."
+      label="Weather notice"
+    />
+  </Preview>
+</DocLayout>

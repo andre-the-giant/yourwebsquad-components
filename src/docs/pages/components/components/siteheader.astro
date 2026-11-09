@@ -46,7 +46,13 @@ const props = [
   { name: "skipLabel", type: "string", default: '"Skip to content"', description: "Skip link." },
   { name: "skipHref", type: "string", default: '"#main"', description: "Skip link target." },
   { name: "menuLabel", type: "string", default: '"Menu"', description: "Phone menu button." },
-  { name: "closeLabel", type: "string", default: '"Close"', description: "Same, once open." }
+  { name: "closeLabel", type: "string", default: '"Close"', description: "Same, once open." },
+  {
+    name: "--siteheader-band / --siteheader-band-height",
+    type: "CSS variables",
+    default: "none / 0",
+    description: "Decorative band along the top edge (stripes, a colour)."
+  }
 ];
 
 const code = `<SiteHeader logo={logo} logoAlt="Your Web Squad" items={items}

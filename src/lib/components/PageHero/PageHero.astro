@@ -15,6 +15,10 @@ Props:
 - img?: string
 - alt?: string — required for a meaningful image, "" for a decorative one
 - layout?: "text" | "split" | "full"
+Theme variables:
+- --type-heading-transform: case of the title (default none)
+- --pagehero-accent-bg, --pagehero-accent-fg: the highlighted words (default: accent
+  colour text, no background); --pagehero-accent-padding pads a highlight
 Slots:
 - meta — under the buttons: price chips, a rating badge, any short facts
 - id?: string
@@ -170,6 +174,7 @@ const buttons = actions.slice(0, 2);
   .pagehero__title {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h1, clamp(2.5rem, 6vw, 4.5rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h1-line, 1.05);
@@ -178,7 +183,11 @@ const buttons = actions.slice(0, 2);
   }
 
   .pagehero__accent {
-    color: var(--color-accent);
+    padding: var(--pagehero-accent-padding, 0);
+    background: var(--pagehero-accent-bg, none);
+    color: var(--pagehero-accent-fg, var(--color-accent));
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 
   .pagehero__body {
@@ -228,6 +237,7 @@ const buttons = actions.slice(0, 2);
     margin: 0;
     padding: clamp(1.25rem, 2.6vw, 2rem) var(--_gutter);
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: clamp(1.5rem, 2.8vw, 2.25rem);
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.1;

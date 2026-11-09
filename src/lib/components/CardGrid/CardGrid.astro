@@ -7,12 +7,15 @@ Props:
 - intro?: string
 - items: { title: string, text?: string, href?: string,
            img?: string, alt?: string, tag?: string, meta?: string, tags?: string[],
-           sort?: { [key: string]: string | number } }[]
+           sort?: { [key: string]: string | number },
+           badge?: string, status?: { label, tone? }, ticket?: PriceTicket props }[]
   An item with img becomes a photo card: photo, tag, title, text, meta line.
   tags are written to data-tags so a FilterBar can filter the grid.
+  badge, status and ticket are passed to Card (rental items: unit, availability, prices).
   sort values are written to data-sort-<key> so a FilterBar can sort it.
 - columns?: 2 | 3
 - compact?: boolean — photo cards with a square photo on the left
+- compactBelow?: boolean — photo cards turn compact below 48rem
 - ratio?: string — photo ratio of photo cards (default "4/3")
 - initial?: number — show this many cards, then a "Show more" button that adds as many
 - moreLabel?: string — label of that button
@@ -50,11 +53,15 @@ const Schema = z.looseObject({
         tag: z.string().optional(),
         meta: z.string().optional(),
         tags: z.array(z.string()).optional(),
-        sort: z.record(z.string(), z.union([z.string(), z.number()])).optional()
+        sort: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+        badge: z.string().optional(),
+        status: z.looseObject({ label: z.string(), tone: z.string().optional() }).optional(),
+        ticket: z.looseObject({}).optional()
       })
     )
     .default([]),
   compact: z.boolean().default(false),
+  compactBelow: z.boolean().default(false),
   ratio: z.string().default("4/3"),
   initial: z.number().int().positive().optional(),
   moreLabel: z.string().default("Show more"),
@@ -89,6 +96,7 @@ const {
   tone,
   flush,
   compact,
+  compactBelow,
   ratio,
   initial,
   moreLabel,
@@ -151,6 +159,10 @@ const sortAttrs = (sort?: Record<string, string | number>) =>
             text={item.text}
             meta={item.meta}
             tags={item.tags}
+            badge={item.badge}
+            status={item.status as any}
+            ticket={item.ticket}
+            compactBelow={compactBelow}
             tabindex={hasMore ? "-1" : undefined}
             {...sortAttrs(item.sort)}
           />
@@ -242,6 +254,7 @@ const sortAttrs = (sort?: Record<string, string | number>) =>
     max-width: 22ch;
     margin: 0 0 clamp(1.75rem, 4vw, 3.5rem);
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h2-line, 1.1);
@@ -290,6 +303,7 @@ const sortAttrs = (sort?: Record<string, string | number>) =>
   .card__title {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h3, clamp(1.5rem, 2.6vw, 2.125rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h3-line, 1.15);

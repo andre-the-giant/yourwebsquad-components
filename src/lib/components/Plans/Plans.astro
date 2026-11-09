@@ -179,6 +179,7 @@ const isAmount = (value?: string) => Boolean(value && /^[\d\s.,]+$/.test(value))
     max-width: 22ch;
     margin: 0 0 clamp(1.75rem, 4vw, 3.5rem);
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h2-line, 1.1);
@@ -281,6 +282,7 @@ const isAmount = (value?: string) => Boolean(value && /^[\d\s.,]+$/.test(value))
   .plan__name {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h3, clamp(1.5rem, 2.6vw, 2.125rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h3-line, 1.15);
@@ -290,6 +292,7 @@ const isAmount = (value?: string) => Boolean(value && /^[\d\s.,]+$/.test(value))
   .plan__price {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: clamp(3.5rem, 6vw, 4.75rem);
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 0.95;

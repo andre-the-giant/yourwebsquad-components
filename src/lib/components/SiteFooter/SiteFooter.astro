@@ -15,6 +15,10 @@ Slots:
 - id?: string
 - class?: string
 - style?: string
+Theme variables:
+- --sitefooter-band, --sitefooter-band-height: decorative band along the top edge
+  (height 0 by default)
+- --sitefooter-bg, --sitefooter-fg
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -112,8 +116,18 @@ const {
 <style>
   .sitefooter {
     padding: clamp(3rem, 6vw, 5rem) var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem)) 2rem;
-    background: var(--color-inverse-surface);
-    color: var(--color-inverse-fg);
+    background: var(--sitefooter-bg, var(--color-inverse-surface));
+    color: var(--sitefooter-fg, var(--color-inverse-fg));
+  }
+
+  /* Optional decorative band along the top edge (theme variables, 0 by default) */
+  .sitefooter::before {
+    content: "";
+    display: block;
+    height: var(--sitefooter-band-height, 0);
+    margin: calc(-1 * clamp(3rem, 6vw, 5rem))
+      calc(-1 * var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem))) clamp(3rem, 6vw, 5rem);
+    background: var(--sitefooter-band, none);
   }
 
   .sitefooter__grid {

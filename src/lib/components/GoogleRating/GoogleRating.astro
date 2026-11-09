@@ -5,7 +5,9 @@ Props:
 - rating?: number — 0 to 5. Nothing renders without it (never show a made-up number).
 - count?: number — number of reviews
 - href?: string — Google profile or reviews page (opens in a new tab)
-- variant?: "badge" | "inline" | "mini"
+- variant?: "badge" | "inline" | "mini" | "sticker"
+    sticker: a tilted label to lay over a photo (place it with CSS from the page);
+    the tilt is --rating-sticker-rotate (default 0deg) and stops with reduced motion
 - label?: string — "{count} Google reviews"
 - srTemplate?: string — "Rated {rating} out of 5 on Google, {count} reviews"
 - newTabLabel?: string — "(opens in a new tab)"
@@ -28,7 +30,7 @@ const Schema = z.looseObject({
   rating: z.number().min(0).max(5).optional(),
   count: z.number().int().nonnegative().optional(),
   href: z.string().optional(),
-  variant: z.enum(["badge", "inline", "mini"]).default("badge"),
+  variant: z.enum(["badge", "inline", "mini", "sticker"]).default("badge"),
   label: z.string().default("{count} Google reviews"),
   srTemplate: z.string().default("Rated {rating} out of 5 on Google, {count} reviews"),
   newTabLabel: z.string().default("(opens in a new tab)"),
@@ -79,7 +81,11 @@ const Tag = href ? "a" : "div";
         {value}
       </span>
       <span class="google-rating__detail" aria-hidden="true">
-        <StarRating rating={rating} size={variant === "badge" ? "sm" : "xs"} srText="" />
+        <StarRating
+          rating={rating}
+          size={variant === "badge" || variant === "sticker" ? "sm" : "xs"}
+          srText=""
+        />
         {variant !== "mini" && <span class="google-rating__label">{visibleLabel}</span>}
         {variant === "mini" && <span class="google-rating__label">Google</span>}
       </span>
@@ -120,6 +126,7 @@ const Tag = href ? "a" : "div";
 
   .google-rating__value {
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: 2.25rem;
     line-height: 1;
   }
@@ -187,6 +194,19 @@ const Tag = href ? "a" : "div";
 
   .google-rating--mini .google-rating__label {
     font-size: 0.8125rem;
+    color: inherit;
+  }
+
+  .google-rating--sticker {
+    padding: 0.75rem 1rem;
+    border: var(--rating-sticker-border, 2px solid var(--color-fg));
+    background: var(--rating-sticker-bg, var(--google-rating-bg, rgb(255 255 255)));
+    box-shadow: var(--rating-sticker-shadow, none);
+    color: var(--rating-sticker-fg, var(--color-fg));
+    transform: rotate(var(--rating-sticker-rotate, 0deg));
+  }
+
+  .google-rating--sticker .google-rating__label {
     color: inherit;
   }
 

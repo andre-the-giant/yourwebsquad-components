@@ -1,0 +1,73 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import SegmentedControl from "@lib/components/SegmentedControl/SegmentedControl.astro";
+import PriceTicket from "@lib/components/PriceTicket/PriceTicket.astro";
+
+const props = [
+  { name: "label", type: "string", description: "Visible name of the group." },
+  { name: "options", type: "{ label, value }[]", description: "2 to 4 choices." },
+  { name: "value", type: "string", description: "Chosen at first (default: the first)." },
+  { name: "target", type: "string", description: "id of the zone that receives the choice." },
+  {
+    name: "attribute",
+    type: "string",
+    default: '"view"',
+    description: "Data attribute written on the target (data-view)."
+  },
+  { name: "param", type: "string", description: "URL parameter that keeps the choice." }
+];
+const rental = [
+  { label: "Day", amount: 329, key: "day" },
+  { label: "Week", amount: 1290, key: "week" }
+];
+---
+
+<DocLayout
+  title={"SegmentedControl"}
+  description={"2 to 4 exclusive choices that change how a zone looks without hiding anything. FilterBar hides items; SegmentedControl changes their presentation. Toggle buttons in a named group; left and right arrows move and choose."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Switches the highlighted price of every ticket in the zone"}
+    code={'<SegmentedControl label="Show the price" target="fleet" options={[{ label: "Per day", value: "day" }, { label: "Per week", value: "week" }]} />\n<div id="fleet"><PriceTicket prices={…} /> …</div>'}
+  >
+    <div style="display:grid;gap:1.25rem">
+      <SegmentedControl
+        label="Show the price"
+        target="seg-demo"
+        options={[
+          { label: "Per day", value: "day" },
+          { label: "Per week", value: "week" }
+        ]}
+      />
+      <div id="seg-demo" style="display:flex;flex-wrap:wrap;gap:1rem">
+        <PriceTicket prices={rental} label="Mini excavator prices" />
+        <PriceTicket
+          prices={[
+            { label: "Day", amount: 389, key: "day" },
+            { label: "Week", amount: 1590, key: "week" }
+          ]}
+          label="Skid steer prices"
+        />
+      </div>
+    </div>
+  </Preview>
+  <Preview
+    title={"Three choices"}
+    code={'<SegmentedControl label="Units" options={[…3]} value="m" />'}
+  >
+    <SegmentedControl
+      label="Units"
+      value="m"
+      options={[
+        { label: "Feet", value: "ft" },
+        { label: "Metres", value: "m" },
+        { label: "Both", value: "both" }
+      ]}
+    />
+  </Preview>
+</DocLayout>

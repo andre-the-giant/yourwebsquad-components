@@ -1,22 +1,31 @@
 ---
 /*
-FilterBar — a row of filters that filters any list on the page. Link it to the list
-by its id; each element of the list carries its tags in data-tags (Card and CardGrid
-write them from their `tags` prop).
+FilterBar — filters that narrow any list on the page. Link it to the list by its id;
+each element of the list carries its tags in data-tags (Card and CardGrid write them
+from their `tags` prop).
 Props:
 - target: string — id of the list to filter (its direct children are filtered), or of a
   block that holds it, such as a CardGrid
-- filters: { label: string, value: string }[]
+- filters?: { label: string, value: string }[] — one row of filters
+- groups?: { label: string, param: string, filters: { label, value }[], allLabel?: string,
+    multiple?: boolean }[] — several groups combined: an item must match every group that
+    has a choice (category AND weight); within a group, any choice matches. Each group
+    keeps its own URL parameter. Use `groups` or `filters`, not both.
 - allLabel?: string — "All"
-- multiple?: boolean — several filters at once (default: one)
-- showCounts?: boolean — number of items on each filter (default true)
-- param?: string — URL parameter that keeps the filter, so the link can be shared (default "type")
+- multiple?: boolean — several filters at once in the single row (default: one)
+- showCounts?: boolean — number of items on each filter, given the other groups (default true)
+- param?: string — URL parameter of the single row (default "type")
 - sort?: { label: string, options: { label: string, value: string, key: string, order?: "asc" | "desc" }[] }
   — optional sort select; key names a data attribute of the items (data-sort-<key>)
 - countTemplate?: string — announced count, "{count} items"
 - emptyText?: string — "Nothing for this filter yet."
 - resetLabel?: string — "Show all"
-- label?: string — accessible name of the group, "Filter by type"
+- label?: string — accessible name of the single row, "Filter by type"
+- panel?: boolean — below 48rem, the groups and the sort move into a full-screen panel
+  opened by one button (default: on when there are several groups)
+- panelLabel?: string — that button and the panel title, "Filters"
+- applyTemplate?: string — button that closes the panel, "Show {count} items"
+- closeLabel?: string — "Close the filters"
 - id?: string
 - class?: string
 - style?: string
@@ -24,18 +33,35 @@ Behaviour:
 - Filters are toggle buttons (aria-pressed). The visible count is announced.
 - Without JS the filters are plain links (?type=value) and the whole list stays visible.
 - When a CardGrid uses `initial`, filtering shows every matching card.
+- The panel is a modal dialog: the focus stays inside, Escape closes it, and the focus
+  returns to the button. The button shows how many filters are on ("Filters · 2").
+Theme variables: --filterbar-chip-bg, --filterbar-active-bg, --filterbar-active-fg,
+--filterbar-chip-border, --filterbar-chip-font, --filterbar-chip-transform
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
 import { nextId } from "../../utils/id.js";
 import { mergeClasses } from "../../utils/style.js";
 
+const Filter = z.looseObject({ label: z.string(), value: z.string() });
+
 const Schema = z.looseObject({
   id: z.string().optional(),
   class: z.string().optional(),
   style: z.string().optional(),
   target: z.string(),
-  filters: z.array(z.looseObject({ label: z.string(), value: z.string() })).min(1),
+  filters: z.array(Filter).default([]),
+  groups: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        param: z.string(),
+        filters: z.array(Filter).min(1),
+        allLabel: z.string().optional(),
+        multiple: z.boolean().default(false)
+      })
+    )
+    .default([]),
   allLabel: z.string().default("All"),
   multiple: z.boolean().default(false),
   showCounts: z.boolean().default(true),
@@ -56,7 +82,11 @@ const Schema = z.looseObject({
   countTemplate: z.string().default("{count} items"),
   emptyText: z.string().default("Nothing for this filter yet."),
   resetLabel: z.string().default("Show all"),
-  label: z.string().default("Filter by type")
+  label: z.string().default("Filter by type"),
+  panel: z.boolean().optional(),
+  panelLabel: z.string().default("Filters"),
+  applyTemplate: z.string().default("Show {count} items"),
+  closeLabel: z.string().default("Close the filters")
 });
 
 type Props = z.input<typeof Schema>;
@@ -67,6 +97,7 @@ const {
   style,
   target,
   filters,
+  groups,
   allLabel,
   multiple,
   showCounts,
@@ -76,44 +107,118 @@ const {
   emptyText,
   resetLabel,
   label,
+  panel,
+  panelLabel,
+  applyTemplate,
+  closeLabel,
   ...rest
 } = parseProps(Schema, Astro.props, { component: "FilterBar" });
 
 const resolvedId = id ?? nextId("filterbar");
 const sortId = `${resolvedId}-sort`;
+const titleId = `${resolvedId}-title`;
+const named = groups.length > 0;
+const allGroups = named
+  ? groups.map((group) => ({ ...group, allLabel: group.allLabel ?? allLabel }))
+  : [{ label, param, filters, allLabel, multiple }];
+const hasPanel = panel ?? groups.length > 1;
 ---
 
 <div
   id={resolvedId}
-  class={mergeClasses("filterbar", className)}
+  class={mergeClasses("filterbar", hasPanel && "filterbar--panel", className)}
   style={style}
   data-filterbar
   data-target={target}
-  data-param={param}
-  data-multiple={multiple ? "true" : undefined}
   data-count-template={countTemplate}
+  data-apply-template={applyTemplate}
   data-show-counts={showCounts ? "true" : undefined}
   {...rest}
 >
-  <div class="filterbar__row">
-    <div class="filterbar__group" role="group" aria-label={label}>
-      <a class="filterbar__chip" href="?" data-filter-value="">
-        <span>{allLabel}</span>
-        <small class="filterbar__count" data-count></small>
-      </a>
-      {
-        filters.map((filter) => (
-          <a
-            class="filterbar__chip"
-            href={`?${param}=${encodeURIComponent(filter.value)}`}
-            data-filter-value={filter.value}
+  {
+    hasPanel && (
+      <Fragment>
+        <button
+          type="button"
+          class="filterbar__open"
+          aria-haspopup="dialog"
+          aria-controls={`${resolvedId}-dialog`}
+          data-open
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
           >
-            <span>{filter.label}</span>
+            <path d="M3 6h18M3 12h18M3 18h18M8 4v4M15 10v4M10 16v4" />
+          </svg>
+          <span>{panelLabel}</span>
+          <span class="filterbar__active" data-active-count />
+        </button>
+        <dialog id={`${resolvedId}-dialog`} class="filterbar__dialog" aria-labelledby={titleId}>
+          <div class="filterbar__dialog-head">
+            <h2 id={titleId} class="filterbar__dialog-title">
+              {panelLabel}
+            </h2>
+            <button type="button" class="filterbar__close" aria-label={closeLabel} data-close>
+              <svg
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.25"
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+          <div class="filterbar__dialog-body" data-dialog-body />
+          <div class="filterbar__dialog-foot">
+            <button type="button" class="filterbar__apply" data-apply />
+          </div>
+        </dialog>
+      </Fragment>
+    )
+  }
+  <div class="filterbar__row" data-panel-content>
+    {
+      allGroups.map((group, groupIndex) => (
+        <div
+          class:list={["filterbar__group", named && "filterbar__group--named"]}
+          role="group"
+          aria-label={named ? undefined : group.label}
+          aria-labelledby={named ? `${resolvedId}-g${groupIndex}` : undefined}
+          data-group={group.param}
+          data-multiple={group.multiple ? "true" : undefined}
+        >
+          {named && (
+            <span id={`${resolvedId}-g${groupIndex}`} class="filterbar__group-label">
+              {group.label}
+            </span>
+          )}
+          <a class="filterbar__chip" href="?" data-filter-value="">
+            <span>{group.allLabel}</span>
             <small class="filterbar__count" data-count />
           </a>
-        ))
-      }
-    </div>
+          {group.filters.map((filter) => (
+            <a
+              class="filterbar__chip"
+              href={`?${group.param}=${encodeURIComponent(filter.value)}`}
+              data-filter-value={filter.value}
+            >
+              <span>{filter.label}</span>
+              <small class="filterbar__count" data-count />
+            </a>
+          ))}
+        </div>
+      ))
+    }
     {
       sort && (
         <label class="filterbar__sort" for={sortId}>
@@ -142,44 +247,56 @@ const sortId = `${resolvedId}-sort`;
     const target = document.getElementById(bar.dataset.target ?? "");
     const list = target?.matches("ul, ol") ? target : target?.querySelector<HTMLElement>("ul, ol");
     if (!list) continue;
-    const param = bar.dataset.param ?? "type";
-    const multiple = bar.dataset.multiple === "true";
     const template = bar.dataset.countTemplate ?? "{count} items";
+    const applyTemplate = bar.dataset.applyTemplate ?? "Show {count} items";
     const items = () => [...list.children] as HTMLElement[];
     const tagsOf = (el: HTMLElement) => (el.dataset.tags ?? "").split(/\s+/).filter(Boolean);
+    const params = new URLSearchParams(location.search);
 
-    // Progressive enhancement: links become toggle buttons
-    const chips = [...bar.querySelectorAll<HTMLAnchorElement>("[data-filter-value]")].map(
-      (link) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = link.className;
-        button.dataset.filterValue = link.dataset.filterValue ?? "";
-        button.innerHTML = link.innerHTML;
-        link.replaceWith(button);
-        return button;
-      }
-    );
-
-    // Counts per filter
-    if (bar.dataset.showCounts === "true") {
-      for (const chip of chips) {
-        const value = chip.dataset.filterValue ?? "";
-        const n = value
-          ? items().filter((el) => tagsOf(el).includes(value)).length
-          : items().length;
-        const count = chip.querySelector<HTMLElement>("[data-count]");
-        if (count) count.textContent = String(n);
-      }
-    }
+    // Each group: its URL parameter, its chips, its choices
+    const groups = [...bar.querySelectorAll<HTMLElement>("[data-group]")].map((el) => {
+      const param = el.dataset.group ?? "type";
+      // Progressive enhancement: links become toggle buttons
+      const chips = [...el.querySelectorAll<HTMLAnchorElement>("[data-filter-value]")].map(
+        (link) => {
+          const button = document.createElement("button");
+          // Keep every attribute but href, including Astro's scoping one, so the
+          // component styles still apply to the button
+          for (const attr of [...link.attributes]) {
+            if (attr.name !== "href") button.setAttribute(attr.name, attr.value);
+          }
+          button.type = "button";
+          button.innerHTML = link.innerHTML;
+          link.replaceWith(button);
+          return button;
+        }
+      );
+      return {
+        param,
+        chips,
+        multiple: el.dataset.multiple === "true",
+        active: params.getAll(param).filter(Boolean)
+      };
+    });
 
     const status = bar.querySelector<HTMLElement>("[data-status]");
     const empty = bar.querySelector<HTMLElement>("[data-empty]");
-    let active = new URLSearchParams(location.search).getAll(param).filter(Boolean);
+    const activeCount = bar.querySelector<HTMLElement>("[data-active-count]");
+    const apply = bar.querySelector<HTMLButtonElement>("[data-apply]");
 
-    const apply = (updateUrl: boolean) => {
+    // An item matches when every group with a choice has one of its values
+    const matches = (el: HTMLElement, skip?: (typeof groups)[number]) =>
+      groups.every(
+        (group) =>
+          group === skip ||
+          !group.active.length ||
+          group.active.some((value) => tagsOf(el).includes(value))
+      );
+
+    const update = (updateUrl: boolean) => {
+      const filtering = groups.some((group) => group.active.length);
       // A CardGrid "Show more" would hide matches: reveal everything while filtering
-      if (active.length) {
+      if (filtering) {
         list
           .closest(".cardgrid")
           ?.querySelectorAll<HTMLElement>("[data-cardgrid-more]")
@@ -187,42 +304,61 @@ const sortId = `${resolvedId}-sort`;
       }
       let shown = 0;
       for (const el of items()) {
-        const match = !active.length || active.some((value) => tagsOf(el).includes(value));
+        const match = matches(el);
         el.hidden = !match;
         if (match) shown++;
       }
-      for (const chip of chips) {
-        const value = chip.dataset.filterValue ?? "";
-        chip.setAttribute(
-          "aria-pressed",
-          String(value === "" ? active.length === 0 : active.includes(value))
-        );
+      for (const group of groups) {
+        for (const chip of group.chips) {
+          const value = chip.dataset.filterValue ?? "";
+          chip.setAttribute(
+            "aria-pressed",
+            String(value === "" ? group.active.length === 0 : group.active.includes(value))
+          );
+          // Counts follow the other groups' choices
+          if (bar.dataset.showCounts === "true") {
+            const n = items().filter(
+              (el) => matches(el, group) && (!value || tagsOf(el).includes(value))
+            ).length;
+            const count = chip.querySelector<HTMLElement>("[data-count]");
+            if (count) count.textContent = String(n);
+          }
+        }
       }
+      const on = groups.reduce((total, group) => total + group.active.length, 0);
+      if (activeCount) activeCount.textContent = on ? `· ${on}` : "";
       if (status) status.textContent = template.replace("{count}", String(shown));
+      if (apply) apply.textContent = applyTemplate.replace("{count}", String(shown));
       if (empty) empty.hidden = shown > 0;
       if (updateUrl) {
         const url = new URL(location.href);
-        url.searchParams.delete(param);
-        active.forEach((value) => url.searchParams.append(param, value));
+        for (const group of groups) {
+          url.searchParams.delete(group.param);
+          group.active.forEach((value) => url.searchParams.append(group.param, value));
+        }
         history.replaceState(null, "", url);
       }
     };
 
-    for (const chip of chips) {
-      chip.addEventListener("click", () => {
-        const value = chip.dataset.filterValue ?? "";
-        if (!value) active = [];
-        else if (multiple)
-          active = active.includes(value) ? active.filter((v) => v !== value) : [...active, value];
-        else active = active.includes(value) ? [] : [value];
-        apply(true);
-      });
+    for (const group of groups) {
+      for (const chip of group.chips) {
+        chip.addEventListener("click", () => {
+          const value = chip.dataset.filterValue ?? "";
+          if (!value) group.active = [];
+          else if (group.multiple)
+            group.active = group.active.includes(value)
+              ? group.active.filter((v) => v !== value)
+              : [...group.active, value];
+          else group.active = group.active.includes(value) ? [] : [value];
+          update(true);
+        });
+      }
     }
 
     bar.querySelector("[data-reset]")?.addEventListener("click", () => {
-      active = [];
-      apply(true);
-      chips[0]?.focus();
+      groups.forEach((group) => (group.active = []));
+      update(true);
+      groups[0]?.chips[0]?.focus();
     });
 
     const select = bar.querySelector<HTMLSelectElement>("[data-sort]");
@@ -243,7 +379,32 @@ const sortId = `${resolvedId}-sort`;
       sorted.forEach((el) => list.appendChild(el));
     });
 
-    apply(false);
+    // Panel on phones: the same controls move into a modal dialog while it is open
+    const dialog = bar.querySelector<HTMLDialogElement>("dialog");
+    const opener = bar.querySelector<HTMLButtonElement>("[data-open]");
+    const content = bar.querySelector<HTMLElement>("[data-panel-content]");
+    const body = bar.querySelector<HTMLElement>("[data-dialog-body]");
+    if (dialog && opener && content && body) {
+      bar.classList.add("is-enhanced");
+      const home = document.createComment("filterbar");
+      content.before(home);
+      opener.addEventListener("click", () => {
+        body.append(content);
+        dialog.showModal();
+      });
+      dialog.addEventListener("close", () => {
+        home.after(content);
+        opener.focus();
+      });
+      bar.querySelector("[data-close]")?.addEventListener("click", () => dialog.close());
+      apply?.addEventListener("click", () => dialog.close());
+      // Leaving the phone width with the panel open puts the controls back in the bar
+      window.matchMedia("(min-width: 48rem)").addEventListener("change", (event) => {
+        if (event.matches && dialog.open) dialog.close();
+      });
+    }
+
+    update(false);
   }
 </script>
 
@@ -264,7 +425,141 @@ const sortId = `${resolvedId}-sort`;
   .filterbar__group {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
+  }
+
+  .filterbar__group-label {
+    margin-inline-end: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: var(--weight-semibold, 600);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .filterbar__open {
+    display: none;
+    align-items: center;
+    justify-self: start;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: var(--filterbar-chip-border, 1px solid var(--color-border));
+    background: var(--filterbar-chip-bg, rgb(255 255 255));
+    color: var(--color-fg);
+    font: inherit;
+    font-family: var(--filterbar-chip-font, inherit);
+    font-weight: var(--weight-semibold, 600);
+    text-transform: var(--filterbar-chip-transform, none);
+    cursor: pointer;
+  }
+
+  .filterbar__active:empty {
+    display: none;
+  }
+
+  @media (max-width: 47.99rem) {
+    .filterbar--panel.is-enhanced .filterbar__open {
+      display: inline-flex;
+    }
+
+    .filterbar--panel.is-enhanced > .filterbar__row {
+      display: none;
+    }
+  }
+
+  .filterbar__dialog {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--modal-surface, var(--color-bg));
+    color: var(--color-fg);
+  }
+
+  .filterbar__dialog[open] {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .filterbar__dialog::backdrop {
+    background: var(--color-scrim);
+  }
+
+  .filterbar__dialog-head,
+  .filterbar__dialog-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem max(1rem, env(safe-area-inset-right, 0px)) 0.75rem
+      max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .filterbar__dialog-head {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .filterbar__dialog-foot {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--color-border);
+  }
+
+  .filterbar__dialog-title {
+    margin: 0;
+    font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
+    font-size: 1.5rem;
+    line-height: 1.1;
+  }
+
+  .filterbar__dialog-body {
+    overflow-y: auto;
+    padding: 1.25rem max(1rem, env(safe-area-inset-right, 0px)) 1.25rem
+      max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .filterbar__dialog-body .filterbar__row {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .filterbar__dialog-body .filterbar__group-label {
+    flex-basis: 100%;
+  }
+
+  .filterbar__close {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .filterbar__apply {
+    flex: 1;
+    min-height: 3rem;
+    border: 0;
+    background: var(--button-solid-bg, var(--color-accent));
+    color: var(--button-solid-fg, var(--color-accent-contrast));
+    font: inherit;
+    font-family: var(--button-font, inherit);
+    font-weight: var(--weight-bold, 700);
+    text-transform: var(--button-text-transform, none);
+    cursor: pointer;
+  }
+
+  .filterbar__open:focus-visible,
+  .filterbar__close:focus-visible,
+  .filterbar__apply:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
   }
 
   .filterbar__chip {
@@ -273,11 +568,13 @@ const sortId = `${resolvedId}-sort`;
     gap: 0.5rem;
     min-height: 2.75rem;
     padding: 0 1rem;
-    border: 1px solid var(--color-border);
+    border: var(--filterbar-chip-border, 1px solid var(--color-border));
     border-radius: var(--radius-sm, 0);
     background: var(--filterbar-chip-bg, rgb(255 255 255));
     color: var(--color-fg);
     font: inherit;
+    font-family: var(--filterbar-chip-font, inherit);
+    text-transform: var(--filterbar-chip-transform, none);
     font-size: 0.9375rem;
     font-weight: var(--weight-medium, 500);
     text-decoration: none;
@@ -323,9 +620,9 @@ const sortId = `${resolvedId}-sort`;
   .filterbar__sort select {
     min-height: 2.75rem;
     padding: 0 0.875rem;
-    border: 1px solid var(--color-border);
+    border: var(--filterbar-chip-border, 1px solid var(--color-border));
     border-radius: var(--radius-sm, 0);
-    background: rgb(255 255 255);
+    background: var(--filterbar-chip-bg, rgb(255 255 255));
     color: var(--color-fg);
     font: inherit;
     font-weight: var(--weight-medium, 500);
