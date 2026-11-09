@@ -5,9 +5,14 @@ import PropsTable from "@docs/components/PropsTable.astro";
 import { components } from "@docs/data/components.js";
 import FilterBar from "@lib/components/FilterBar/FilterBar.astro";
 import Card from "@lib/components/Card/Card.astro";
+import CardGrid from "@lib/components/CardGrid/CardGrid.astro";
 
 const props = [
-  { name: "target", type: "string", description: "Id of the list to filter." },
+  {
+    name: "target",
+    type: "string",
+    description: "Id of the list to filter, or of a block that holds it, such as a CardGrid."
+  },
   { name: "filters", type: "{ label, value }[]", description: "Filters." },
   { name: "allLabel", type: "string", default: '"All"', description: "First filter." },
   { name: "multiple", type: "boolean", default: "false", description: "Several filters at once." },
@@ -52,8 +57,8 @@ const props = [
 >
   <PropsTable props={props} />
   <Preview
-    title={"With a CardGrid"}
-    code={'<FilterBar target="projects-list" filters={[{ label: "Walk-in shower", value: "shower" }, …]} />\n<CardGrid id="projects" items={[{ …, tags: ["shower"] }]} />'}
+    title={"With Card items"}
+    code={'<FilterBar target="filter-demo" filters={[{ label: "Walk-in shower", value: "shower" }, …]} />\n<ul id="filter-demo"><Card as="li" tags={["shower"]} … /></ul>'}
   >
     <FilterBar
       target="filter-demo"
@@ -99,5 +104,61 @@ const props = [
         tags={["heritage"]}
       />
     </ul>
+  </Preview>
+  <Preview
+    title={"With a CardGrid and a sort"}
+    code={'<FilterBar target="grid-demo" filters={[…]} sort={{ label: "Sort", options: [{ label: "Budget, low to high", value: "asc", key: "budget" }, …] }} />\n<CardGrid id="grid-demo" items={[{ …, tags: ["tub"], sort: { budget: 38000 } }]} />'}
+  >
+    <FilterBar
+      id="grid-filter"
+      target="grid-demo"
+      param="kind"
+      filters={[
+        { label: "Walk-in shower", value: "shower" },
+        { label: "Bathtub", value: "tub" }
+      ]}
+      sort={{
+        label: "Sort",
+        options: [
+          { label: "Budget, low to high", value: "asc", key: "budget", order: "asc" },
+          { label: "Budget, high to low", value: "desc", key: "budget", order: "desc" }
+        ]
+      }}
+      countTemplate="{count} projects"
+    />
+    <CardGrid
+      id="grid-demo"
+      columns={3}
+      items={[
+        {
+          title: "Portsmouth",
+          href: "#",
+          img: "https://picsum.photos/seed/g1/800/600",
+          alt: "Bathtub",
+          meta: "$38,000",
+          tags: ["tub"],
+          sort: { budget: 38000 }
+        },
+        {
+          title: "Bath",
+          href: "#",
+          img: "https://picsum.photos/seed/g2/800/600",
+          alt: "Walk-in shower",
+          meta: "$27,000",
+          tags: ["shower"],
+          sort: { budget: 27000 }
+        },
+        {
+          title: "Williamsville",
+          href: "#",
+          img: "https://picsum.photos/seed/g3/800/600",
+          alt: "Glass shower",
+          meta: "$19,000",
+          tags: ["shower"],
+          sort: { budget: 19000 }
+        }
+      ]}
+      style="--band-gutter: 0px; --band-padding: 1.5rem"
+    />
   </Preview>
 </DocLayout>

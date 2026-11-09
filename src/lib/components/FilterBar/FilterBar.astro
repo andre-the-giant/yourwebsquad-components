@@ -4,7 +4,8 @@ FilterBar — a row of filters that filters any list on the page. Link it to the
 by its id; each element of the list carries its tags in data-tags (Card and CardGrid
 write them from their `tags` prop).
 Props:
-- target: string — id of the list to filter (its direct children are filtered)
+- target: string — id of the list to filter (its direct children are filtered), or of a
+  block that holds it, such as a CardGrid
 - filters: { label: string, value: string }[]
 - allLabel?: string — "All"
 - multiple?: boolean — several filters at once (default: one)
@@ -137,7 +138,9 @@ const sortId = `${resolvedId}-sort`;
 
 <script>
   for (const bar of document.querySelectorAll<HTMLElement>("[data-filterbar]")) {
-    const list = document.getElementById(bar.dataset.target ?? "");
+    // The target is the list itself, or a block that holds it (a CardGrid's id)
+    const target = document.getElementById(bar.dataset.target ?? "");
+    const list = target?.matches("ul, ol") ? target : target?.querySelector<HTMLElement>("ul, ol");
     if (!list) continue;
     const param = bar.dataset.param ?? "type";
     const multiple = bar.dataset.multiple === "true";

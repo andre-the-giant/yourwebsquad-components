@@ -59,7 +59,7 @@ test("StepByStepWizard: an unfinished run can be resumed", async ({ page }) => {
 
 test("FilterBar: filters the list, announces the count and keeps the URL", async ({ page }) => {
   await page.goto("/components/molecules/filterbar?theme=marbre");
-  const bar = page.locator("[data-filterbar]");
+  const bar = page.locator("[data-filterbar]").first();
   const list = page.locator("#filter-demo > li");
   await expect(list).toHaveCount(3);
   await bar.getByRole("button", { name: /Bathtub/ }).click();
@@ -72,4 +72,18 @@ test("FilterBar: filters the list, announces the count and keeps the URL", async
   await expect(page).toHaveURL(/type=tub/);
   await bar.getByRole("button", { name: /^All/ }).click();
   await expect(page.locator("#filter-demo > li:visible")).toHaveCount(3);
+});
+
+test("FilterBar: targets a CardGrid by its id and sorts by data-sort", async ({ page }) => {
+  await page.goto("/components/molecules/filterbar?theme=marbre");
+  const bar = page.locator("#grid-filter");
+  const cards = page.locator("#grid-demo li");
+  await expect(cards).toHaveCount(3);
+  await bar.getByRole("button", { name: /Walk-in shower/ }).click();
+  await expect(page.locator("#grid-demo li:visible")).toHaveCount(2);
+  await bar.getByRole("button", { name: /^All/ }).click();
+  await bar.getByLabel("Sort").selectOption("asc");
+  await expect(cards.first()).toContainText("Williamsville");
+  await bar.getByLabel("Sort").selectOption("desc");
+  await expect(cards.first()).toContainText("Portsmouth");
 });

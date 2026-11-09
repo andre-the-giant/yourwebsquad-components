@@ -69,6 +69,8 @@ html[data-theme="marbre"] {
   /* ── §2 Scale ────────────────────────────────────────────────────────────── */
   --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
   --font-display: "Marcellus", "Trajan Pro", Georgia, serif;
+  /* No monospace face in this look: small labels use Manrope */
+  --font-mono: var(--font-body);
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
