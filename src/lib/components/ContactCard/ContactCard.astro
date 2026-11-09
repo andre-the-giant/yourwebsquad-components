@@ -179,11 +179,15 @@ const resolvedId = id ?? nextId("contact-card");
   const formatTime = (hhmm: string, locale: string) => {
     const [h, m] = hhmm.split(":").map(Number);
     const date = new Date(Date.UTC(2020, 0, 1, h, m));
+    // Some locales (fr-CA) pad the hour: "08 h". Keep "8 h".
     return new Intl.DateTimeFormat(locale, {
       hour: "numeric",
       minute: m ? "2-digit" : undefined,
       timeZone: "UTC"
-    }).format(date);
+    })
+      .formatToParts(date)
+      .map((part) => (part.type === "hour" ? String(Number(part.value)) : part.value))
+      .join("");
   };
 
   for (const card of document.querySelectorAll<HTMLElement>("[data-contact-card]")) {

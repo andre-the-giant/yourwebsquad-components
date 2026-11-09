@@ -4,6 +4,7 @@ Props:
 - id?: string
 - class?: string
 - style?: string
+- label?: string — accessible name of the slider, translate it (default "Drag to compare sections")
 Slots:
 - before: content for the left pane
 - after: content for the right pane
@@ -15,7 +16,8 @@ import { nextId } from "../../utils/id.js";
 const Schema = z.looseObject({
   id: z.string().optional(),
   class: z.string().optional(),
-  style: z.string().optional()
+  style: z.string().optional(),
+  label: z.string().default("Drag to compare sections")
 });
 
 type Props = z.input<typeof Schema>;
@@ -24,6 +26,7 @@ const {
   id,
   class: className,
   style,
+  label,
   ...rest
 } = parseProps(Schema, Astro.props, {
   component: "ComparisonSlider"
@@ -31,18 +34,8 @@ const {
 
 const resolvedId = id ?? nextId("comparison-slider");
 const resolvedClass = `compare ${className ?? ""}`.trim();
-const resolvedStyle = [
-  "--pos: 50%",
-  "--comparison-height: 24rem",
-  "--comparison-border: 3px solid var(--color-fg)",
-  "--comparison-before-bg: #f5ede0",
-  "--comparison-before-color: #0f172a",
-  "--comparison-after-bg: #0f322a",
-  "--comparison-after-color: #e6f1ea",
-  style
-]
-  .filter(Boolean)
-  .join("; ");
+// Colours and size come from the CSS fallbacks or a theme (--comparison-*)
+const resolvedStyle = ["--pos: 50%", style].filter(Boolean).join("; ");
 const defaultBefore = "I'm the left section";
 const defaultAfter = "I'm the right section";
 ---
@@ -65,7 +58,7 @@ const defaultAfter = "I'm the right section";
     value="50"
     step="0.1"
     data-role="range"
-    aria-label="Drag to compare sections"
+    aria-label={label}
   />
 </div>
 

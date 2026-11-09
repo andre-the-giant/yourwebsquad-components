@@ -87,7 +87,8 @@ const fieldSchema = z
     browseLabel: localizedOptional.optional(),
     removeLabel: localizedOptional.optional(),
     filesSelectedText: localizedOptional.optional(),
-    previewUnavailableText: localizedOptional.optional()
+    previewUnavailableText: localizedOptional.optional(),
+    appearance: z.enum(["switch", "checkbox"]).optional()
   })
   .superRefine((val, ctx) => {
     const hasUploadOptions =

@@ -37,6 +37,7 @@ Props:
 - submitClass?: string
 - submitStyle?: string
 - showReset?: boolean
+- showTitle?: boolean              // default true; false when the page already titles the form
 - resetLabel?: string             // default "Reset"
 - resetVariant?: "solid" | "outline" | "ghost"
 - resetSize?: "sm" | "md" | "lg"
@@ -68,6 +69,7 @@ const Schema = z.looseObject({
   submitClass: z.string().optional(),
   submitStyle: z.string().optional(),
   showReset: z.boolean().optional(),
+  showTitle: z.boolean().optional(),
   resetLabel: z.string().optional(),
   resetVariant: z.enum(["solid", "outline", "ghost"]).optional(),
   resetSize: z.enum(["xs", "sm", "md", "lg"]).optional(),
@@ -99,6 +101,7 @@ const {
   submitClass,
   submitStyle,
   showReset = true,
+  showTitle = true,
   resetLabel = "Reset",
   resetVariant = "outline",
   resetSize = "md",
@@ -259,7 +262,7 @@ const resolvedMessages = {
     style={resolvedStyle || undefined}
     {...rest}
   >
-    {resolvedTitle ? <h3 class="form-title">{resolvedTitle}</h3> : null}
+    {showTitle && resolvedTitle ? <h3 class="form-title">{resolvedTitle}</h3> : null}
 
     <div class="form-body">
       {
@@ -371,6 +374,7 @@ const resolvedMessages = {
                 <div class="form-field-block">
                   <FormCheckbox
                     label={localizedLabel}
+                    appearance={field.appearance}
                     checked={Boolean(field.defaultValue)}
                     helpId={help.helpId}
                     errorId={help.errorId}

@@ -8,7 +8,13 @@ import Image from "@lib/components/Image/Image.astro";
 
 const propsTable = [
   { name: "id", type: "string", description: "Optional id for the root element." },
-  { name: "class", type: "string", description: "Additional class names." }
+  { name: "class", type: "string", description: "Additional class names." },
+  {
+    name: "label",
+    type: "string",
+    default: '"Drag to compare sections"',
+    description: "Accessible name of the slider. Translate it."
+  }
 ];
 
 const styleVars = [

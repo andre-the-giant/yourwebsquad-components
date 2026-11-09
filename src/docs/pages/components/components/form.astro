@@ -197,6 +197,13 @@ const props = [
     description: "Inline style for the default submit button (CSS vars supported)."
   },
   { name: "showReset", type: "boolean", default: "true", description: "Render reset button." },
+  {
+    name: "showTitle",
+    type: "boolean",
+    default: "true",
+    description:
+      'Render the form title from its JSON. False when the page already has a heading for the form. A checkbox field accepts appearance: "checkbox" (consent) or "switch".'
+  },
   { name: "resetLabel", type: "string", default: '"Reset"', description: "Reset button label." },
   {
     name: "resetVariant",

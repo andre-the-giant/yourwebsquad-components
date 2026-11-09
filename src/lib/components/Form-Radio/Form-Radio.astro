@@ -209,8 +209,8 @@ const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, classN
     height: var(--r);
     border-radius: var(--radio-radius);
     box-sizing: border-box;
-    border: 2px solid color-mix(in srgb, var(--radio-color) 24%, black 0%);
-    background: transparent;
+    border: var(--radio-border, 2px solid color-mix(in srgb, var(--radio-color) 24%, black 0%));
+    background: var(--radio-bg, transparent);
     position: relative;
     transition:
       border-color 160ms ease,
@@ -227,16 +227,19 @@ const resolvedClass = mergeClasses("form-field", `form-radio--${layout}`, classN
     transform: translate(-50%, -50%) scale(0);
     width: calc(var(--r) * 0.5);
     height: calc(var(--r) * 0.5);
-    background: var(--radio-color);
-    border-radius: 50%;
+    background: var(--radio-dot, var(--radio-color));
+    border-radius: var(--radio-dot-radius, 50%);
     transition:
       transform 220ms cubic-bezier(0.2, 0.9, 0.2, 1),
       background 160ms ease;
   }
 
+  /* Themes restyle the states through these variables (a theme selector cannot
+     beat this scoped one): --radio-border, --radio-bg, --radio-checked-border,
+     --radio-checked-bg, --radio-dot, --radio-dot-radius */
   .radio-input:checked + .radio {
-    border-color: var(--radio-color);
-    background: transparent;
+    border-color: var(--radio-checked-border, var(--radio-color));
+    background: var(--radio-checked-bg, transparent);
   }
   .radio-input:checked + .radio::after {
     transform: translate(-50%, -50%) scale(1);

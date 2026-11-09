@@ -626,19 +626,13 @@ html[data-theme="marbre"] :is(.toggle-row, .radio-row) .label-text {
 html[data-theme="marbre"] .radio {
   --radio-color: var(--color-accent) !important;
   --radio-size: 1.25rem !important;
-  border: 1.5px solid var(--marbre-border-strong);
-  border-radius: 0;
-  background: rgb(255, 255, 255);
-}
-
-html[data-theme="marbre"] .radio-input:checked + .radio {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-}
-
-html[data-theme="marbre"] .radio::after {
-  border-radius: 0;
-  background: rgb(255, 255, 255);
+  --radio-radius: 0;
+  --radio-border: 1.5px solid var(--marbre-border-strong);
+  --radio-bg: rgb(255, 255, 255);
+  --radio-checked-border: var(--color-accent);
+  --radio-checked-bg: var(--color-accent);
+  --radio-dot: rgb(255, 255, 255);
+  --radio-dot-radius: 0;
 }
 
 html[data-theme="marbre"] .radio-input:focus-visible + .radio {

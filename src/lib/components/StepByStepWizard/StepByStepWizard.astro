@@ -423,7 +423,14 @@ const stepsData = steps.map((step) => ({
     color: var(--color-fg);
   }
 
+  /* The header lines up with the questions below it */
   .sbs__header {
+    --_gutter: clamp(1rem, 4vw, 3.5rem);
+    padding-block: var(--sbs-header-padding, 0.75rem);
+    padding-inline: max(
+      var(--_gutter),
+      calc((100% - var(--sbs-width, 72rem)) / 2 + var(--_gutter))
+    );
     border-bottom: 1px solid var(--color-border);
     background: var(--sbs-header-bg, rgb(255 255 255));
   }

@@ -601,16 +601,11 @@ html[data-theme="plein-jour"] :is(.toggle-row, .radio-row) .label-text {
 html[data-theme="plein-jour"] .radio {
   --radio-color: var(--color-fg) !important;
   --radio-size: 1.75rem !important;
-  border: 2px solid var(--color-fg);
-  background: rgb(255, 255, 255);
-}
-
-html[data-theme="plein-jour"] .radio-input:checked + .radio {
-  background: var(--color-fg);
-}
-
-html[data-theme="plein-jour"] .radio::after {
-  background: rgb(255, 255, 255);
+  --radio-border: 2px solid var(--color-fg);
+  --radio-bg: rgb(255, 255, 255);
+  --radio-checked-border: var(--color-fg);
+  --radio-checked-bg: var(--color-fg);
+  --radio-dot: rgb(255, 255, 255);
 }
 
 html[data-theme="plein-jour"] .radio-input:focus-visible + .radio {
