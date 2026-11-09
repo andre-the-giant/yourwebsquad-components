@@ -26,6 +26,8 @@ Props:
 - id?: string
 - class?: string
 - style?: string
+Theme variables: --review-quote-font, --review-quote-weight, --review-quote-transform,
+--review-quote-size, --review-bg
 Notes:
 - Stars come from StarRating. Only real reviews on a client site.
 */
@@ -254,6 +256,11 @@ const who = [review.place, review.project, review.date].filter(Boolean).join(" �
     quotes: auto;
   }
 
+  /* French quotes keep a no-break space inside: « like this » */
+  :global(:lang(fr)) .review__quote {
+    quotes: "«\00a0" "\00a0»" "“" "”";
+  }
+
   /* Typographic quotes follow the page language: « » in French, “ ” in English */
   .review__text--open::before {
     content: open-quote;
@@ -265,8 +272,9 @@ const who = [review.place, review.project, review.date].filter(Boolean).join(" �
 
   .review__quote p {
     margin: 0;
-    font-family: var(--font-display);
-    text-transform: var(--type-heading-transform, none);
+    font-family: var(--review-quote-font, var(--font-display));
+    font-weight: var(--review-quote-weight, inherit);
+    text-transform: var(--review-quote-transform, none);
     font-size: var(--review-quote-size, clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem));
     line-height: 1.45;
   }

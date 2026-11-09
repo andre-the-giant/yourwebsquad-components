@@ -11,6 +11,7 @@ Props:
 - items: { label: string, href?: string, current?: boolean, children?: { label: string, href: string, text?: string }[] }[]
 - locale?: { label: string, href: string, lang: string, name: string } — link to the other language
 - action?: { label: string, href?: string }
+- phone?: { label: string, href: string } — phone link before the button, with an icon
 - navLabel?: string — accessible name of the nav
 - skipLabel?: string
 - skipHref?: string
@@ -23,6 +24,8 @@ Theme variables:
 - --siteheader-band, --siteheader-band-height: a decorative band along the top edge
   (any background, such as stripes); height 0 by default, so nothing shows
 - --siteheader-bg, --siteheader-border: background and bottom rule
+- --siteheader-link-font, --siteheader-link-transform, --siteheader-link-spacing: the
+  menu links on large screens (default: body font, no change of case)
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -60,6 +63,7 @@ const Schema = z.looseObject({
     .looseObject({ label: z.string(), href: z.string(), lang: z.string(), name: z.string() })
     .optional(),
   action: z.looseObject({ label: z.string(), href: z.string().optional() }).optional(),
+  phone: z.looseObject({ label: z.string(), href: z.string() }).optional(),
   navLabel: z.string().default("Main"),
   skipLabel: z.string().default("Skip to content"),
   skipHref: z.string().default("#main"),
@@ -80,6 +84,7 @@ const {
   items,
   locale,
   action,
+  phone,
   navLabel,
   skipLabel,
   skipHref,
@@ -178,6 +183,24 @@ const menuId = nextId("siteheader-menu");
             aria-label={locale.name}
           >
             {locale.label}
+          </a>
+        )
+      }
+      {
+        phone && (
+          <a class="siteheader__phone" href={phone.href}>
+            <svg
+              aria-hidden="true"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.25"
+            >
+              <path d="M5 4h3.5l1.8 4.4-2.3 1.4a11 11 0 0 0 6.2 6.2l1.4-2.3L20 15.5V19a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z" />
+            </svg>
+            <span>{phone.label}</span>
           </a>
         )
       }
@@ -345,6 +368,31 @@ const menuId = nextId("siteheader-menu");
     font-size: var(--size-sm);
   }
 
+  .siteheader__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-block-start: 1rem;
+    color: inherit;
+    font-family: var(--siteheader-link-font, inherit);
+    font-size: 1.25rem;
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--siteheader-link-spacing, normal);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .siteheader__phone:hover span {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .siteheader__phone:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
   .siteheader__action {
     margin-block-start: 1rem;
   }
@@ -382,10 +430,11 @@ const menuId = nextId("siteheader-menu");
       width: auto;
       min-height: 2.75rem;
       border-bottom: 0;
-      font-family: inherit;
+      font-family: var(--siteheader-link-font, inherit);
       font-size: 1.125rem;
       font-weight: var(--weight-bold);
-      letter-spacing: normal;
+      letter-spacing: var(--siteheader-link-spacing, normal);
+      text-transform: var(--siteheader-link-transform, none);
     }
 
     .siteheader__link:hover,
@@ -410,8 +459,13 @@ const menuId = nextId("siteheader-menu");
     }
 
     .siteheader__locale,
-    .siteheader__action {
+    .siteheader__action,
+    .siteheader__phone {
       margin-block-start: 0;
+    }
+
+    .siteheader__phone {
+      font-size: 1.0625rem;
     }
 
     .siteheader__action :global(.button) {

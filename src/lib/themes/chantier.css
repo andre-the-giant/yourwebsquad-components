@@ -156,6 +156,8 @@ html[data-theme="chantier"] {
   --form-input-focus: var(--color-focus);
   --form-help-color: var(--color-muted);
   --form-error-color: var(--color-danger-text);
+  /* Optional fields say "(optional)", so the required asterisk is not shown */
+  --form-required-marker: none;
   --form-upload-button-bg: var(--color-surface);
   --form-upload-button-fg: var(--color-fg);
   --form-upload-button-border: var(--chantier-line);
@@ -203,6 +205,9 @@ html[data-theme="chantier"] {
   --siteheader-band-height: 12px;
   --siteheader-bg: var(--color-bg);
   --siteheader-border: var(--chantier-heavy);
+  --siteheader-link-font: var(--font-condensed);
+  --siteheader-link-transform: uppercase;
+  --siteheader-link-spacing: 0.06em;
   --sitefooter-band: var(--chantier-hazard);
   --sitefooter-band-height: 12px;
   --sitefooter-bg: var(--color-fg);
@@ -221,6 +226,9 @@ html[data-theme="chantier"] {
   --steps-marker-fg: var(--color-fg);
   --steps-marker-border: var(--color-fg);
   --steps-line: var(--color-fg);
+  --steps-number-color: var(--color-fg);
+  --review-quote-font: var(--font-body);
+  --review-quote-weight: 600;
   --tag-font: var(--font-condensed);
   --tag-font-size: 0.875rem;
   --tag-transform: uppercase;
@@ -307,6 +315,9 @@ html[data-theme="chantier"] {
   --comparison-before-color: var(--color-accent);
   --comparison-after-bg: var(--color-accent);
   --comparison-after-color: var(--color-fg);
+  --comparison-divider: var(--color-accent);
+  --comparison-tag-bg: var(--color-fg);
+  --comparison-tag-fg: var(--color-accent);
   --googlereviews-radius: 0;
   --googlereviews-shadow: none;
   --googlereviews-card-radius: 0;
@@ -358,7 +369,11 @@ html[data-theme="chantier"] :is(.band--inverse, [data-tone="inverse"], .sitefoot
   --star-rating-filled-color: var(--color-accent);
   --steps-marker-border: var(--color-accent);
   --steps-line: var(--color-accent);
+  --steps-number-color: var(--color-accent);
   --tag-border: 2px solid var(--color-accent);
+  --trustbar-bg: var(--color-inverse-surface);
+  --color-bg: var(--color-inverse-surface);
+  --color-bg-rgb: 23, 21, 15;
 }
 
 /* ── Yellow sections (one per page at most): asphalt buttons ───────────────── */
@@ -383,6 +398,14 @@ html[data-theme="chantier"] :is(.band--accent, [data-tone="accent"]) {
   --pagehero-accent-fg: var(--color-accent);
   --steps-marker-bg: rgb(23, 21, 15);
   --steps-marker-fg: var(--color-accent);
+}
+
+/* Radios: the component sets its colour, size and shape on its wrapper, so the theme
+   sets them on the radio itself */
+html[data-theme="chantier"] .radio {
+  --radio-color: rgb(23, 21, 15);
+  --radio-size: 1.25rem;
+  --radio-radius: 0;
 }
 
 /* Switches: asphalt track when on (the component sets defaults on its wrapper) */

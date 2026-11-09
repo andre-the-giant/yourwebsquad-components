@@ -8,7 +8,8 @@ Props:
 - layout?: "list" | "timeline"
     list: large numbers, one step per row (default)
     timeline: numbered markers joined by a line, across on large screens, down on phones
-Theme variables: --steps-marker-bg, --steps-marker-fg, --steps-line (timeline)
+Theme variables: --steps-number-color (list), --steps-marker-bg, --steps-marker-fg,
+--steps-line (timeline)
 - actions?: { label: string, href?: string, variant?: "solid"|"outline"|"ghost" }[]
 - tone?: "default" | "surface"
 - flush?: boolean
@@ -141,7 +142,7 @@ const headingId = nextId("steps");
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 0.85;
     letter-spacing: -0.04em;
-    color: var(--color-accent);
+    color: var(--steps-number-color, var(--color-accent));
   }
 
   .step__title {

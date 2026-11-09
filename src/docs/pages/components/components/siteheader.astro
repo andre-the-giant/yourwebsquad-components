@@ -52,6 +52,11 @@ const props = [
     type: "CSS variables",
     default: "none / 0",
     description: "Decorative band along the top edge (stripes, a colour)."
+  },
+  {
+    name: "phone",
+    type: "{ label, href }",
+    description: "Phone link before the button, with an icon."
   }
 ];
 
@@ -69,6 +74,7 @@ const code = `<SiteHeader logo={logo} logoAlt="Your Web Squad" items={items}
   <Preview title="Header" code={code} note="Open Services to see the submenu.">
     <div style="width: 100%; min-height: 15rem">
       <SiteHeader
+        phone={{ label: "613 555-0142", href: "tel:+16135550142" }}
         logo={logo}
         logoAlt="Your Web Squad"
         skipHref="#theme-switcher"
