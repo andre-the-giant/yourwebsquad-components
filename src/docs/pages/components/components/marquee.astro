@@ -1,0 +1,50 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Marquee from "@lib/components/Marquee/Marquee.astro";
+
+const props = [
+  { name: "items", type: "string[]", description: "Short phrases shown in a loop." },
+  { name: "separator", type: "string", default: '"·"', description: "Between phrases." },
+  { name: "duration", type: "number", default: "26", description: "Seconds for one loop." },
+  { name: "label", type: "string", description: "Sentence read by screen readers." },
+  {
+    name: "pauseLabel",
+    type: "string",
+    default: '"Pause the scrolling text"',
+    description: "Button name."
+  },
+  {
+    name: "playLabel",
+    type: "string",
+    default: '"Play the scrolling text"',
+    description: "Button name when paused."
+  },
+  {
+    name: "tone",
+    type: '"default" | "inverse" | "accent"',
+    default: '"default"',
+    description: "Colours."
+  }
+];
+const items = ["We dig", "We push", "We grade", "We backfill", "We plow"];
+---
+
+<DocLayout
+  title={"Marquee"}
+  description={"A decorative band of text that scrolls slowly; once per page at most. The moving words are hidden from screen readers and read once instead. A 44px button pauses it (WCAG 2.2.2); it stays still when the device asks for reduced motion."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Inverse"}
+    code={'<Marquee tone="inverse" items={["We dig", "We push", "We grade"]} />'}
+  >
+    <Marquee tone="inverse" items={items} />
+  </Preview>
+  <Preview title={"Accent, faster"} code={'<Marquee tone="accent" duration={14} items={…} />'}>
+    <Marquee tone="accent" duration={14} items={items} />
+  </Preview>
+</DocLayout>

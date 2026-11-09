@@ -2,6 +2,26 @@
 // Each entry: { viewBox: string, svg: string, fillColor?: string, strokeColor?: string }
 // where `svg` contains inner SVG markup (paths, rects, etc.)
 const builtinIcons = {
+  truck: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M2.5 6.5h11v10h-11z" /><path d="M13.5 9.5h4l3 3.5v3.5h-7" /><circle cx="6.5" cy="17.5" r="1.75" /><circle cx="17" cy="17.5" r="1.75" />`
+  },
+  helmet: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M4 15.5a8 8 0 0 1 16 0" /><path d="M2.5 15.5h19v2.5h-19z" /><path d="M10 7.8V5h4v2.8" />`
+  },
+  pipe: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M2.5 8.5h9a4 4 0 0 1 4 4v9" /><path d="M2.5 13.5h7a1 1 0 0 1 1 1v7" /><path d="M2.5 7v8M9 21.5h8" />`
+  },
+  snowflake: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5" /><path d="M9.5 4 12 6.5 14.5 4M9.5 20 12 17.5 14.5 20" />`
+  },
+  sliders: {
+    viewBox: "0 0 24 24",
+    svg: `<path d="M3 6h18M3 12h18M3 18h18" /><path d="M8 4v4M15 10v4M10 16v4" />`
+  },
   spark: {
     viewBox: "0 0 24 24",
     svg: `<path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2L12 2z" />`

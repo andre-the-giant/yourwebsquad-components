@@ -1,0 +1,167 @@
+---
+/*
+NoticeBar — a thin band above the site header, for a notice about the whole site:
+a holiday closure, a weather alert, "fictional business: demo site". Not sticky.
+Props:
+- text: string
+- link?: { label: string, href: string }
+- tone?: "inverse" | "surface"
+- label?: string — name of the region ("Notice")
+- dismissible?: boolean — adds a close button; the choice is kept in the browser
+- dismissLabel?: string — "Close the notice"
+- storageKey?: string — key of that choice (default "noticebar")
+- id?: string
+- class?: string
+- style?: string
+Accessibility: a paragraph in a region named by `label`, placed before the skip link.
+No role="alert": nothing in it is urgent.
+Theme variables: --noticebar-bg, --noticebar-fg, --noticebar-font-size, --noticebar-border
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  text: z.string(),
+  link: z.looseObject({ label: z.string(), href: z.string() }).optional(),
+  tone: z.enum(["inverse", "surface"]).default("inverse"),
+  label: z.string().default("Notice"),
+  dismissible: z.boolean().default(false),
+  dismissLabel: z.string().default("Close the notice"),
+  storageKey: z.string().default("noticebar")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  text,
+  link,
+  tone,
+  label,
+  dismissible,
+  dismissLabel,
+  storageKey,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "NoticeBar" });
+---
+
+<section
+  id={id}
+  class={mergeClasses("noticebar", `noticebar--${tone}`, className)}
+  style={style}
+  aria-label={label}
+  data-noticebar={dismissible ? storageKey : undefined}
+  {...rest}
+>
+  <p class="noticebar__text">
+    {text}
+    {
+      link && (
+        <Fragment>
+          {" "}
+          <a href={link.href}>{link.label}</a>
+        </Fragment>
+      )
+    }
+  </p>
+  {
+    dismissible && (
+      <button type="button" class="noticebar__close" aria-label={dismissLabel} data-dismiss>
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.25"
+        >
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    )
+  }
+</section>
+
+<script>
+  for (const bar of document.querySelectorAll<HTMLElement>("[data-noticebar]")) {
+    const key = `noticebar:${bar.dataset.noticebar}`;
+    try {
+      if (localStorage.getItem(key) === "closed") bar.hidden = true;
+    } catch {
+      // Storage unavailable: the notice shows on every page.
+    }
+    bar.querySelector("[data-dismiss]")?.addEventListener("click", () => {
+      bar.hidden = true;
+      try {
+        localStorage.setItem(key, "closed");
+      } catch {
+        // Closed for this page only.
+      }
+      document.querySelector<HTMLElement>("a[href], button")?.focus();
+    });
+  }
+</script>
+
+<style>
+  .noticebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.5rem var(--band-gutter, clamp(1.25rem, 4vw, 3.5rem));
+    border-bottom: var(--noticebar-border, 0);
+    font-size: var(--noticebar-font-size, 0.8125rem);
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .noticebar[hidden] {
+    display: none;
+  }
+
+  .noticebar--inverse {
+    background: var(--noticebar-bg, var(--color-inverse-surface));
+    color: var(--noticebar-fg, var(--color-inverse-fg));
+  }
+
+  .noticebar--surface {
+    background: var(--noticebar-bg, var(--color-surface));
+    color: var(--noticebar-fg, var(--color-fg));
+  }
+
+  .noticebar__text {
+    margin: 0;
+  }
+
+  .noticebar a {
+    color: inherit;
+    font-weight: var(--weight-semibold, 600);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .noticebar__close {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-block: -0.5rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .noticebar :is(a, button):focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+</style>

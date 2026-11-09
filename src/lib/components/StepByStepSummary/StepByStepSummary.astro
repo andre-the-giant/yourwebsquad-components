@@ -66,7 +66,27 @@ const {
 </details>
 
 <script>
-  type StepData = { id: string; title: string; options: { value: string; label: string }[] };
+  type Answer = string | string[];
+  type FieldData = { name: string; label: string; type: string; when?: string[] };
+  type StepData = {
+    id: string;
+    title: string;
+    type?: string;
+    options: { value: string; label: string }[];
+    fields?: FieldData[];
+  };
+  type State = {
+    answers?: Record<string, Answer>;
+    current?: number;
+    currentId?: string;
+    path?: string[];
+  };
+
+  const lang = document.documentElement.lang || undefined;
+  const isIn = (value: Answer | undefined, values: string[]) =>
+    Array.isArray(value)
+      ? value.some((v) => values.includes(v))
+      : value !== undefined && values.includes(value);
 
   for (const box of document.querySelectorAll<HTMLDetailsElement>("[data-sbs-summary]")) {
     const root = box.closest<HTMLElement>("[data-stepbystep]");
@@ -85,19 +105,48 @@ const {
     sync();
     if (query.matches) box.open = false;
 
-    const render = (answers: Record<string, string>, current: number) => {
+    // One readable line per step: the choice (or choices, a date, file names), then fields
+    const describe = (step: StepData, answers: Record<string, Answer>) => {
+      const value = answers[step.id];
+      const labelOf = (v: string) => step.options.find((o) => o.value === v)?.label ?? v;
+      const parts: string[] = [];
+      if (Array.isArray(value)) {
+        if (value.length) parts.push(value.map(labelOf).join(", "));
+      } else if (value) {
+        parts.push(
+          step.type === "date"
+            ? new Date(`${value}T12:00`).toLocaleDateString(lang, { dateStyle: "long" })
+            : labelOf(value)
+        );
+      }
+      for (const field of step.fields ?? []) {
+        if (field.when && !isIn(value, field.when)) continue;
+        const v = answers[field.name];
+        if (!v) continue;
+        if (field.type === "checkbox") parts.push(field.label);
+        else if (field.type === "date" && typeof v === "string")
+          parts.push(new Date(`${v}T12:00`).toLocaleDateString(lang, { dateStyle: "long" }));
+        else parts.push(String(v));
+      }
+      return parts.join(" · ");
+    };
+
+    const render = (state: State) => {
+      const answers = state.answers ?? {};
+      const shown = state.path ? steps.filter((s) => state.path!.includes(s.id)) : steps;
+      const currentId = state.currentId ?? steps[state.current ?? 0]?.id;
       list.replaceChildren();
       let count = 0;
-      steps.forEach((step, index) => {
+      shown.forEach((step) => {
         const dt = document.createElement("dt");
         dt.textContent = step.title;
         const dd = document.createElement("dd");
         const edit = document.createElement("dd");
         edit.className = "sbs-summary__edit";
-        const value = answers[step.id];
-        if (value) {
+        const text = describe(step, answers);
+        if (text) {
           count++;
-          dd.textContent = step.options.find((o) => o.value === value)?.label ?? value;
+          dd.textContent = text;
           const button = document.createElement("button");
           button.type = "button";
           button.textContent = d.editLabel ?? "Change";
@@ -109,7 +158,7 @@ const {
             root.dispatchEvent(new CustomEvent("stepbystep:goto", { detail: { stepId: step.id } }))
           );
           edit.append(button);
-        } else if (index === current) {
+        } else if (step.id === currentId) {
           dd.textContent = d.pendingLabel ?? "";
           dd.className = "is-pending";
         } else {
@@ -121,14 +170,14 @@ const {
       toggle.textContent = (d.toggleTemplate ?? "").replace("{count}", String(count));
     };
 
-    root.addEventListener("stepbystep:change", (event) => {
-      const detail = (event as CustomEvent).detail;
-      render(detail.answers ?? {}, detail.current ?? 0);
+    root.addEventListener("stepbystep:change", (event) =>
+      render((event as CustomEvent).detail ?? {})
+    );
+    root.addEventListener("stepbystep:complete", (event) => {
+      const detail = (event as CustomEvent).detail ?? {};
+      render({ ...detail, currentId: "" });
     });
-    const state = (
-      root as HTMLElement & { sbsState?: { answers?: Record<string, string>; current?: number } }
-    ).sbsState;
-    render(state?.answers ?? {}, state?.current ?? 0);
+    render((root as HTMLElement & { sbsState?: State }).sbsState ?? {});
   }
 </script>
 
@@ -147,6 +196,7 @@ const {
   .sbs-summary__title {
     margin: 0 0 0.5rem;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: 1.375rem;
     font-weight: var(--type-heading-weight, var(--weight-bold));
   }

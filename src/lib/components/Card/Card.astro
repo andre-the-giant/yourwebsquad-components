@@ -16,6 +16,17 @@ Props:
 - as?: "article" | "li" | "div"
 - headingLevel?: 2 | 3 | 4 (default 3)
 - tags?: string[] — written to data-tags so a FilterBar can filter
+- badge?: string — short label on the photo, top left ("Unit 12")
+- status?: { label: string, tone?: "success" | "muted" | "neutral" | "inverse" } — state on
+  the photo, top right, as a Tag with a dot ("Available")
+- ticket?: PriceTicket props — prices in the footer (rental items)
+- compactBelow?: boolean — a standard card turns into a compact one (photo on the left)
+  below 48rem
+Slots:
+- footer — under the text, pushed to the bottom of the card (after `ticket`)
+Theme variables: --card-top-border, --card-top-border-hover (rule along the top edge),
+--ycard-border, --ycard-standard-bg, --ycard-body-padding, --ycard-badge-bg,
+--ycard-badge-fg, --ycard-title-size
 - id?: string
 - class?: string
 - style?: string
@@ -25,6 +36,8 @@ card), missing photo (veined placeholder). The zoom stops when reduced motion is
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
 import { mergeClasses } from "../../utils/style.js";
+import TagLabel from "../Tag/Tag.astro";
+import PriceTicket from "../PriceTicket/PriceTicket.astro";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
@@ -41,7 +54,16 @@ const Schema = z.looseObject({
   ratio: z.string().default("4/3"),
   as: z.enum(["article", "li", "div"]).default("article"),
   headingLevel: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
+  badge: z.string().optional(),
+  status: z
+    .looseObject({
+      label: z.string(),
+      tone: z.enum(["success", "muted", "neutral", "inverse"]).default("success")
+    })
+    .optional(),
+  ticket: z.looseObject({}).optional(),
+  compactBelow: z.boolean().default(false)
 });
 
 type Props = z.input<typeof Schema>;
@@ -62,16 +84,27 @@ const {
   as: Tag,
   headingLevel,
   tags,
+  badge,
+  status,
+  ticket,
+  compactBelow,
   ...rest
 } = parseProps(Schema, Astro.props, { component: "Card" });
 
 const Heading = (["h2", "h3", "h4"] as const)[headingLevel - 2];
 const showMedia = variant !== "text";
+const hasFooter = Boolean(ticket) || Astro.slots.has("footer");
 ---
 
 <Tag
   id={id}
-  class={mergeClasses("ycard", `ycard--${variant}`, href && "ycard--link", className)}
+  class={mergeClasses(
+    "ycard",
+    `ycard--${variant}`,
+    href && "ycard--link",
+    compactBelow && variant === "standard" && "ycard--compact-below",
+    className
+  )}
   style={[`--ycard-ratio: ${ratio}`, style].filter(Boolean).join("; ")}
   data-tags={tags?.length ? tags.join(" ") : undefined}
   {...rest}
@@ -80,6 +113,8 @@ const showMedia = variant !== "text";
     showMedia && (
       <div class:list={["ycard__media", !img && "ycard__media--empty"]}>
         {img && <img src={img} alt={alt ?? ""} loading="lazy" decoding="async" />}
+        {badge && <span class="ycard__badge">{badge}</span>}
+        {status && <TagLabel class="ycard__status" label={status.label} tone={status.tone} dot />}
       </div>
     )
   }
@@ -88,6 +123,14 @@ const showMedia = variant !== "text";
     <Heading class="ycard__title">{href ? <a href={href}>{title}</a> : title}</Heading>
     {text && <p class="ycard__text">{text}</p>}
     {meta && <p class="ycard__meta">{meta}</p>}
+    {
+      hasFooter && (
+        <div class="ycard__footer">
+          {ticket && <PriceTicket size="sm" {...(ticket as any)} />}
+          <slot name="footer" />
+        </div>
+      )
+    }
   </div>
 </Tag>
 
@@ -99,6 +142,53 @@ const showMedia = variant !== "text";
     gap: 1.125rem;
     margin: 0;
     color: var(--color-fg);
+    border-top: var(--card-top-border, 0);
+    transition: border-color 150ms ease-out;
+  }
+
+  .ycard--standard {
+    border: var(--ycard-border, 0);
+    border-top: var(--card-top-border, var(--ycard-border, 0));
+    background: var(--ycard-standard-bg, transparent);
+  }
+
+  .ycard--standard .ycard__body {
+    flex: 1;
+    padding: var(--ycard-body-padding, 0);
+  }
+
+  .ycard--link:hover {
+    border-top: var(--card-top-border-hover, var(--card-top-border, var(--ycard-border, 0)));
+  }
+
+  .ycard__badge {
+    position: absolute;
+    top: 0.625rem;
+    left: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--ycard-badge-bg, var(--color-inverse-surface));
+    color: var(--ycard-badge-fg, var(--color-inverse-fg));
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: var(--weight-semibold, 600);
+    line-height: 1.2;
+  }
+
+  .ycard__media :global(.ycard__status) {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.625rem;
+    max-width: calc(100% - 6.5rem);
+    line-height: 1.15;
+  }
+
+  .ycard__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
   }
 
   .ycard[hidden] {
@@ -111,6 +201,7 @@ const showMedia = variant !== "text";
   }
 
   .ycard__media {
+    position: relative;
     aspect-ratio: var(--ycard-ratio, 4/3);
     overflow: hidden;
     background: var(--color-surface);
@@ -146,6 +237,7 @@ const showMedia = variant !== "text";
   .ycard__title {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--ycard-title-size, clamp(1.375rem, 1.25rem + 0.5vw, 1.625rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.2;
@@ -223,7 +315,46 @@ const showMedia = variant !== "text";
     background: var(--ycard-bg, var(--color-bg));
   }
 
+  /* Standard card that turns compact on phones */
+  @media (max-width: 47.99rem) {
+    .ycard--compact-below {
+      display: grid;
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+      gap: 0;
+    }
+
+    .ycard--compact-below .ycard__media {
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+
+    .ycard--compact-below .ycard__body {
+      padding: var(--ycard-body-padding-compact, 0.75rem 0.875rem);
+    }
+
+    .ycard--compact-below .ycard__title {
+      font-size: 1.25rem;
+    }
+
+    .ycard--compact-below .ycard__text {
+      display: none;
+    }
+
+    .ycard--compact-below .ycard__badge {
+      top: 0.375rem;
+      left: 0.375rem;
+    }
+
+    .ycard--compact-below .ycard__media :global(.ycard__status) {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .ycard {
+      transition: none;
+    }
+
     .ycard__media img {
       transition: none;
     }

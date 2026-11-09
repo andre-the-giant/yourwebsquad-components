@@ -37,7 +37,18 @@ const props = [
     description: "Rows. The first cell is the row header."
   },
   { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
-  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." },
+  {
+    name: "alignEnd",
+    type: "number[]",
+    description: "Columns to right-align with tabular figures."
+  },
+  {
+    name: "stackBelow",
+    type: '"none" | "sm" | "md"',
+    default: '"none"',
+    description: "Below 40rem (sm) or 48rem (md) of its own width, each row becomes a block."
+  }
 ];
 ---
 
@@ -49,5 +60,37 @@ const props = [
   <PropsTable props={props} />
   <Preview title="Conditions" code={codes[0]}>
     <DataTable {...examples[0]} />
+  </Preview>
+  <Preview
+    title="Prices aligned right, rows stacked in a narrow box"
+    code={'<DataTable caption="Indicative prices · septic systems" columns={["System", "For whom", "Price"]} rows={…} alignEnd={[2]} stackBelow="sm" />'}
+  >
+    <div style="display:grid;gap:2rem">
+      <DataTable
+        flush
+        caption="Indicative prices · septic systems"
+        columns={["System", "For whom", "Price"]}
+        alignEnd={[2]}
+        stackBelow="sm"
+        rows={[
+          ["Conventional tank", "Sandy soil, large lot", "$18,000 to $28,000"],
+          ["Raised filter bed", "Clay or high water table", "$26,000 to $36,000"],
+          ["Tertiary system", "Small lot, waterfront, rock", "$30,000 to $45,000"]
+        ]}
+      />
+      <div style="max-width:22rem">
+        <DataTable
+          flush
+          caption="Same table in a 22rem box"
+          columns={["System", "For whom", "Price"]}
+          alignEnd={[2]}
+          stackBelow="sm"
+          rows={[
+            ["Conventional tank", "Sandy soil, large lot", "$18,000 to $28,000"],
+            ["Raised filter bed", "Clay or high water table", "$26,000 to $36,000"]
+          ]}
+        />
+      </div>
+    </div>
   </Preview>
 </DocLayout>

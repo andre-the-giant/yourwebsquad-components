@@ -328,5 +328,29 @@ export const components = [
     href: "/components/components/trustbar",
     description: "Two to six short guarantees with icons.",
     group: "components"
+  },
+  {
+    name: "PriceTicket",
+    href: "/components/molecules/priceticket",
+    description: "Two or three prices side by side, one highlighted.",
+    group: "molecules"
+  },
+  {
+    name: "SegmentedControl",
+    href: "/components/molecules/segmentedcontrol",
+    description: "2 to 4 exclusive choices that change how a zone looks.",
+    group: "molecules"
+  },
+  {
+    name: "Marquee",
+    href: "/components/components/marquee",
+    description: "Slow scrolling band of text, with a pause button.",
+    group: "components"
+  },
+  {
+    name: "NoticeBar",
+    href: "/components/components/noticebar",
+    description: "Thin band above the header for a site-wide notice.",
+    group: "components"
   }
 ];

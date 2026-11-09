@@ -10,7 +10,14 @@ const props = [
   { name: "class", type: "string", description: "Additional class names." },
   { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   { name: "label", type: "string", description: "Required. Text of the tag." },
-  { name: "tone", type: '"neutral" | "inverse"', default: '"neutral"', description: "Colors." }
+  { name: "tone", type: '"neutral" | "inverse"', default: '"neutral"', description: "Colors." },
+  { name: "tone: success | muted", type: "tone", description: "State tones." },
+  {
+    name: "dot",
+    type: "boolean",
+    default: "false",
+    description: "Small square before the word; the word stays."
+  }
 ];
 ---
 
@@ -22,5 +29,15 @@ const props = [
   >
     <Tag label="Coming soon" />
     <Tag label="Past client" tone="inverse" />
+  </Preview>
+  <Preview
+    title="States with a dot"
+    code={'<Tag label="Available" tone="success" dot />\n<Tag label="Booked until the 18th" tone="muted" dot />'}
+  >
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem">
+      <Tag label="Available" tone="success" dot />
+      <Tag label="Booked until the 18th" tone="muted" dot />
+      <Tag label="Unit 12" tone="inverse" />
+    </div>
   </Preview>
 </DocLayout>

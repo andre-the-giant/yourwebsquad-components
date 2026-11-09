@@ -118,7 +118,7 @@ const resolvedStyle = makeStyleVars(styleVars, style);
             <li class="list__item">
               <span class="list__marker list__marker--icon">
                 {resolvedShowIcon || it.icon ? (
-                  <Icon content={{ name: it.icon ?? resolvedIcon }} size="sm" />
+                  <Icon name={it.icon ?? resolvedIcon} size="sm" />
                 ) : (
                   <span class="list__dot" aria-hidden="true" />
                 )}

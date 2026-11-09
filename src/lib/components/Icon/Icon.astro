@@ -18,6 +18,8 @@ Props:
 Notes:
 - set label to expose aria-label; otherwise icon is aria-hidden
 - Styling (color) is controlled via CSS vars (--icon-color).
+- A theme can thicken line icons and square their ends with --icon-stroke-width,
+  --icon-linecap and --icon-linejoin. Explicit props still win.
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -83,7 +85,6 @@ const styleVars = {
     return str || "0deg";
   })()
 };
-const resolvedStyle = makeStyleVars(styleVars, style);
 const resolvedClass = mergeClasses("icon", className);
 
 // sanitize incoming svg string: remove outer <svg> wrapper, strip inline styles and
@@ -132,6 +133,17 @@ if (strokeColorProp !== undefined) iconStrokeColor = String(strokeColorProp);
 if (strokeWidthProp) iconStrokeWidth = String(strokeWidthProp);
 if (strokeLinecapProp) iconStrokeLinecap = String(strokeLinecapProp);
 if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
+
+// Line weight and ends: the theme may override them, an explicit prop wins over the theme
+const strokeVars = {
+  "--_icon-stroke-width": iconStrokeWidth,
+  "--_icon-linecap": iconStrokeLinecap,
+  "--_icon-linejoin": iconStrokeLinejoin,
+  "--icon-stroke-width": strokeWidthProp ? String(strokeWidthProp) : undefined,
+  "--icon-linecap": strokeLinecapProp || undefined,
+  "--icon-linejoin": strokeLinejoinProp || undefined
+};
+const resolvedStyle = makeStyleVars({ ...styleVars, ...strokeVars }, style);
 ---
 
 <svg
@@ -164,5 +176,8 @@ if (strokeLinejoinProp) iconStrokeLinejoin = String(strokeLinejoinProp);
     height: var(--icon-size);
     transform: rotate(var(--icon-rotation, 0deg));
     transform-origin: center center;
+    stroke-width: var(--icon-stroke-width, var(--_icon-stroke-width));
+    stroke-linecap: var(--icon-linecap, var(--_icon-linecap));
+    stroke-linejoin: var(--icon-linejoin, var(--_icon-linejoin));
   }
 </style>

@@ -43,10 +43,14 @@ const pages = [
   "/components/components/review",
   "/components/components/stepbystepwizard",
   "/components/components/stickyactions",
-  "/components/components/trustbar"
+  "/components/components/trustbar",
+  "/components/molecules/priceticket",
+  "/components/molecules/segmentedcontrol",
+  "/components/components/marquee",
+  "/components/components/noticebar"
 ];
 
-const allPages = ["light", "plein-jour", "marbre"].flatMap((theme) =>
+const allPages = ["light", "plein-jour", "marbre", "chantier"].flatMap((theme) =>
   pages.map((path) => ({ path, theme }))
 );
 

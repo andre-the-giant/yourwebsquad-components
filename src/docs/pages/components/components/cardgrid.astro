@@ -91,7 +91,18 @@ const props = [
     default: '"default"',
     description: "Background."
   },
-  { name: "flush", type: "boolean", default: "false", description: "No top padding." }
+  { name: "flush", type: "boolean", default: "false", description: "No top padding." },
+  {
+    name: "items[].badge / status / ticket",
+    type: "string / { label, tone? } / PriceTicket props",
+    description: "Passed to Card: unit label, availability, prices."
+  },
+  {
+    name: "compactBelow",
+    type: "boolean",
+    default: "false",
+    description: "Photo cards turn compact below 48rem."
+  }
 ];
 
 const photoItems = [
@@ -163,5 +174,60 @@ const compactCode = `<CardGrid columns={3} compact items={…} />`;
   </Preview>
   <Preview title="Compact" code={compactCode}>
     <CardGrid columns={3} compact items={photoItems.slice(0, 3)} />
+  </Preview>
+  <Preview
+    title="Rental items: badge, status, prices, compact on phones"
+    code={'<CardGrid compactBelow items={[{ title: "Mini excavator 3.5 t", badge: "Unit 12", status: { label: "Available", tone: "success" }, ticket: { prices: [{ label: "Day", amount: 329 }, { label: "Week", amount: 1290 }] }, … }]} />'}
+  >
+    <CardGrid
+      flush
+      compactBelow
+      items={[
+        {
+          title: "Mini excavator 3.5 t",
+          href: "#",
+          img: "https://picsum.photos/seed/kb1/800/600",
+          alt: "Yellow mini excavator on a muddy lot",
+          tag: "Excavators · 3.5 t",
+          text: "Goes through a 1.8 m gate. Digs 3.1 m deep.",
+          badge: "Unit 12",
+          status: { label: "Available", tone: "success" },
+          ticket: {
+            prices: [
+              { label: "Day", amount: 329 },
+              { label: "Week", amount: 1290 }
+            ],
+            label: "Prices"
+          }
+        },
+        {
+          title: "Skid steer 2.8 t",
+          href: "#",
+          img: "https://picsum.photos/seed/kb2/800/600",
+          alt: "Skid steer loader with a bucket",
+          tag: "Loaders · 2.8 t",
+          text: "Moves gravel, clears snow, levels a yard.",
+          badge: "Unit 21",
+          status: { label: "Booked until the 18th", tone: "muted" },
+          ticket: {
+            prices: [
+              { label: "Day", amount: 389 },
+              { label: "Week", amount: 1590 }
+            ],
+            label: "Prices"
+          }
+        },
+        {
+          title: "Plate compactor",
+          href: "#",
+          img: "https://picsum.photos/seed/kb3/800/600",
+          alt: "Plate compactor on fresh gravel",
+          tag: "Compaction",
+          text: "Packs gravel under a slab or a driveway.",
+          badge: "Unit 52",
+          ticket: { prices: [{ label: "Day", amount: 89 }], label: "Prices" }
+        }
+      ]}
+    />
   </Preview>
 </DocLayout>

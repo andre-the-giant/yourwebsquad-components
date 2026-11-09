@@ -1,0 +1,76 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import PriceTicket from "@lib/components/PriceTicket/PriceTicket.astro";
+
+const props = [
+  {
+    name: "prices",
+    type: "{ label, amount, unit?, key? }[]",
+    description: "1 to 3 prices. key is used by a view switch (SegmentedControl)."
+  },
+  {
+    name: "highlight",
+    type: "number",
+    default: "0",
+    description: "Index of the price that stands out."
+  },
+  {
+    name: "size",
+    type: '"sm" | "md" | "lg"',
+    default: '"md"',
+    description: "Card, page header, hero."
+  },
+  { name: "note", type: "string", description: "Small text under the prices." },
+  {
+    name: "locale",
+    type: "string",
+    default: '"en-CA"',
+    description: "Number format (fr-CA → 329 $)."
+  },
+  { name: "currency", type: "string", default: '"CAD"', description: "ISO currency code." },
+  { name: "label", type: "string", description: "Accessible name of the list." }
+];
+const rental = [
+  { label: "Day", amount: 329, key: "day" },
+  { label: "Week", amount: 1290, key: "week" }
+];
+---
+
+<DocLayout
+  title={"PriceTicket"}
+  description={"Two or three prices side by side, each with its label. A definition list, read as “Day: $329”. When an ancestor carries data-view, the price with that key stands out."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Day highlighted, week highlighted, one price"}
+    code={'<PriceTicket prices={[{ label: "Day", amount: 329, key: "day" }, { label: "Week", amount: 1290, key: "week" }]} note="Indicative price, taxes extra." />'}
+  >
+    <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-start">
+      <PriceTicket prices={rental} note="Indicative price, taxes extra." label="Prices" />
+      <PriceTicket prices={rental} highlight={1} label="Prices" />
+      <PriceTicket prices={[{ label: "From", amount: 145, unit: "/trip" }]} label="Delivery" />
+    </div>
+  </Preview>
+  <Preview
+    title={"Sizes"}
+    code={'<PriceTicket size="sm" … />\n<PriceTicket size="lg" locale="fr-CA" … />'}
+  >
+    <div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-start">
+      <PriceTicket size="sm" prices={rental} label="Prices" />
+      <PriceTicket
+        size="lg"
+        locale="fr-CA"
+        prices={[
+          { label: "Jour", amount: 329, key: "day" },
+          { label: "Semaine", amount: 1290, key: "week" },
+          { label: "Mois", amount: 3490, key: "month" }
+        ]}
+        label="Prix"
+      />
+    </div>
+  </Preview>
+</DocLayout>

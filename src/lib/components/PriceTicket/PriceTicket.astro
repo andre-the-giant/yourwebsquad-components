@@ -1,0 +1,221 @@
+---
+/*
+PriceTicket — two or three prices side by side, each with its label (day, week, month).
+One price stands out on the accent colour. For rental items, tickets, memberships.
+Props:
+- prices: { label: string, amount: number, unit?: string, key?: string }[] — 1 to 3
+    label: visible label, also the term of the definition list ("Per day")
+    unit: small text after the amount ("/day"), optional
+    key: name used by a view switch (see below), such as "day" or "week"
+- highlight?: number — index of the price that stands out (default 0)
+- size?: "sm" | "md" | "lg"
+- note?: string — "Indicative price, taxes extra"
+- locale?: string — "fr-CA" → 329 $, "en-CA" → $329
+- currency?: string — ISO code, default "CAD"
+- label?: string — accessible name of the list, such as "Prices"
+- id?: string
+- class?: string
+- style?: string
+View switch: when an ancestor carries data-view (written by SegmentedControl), the price
+whose key equals that view stands out instead of `highlight`.
+Accessibility: a definition list ("Per day: $329"); amounts use tabular figures and the
+number format of the page language.
+Theme variables: --priceticket-border, --priceticket-skew, --priceticket-highlight-bg,
+--priceticket-highlight-fg, --priceticket-bg, --priceticket-amount-font
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  prices: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        amount: z.number().nonnegative(),
+        unit: z.string().optional(),
+        key: z.string().optional()
+      })
+    )
+    .min(1)
+    .max(3),
+  highlight: z.number().int().nonnegative().default(0),
+  size: z.enum(["sm", "md", "lg"]).default("md"),
+  note: z.string().optional(),
+  locale: z.string().default("en-CA"),
+  currency: z.string().default("CAD"),
+  label: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  prices,
+  highlight,
+  size,
+  note,
+  locale,
+  currency,
+  label,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "PriceTicket" });
+
+const format = new Intl.NumberFormat(locale, {
+  style: "currency",
+  currency,
+  maximumFractionDigits: 0
+});
+// fr-CA writes a narrow no-break space before $, keep it unbreakable everywhere
+const money = (value: number) => format.format(value).replace(/\s/g, " ");
+const active = Math.min(highlight, prices.length - 1);
+---
+
+<div
+  id={id}
+  class={mergeClasses("priceticket", `priceticket--${size}`, className)}
+  style={style}
+  data-priceticket
+  {...rest}
+>
+  <dl class="priceticket__list" aria-label={label}>
+    {
+      prices.map((price, index) => (
+        <div
+          class:list={["priceticket__item", index === active && "is-highlight"]}
+          data-key={price.key}
+          data-default={index === active ? "true" : undefined}
+        >
+          <dt class="priceticket__label">{price.label}</dt>
+          <dd class="priceticket__amount">
+            {money(price.amount)}
+            {price.unit && <span class="priceticket__unit">{price.unit}</span>}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+  {note && <p class="priceticket__note">{note}</p>}
+</div>
+
+<script>
+  // Follow a data-view written on an ancestor (SegmentedControl): the price whose key
+  // matches stands out; without a match, the default one does.
+  const sync = () => {
+    for (const ticket of document.querySelectorAll<HTMLElement>("[data-priceticket]")) {
+      const view = ticket.closest<HTMLElement>("[data-view]")?.dataset.view;
+      const items = [...ticket.querySelectorAll<HTMLElement>(".priceticket__item")];
+      const match = view ? items.find((item) => item.dataset.key === view) : undefined;
+      for (const item of items) {
+        item.classList.toggle(
+          "is-highlight",
+          match ? item === match : item.dataset.default === "true"
+        );
+      }
+    }
+  };
+  new MutationObserver(sync).observe(document.body, {
+    attributes: true,
+    attributeFilter: ["data-view"],
+    subtree: true
+  });
+  sync();
+</script>
+
+<style>
+  .priceticket {
+    display: inline-grid;
+    gap: 0.375rem;
+    max-width: 100%;
+  }
+
+  .priceticket__list {
+    display: flex;
+    justify-self: start;
+    margin: 0;
+    border: var(--priceticket-border, 1px solid var(--color-border));
+    background: var(--priceticket-bg, var(--color-bg));
+    transform: skewX(var(--priceticket-skew, 0deg));
+  }
+
+  .priceticket__item {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+    padding: 0.5rem 0.875rem;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+
+  .priceticket__item + .priceticket__item {
+    border-inline-start: var(--priceticket-border, 1px solid var(--color-border));
+  }
+
+  /* Text stays upright when the theme slants the ticket */
+  .priceticket__item > * {
+    transform: skewX(calc(var(--priceticket-skew, 0deg) * -1));
+  }
+
+  .priceticket__item.is-highlight {
+    background: var(--priceticket-highlight-bg, var(--color-accent));
+    color: var(--priceticket-highlight-fg, var(--color-accent-contrast));
+  }
+
+  .priceticket__label {
+    font-size: 0.75rem;
+    font-weight: var(--weight-semibold, 600);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .priceticket__amount {
+    margin: 0;
+    font-family: var(--priceticket-amount-font, var(--font-display));
+    font-size: 1.375rem;
+    font-weight: var(--type-heading-weight, var(--weight-bold));
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .priceticket__unit {
+    margin-inline-start: 0.125rem;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: var(--weight-medium, 500);
+  }
+
+  .priceticket--sm .priceticket__item {
+    padding: 0.375rem 0.625rem;
+  }
+
+  .priceticket--sm .priceticket__amount {
+    font-size: 1.125rem;
+  }
+
+  .priceticket--lg .priceticket__item {
+    padding: 0.75rem 1.25rem;
+  }
+
+  .priceticket--lg .priceticket__amount {
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+  }
+
+  .priceticket__note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--muted-text, var(--color-muted));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .priceticket__item {
+      transition: none;
+    }
+  }
+</style>

@@ -98,6 +98,7 @@ const isQuestion = heading?.trim().endsWith("?");
   .facts__title {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: var(--type-h2, clamp(2rem, 4vw, 3rem));
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: var(--type-h2-line, 1.1);
@@ -107,6 +108,7 @@ const isQuestion = heading?.trim().endsWith("?");
   .facts__answer {
     margin: 0;
     font-family: var(--font-display);
+    text-transform: var(--type-heading-transform, none);
     font-size: clamp(1.625rem, 3.3vw, 2.75rem);
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.08;

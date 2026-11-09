@@ -1,0 +1,217 @@
+---
+/*
+Marquee — a band of text that scrolls slowly. Decorative: use it once per page at most.
+Props:
+- items: string[] — short phrases, shown in a loop with a separator
+- separator?: string — default "·"
+- duration?: number — seconds for one loop (default 26)
+- label?: string — the sentence read by screen readers instead of the moving text
+  (default: the items joined with commas)
+- pauseLabel?: string — "Pause the scrolling text"
+- playLabel?: string — "Play the scrolling text"
+- tone?: "default" | "inverse" | "accent"
+- id?: string
+- class?: string
+- style?: string
+Accessibility: the moving text is aria-hidden and the same words exist once as hidden
+text. A 44px button pauses it (WCAG 2.2.2). It stays still when the device asks for
+reduced motion, and the button is then hidden.
+Performance: only transform is animated; the text is doubled for a seamless loop.
+Theme variables: --marquee-bg, --marquee-fg, --marquee-font, --marquee-size,
+--marquee-transform, --marquee-border
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z.array(z.string()).min(1),
+  separator: z.string().default("·"),
+  duration: z.number().positive().default(26),
+  label: z.string().optional(),
+  pauseLabel: z.string().default("Pause the scrolling text"),
+  playLabel: z.string().default("Play the scrolling text"),
+  tone: z.enum(["default", "inverse", "accent"]).default("default")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  separator,
+  duration,
+  label,
+  pauseLabel,
+  playLabel,
+  tone,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Marquee" });
+
+const spoken = label ?? items.join(", ");
+// One run of the phrases; doubled below so the loop never shows a gap
+const run = items.flatMap((item) => [item, separator]);
+---
+
+<div
+  id={id}
+  class={mergeClasses("marquee", `marquee--${tone}`, className)}
+  style={[`--marquee-duration: ${duration}s`, style].filter(Boolean).join("; ")}
+  data-marquee
+  {...rest}
+>
+  <p class="marquee__sr">{spoken}</p>
+  <div class="marquee__viewport" aria-hidden="true">
+    <div class="marquee__track">
+      {
+        [0, 1].map(() => (
+          <span class="marquee__run">
+            {run.map((word, index) => (
+              <span class:list={["marquee__word", index % 2 === 1 && "marquee__sep"]}>{word}</span>
+            ))}
+          </span>
+        ))
+      }
+    </div>
+  </div>
+  <button
+    type="button"
+    class="marquee__toggle"
+    aria-label={pauseLabel}
+    data-pause-label={pauseLabel}
+    data-play-label={playLabel}
+    data-marquee-toggle
+  >
+    <svg class="marquee__icon-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"></path>
+    </svg>
+    <svg class="marquee__icon-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path d="M7 5l12 7-12 7z" fill="currentColor"></path>
+    </svg>
+  </button>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-marquee]")) {
+    const toggle = root.querySelector<HTMLButtonElement>("[data-marquee-toggle]");
+    toggle?.addEventListener("click", () => {
+      const paused = root.classList.toggle("is-paused");
+      toggle.setAttribute(
+        "aria-label",
+        (paused ? toggle.dataset.playLabel : toggle.dataset.pauseLabel) ?? ""
+      );
+    });
+  }
+</script>
+
+<style>
+  .marquee {
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-block: var(--marquee-border, 0);
+    background: var(--marquee-bg, var(--color-bg));
+    color: var(--marquee-fg, var(--color-fg));
+  }
+
+  .marquee--inverse {
+    background: var(--marquee-bg, var(--color-inverse-surface));
+    color: var(--marquee-fg, var(--color-inverse-fg));
+  }
+
+  .marquee--accent {
+    background: var(--marquee-bg, var(--color-accent));
+    color: var(--marquee-fg, var(--color-accent-contrast));
+  }
+
+  .marquee__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .marquee__viewport {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll var(--marquee-duration, 26s) linear infinite;
+  }
+
+  .marquee.is-paused .marquee__track {
+    animation-play-state: paused;
+  }
+
+  .marquee__run {
+    display: flex;
+    flex: none;
+  }
+
+  .marquee__word {
+    padding: 0.75rem 0.75rem;
+    font-family: var(--marquee-font, var(--font-display));
+    font-size: var(--marquee-size, clamp(1.25rem, 1rem + 1vw, 1.75rem));
+    line-height: 1;
+    text-transform: var(--marquee-transform, var(--type-heading-transform, none));
+    white-space: nowrap;
+  }
+
+  .marquee__toggle {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-inline: 0.5rem;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .marquee__toggle:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .marquee__icon-play,
+  .marquee.is-paused .marquee__icon-pause {
+    display: none;
+  }
+
+  .marquee.is-paused .marquee__icon-play {
+    display: block;
+  }
+
+  @keyframes marquee-scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track {
+      animation: none;
+    }
+
+    .marquee__toggle {
+      display: none;
+    }
+  }
+</style>

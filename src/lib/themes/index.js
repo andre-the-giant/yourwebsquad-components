@@ -10,7 +10,8 @@ export const themes = [
   { id: "light", label: "Default" },
   { id: "dark", label: "Dark" },
   { id: "plein-jour", label: "Plein jour" },
-  { id: "marbre", label: "Marbre" }
+  { id: "marbre", label: "Marbre" },
+  { id: "chantier", label: "Chantier" }
 ];
 
 export const defaultTheme = "light";

@@ -69,7 +69,9 @@ const resolvedClass = mergeClasses("form-label", className);
     display: block;
   }
 
+  /* A theme may hide the asterisk when optional fields say "(optional)" instead */
   .form-label .required {
+    display: var(--form-required-marker, inline);
     margin-left: 0.35rem;
     color: var(--form-error-color);
     font-weight: var(--weight-semibold);

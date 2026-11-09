@@ -1,0 +1,509 @@
+/* =============================================================================
+   Chantier — theme of the excavation and equipment-rental template
+   (demo: KaBoom Excavation)
+
+   Opt-in only:
+     import "yourwebsquad-components/tokens.css";
+     import "yourwebsquad-components/themes/chantier.css";
+     <html data-theme="chantier">
+
+   Every rule sits behind [data-theme="chantier"], so a site that does not set
+   this attribute renders exactly as before, even if it imports this file.
+
+   Rule of this theme: it only sets CSS variables, plus the base styles of plain
+   HTML elements (body, headings, links, focus). It never rewrites a property of a
+   component class. When a look needs a knob that a component lacks, the knob is
+   added to the component as a variable with a neutral default.
+
+   Look: concrete grey, safety yellow used as a fill only, asphalt for text and
+   dark sections, mud brown. Anton in capitals for titles, Barlow for text,
+   Barlow Condensed for labels and buttons. Square corners, solid 2px borders,
+   hard shadows with no blur, slanted yellow buttons, a hazard band at the top of
+   the header and the footer. No pale tint: surfaces are told apart by their
+   background tone and solid rules.
+
+   Fonts are not shipped here. Anton, Barlow and Barlow Condensed are SIL OFL: the
+   site self-hosts them (for example @fontsource/anton, @fontsource/barlow,
+   @fontsource/barlow-condensed). The stacks below fall back to system fonts.
+
+   Contrast (WCAG 2.2 AA), checked on the design system:
+     asphalt #17150F on concrete #ECEAE4 15.6:1 · on light concrete #F7F6F2 17.6:1
+     earth #4A4136 on concrete 8.6:1 · mud #5A4330 on concrete 7.6:1
+     asphalt on yellow #FFC20E 11.6:1 (buttons, highlights, chosen tiles)
+     yellow on asphalt 11.6:1 · concrete on asphalt 15.6:1
+     error #A3261A on light concrete 6.6:1 · success #2E6B2F 6.3:1
+     gravel #C8C3B8 is decorative only: controls use 2px asphalt borders (15.6:1)
+   ============================================================================= */
+
+html[data-theme="chantier"] {
+  color-scheme: light;
+
+  /* ── §1 Theme contract ───────────────────────────────────────────────────── */
+  --color-bg-rgb: 236, 234, 228;
+  --color-fg-rgb: 23, 21, 15;
+  --color-bg: rgb(var(--color-bg-rgb));
+  --color-fg: rgb(var(--color-fg-rgb));
+  --color-surface: rgb(247, 246, 242);
+  --color-border: rgb(200, 195, 184);
+  --color-muted: rgb(74, 65, 54);
+
+  --color-accent: rgb(255, 194, 14);
+  --color-accent-contrast: rgb(23, 21, 15);
+  /* No pale tint in this theme: the muted accent is the yellow itself */
+  --color-accent-muted: rgb(255, 194, 14);
+  --color-focus: rgb(23, 21, 15);
+  --color-focus-inverse: rgb(255, 194, 14);
+
+  --color-shadow: transparent;
+  --color-scrim: rgba(23, 21, 15, 0.62);
+
+  --color-inverse-surface: rgb(23, 21, 15);
+  --color-inverse-fg: rgb(236, 234, 228);
+
+  --color-info-rgb: 23, 21, 15;
+  --color-success-rgb: 46, 107, 47;
+  --color-warning-rgb: 90, 67, 48;
+  --color-danger-rgb: 163, 38, 26;
+  --color-info-text: rgb(23, 21, 15);
+  --color-success-text: rgb(46, 107, 47);
+  --color-warning-text: rgb(90, 67, 48);
+  --color-danger-text: rgb(163, 38, 26);
+
+  /* Text helpers read by the components: accent text is asphalt (yellow is a fill) */
+  --accent-text: var(--color-fg);
+  --muted-text: var(--color-muted);
+  --color-fg-muted: var(--color-muted);
+
+  /* Theme-only colours (not part of the shared contract) */
+  --chantier-mud: rgb(90, 67, 48);
+  --chantier-gravel: rgb(200, 195, 184);
+  --chantier-line: 2px solid var(--color-fg);
+  --chantier-heavy: 3px solid var(--color-fg);
+  --chantier-shadow: 4px 4px 0 var(--color-fg);
+  --chantier-shadow-yellow: 4px 4px 0 var(--color-accent);
+  --chantier-hazard: repeating-linear-gradient(
+    -45deg,
+    var(--color-accent) 0 14px,
+    var(--color-fg) 14px 28px
+  );
+
+  /* ── §2 Scale ────────────────────────────────────────────────────────────── */
+  --font-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Anton", "Impact", "Arial Narrow Bold", sans-serif;
+  /* Small labels, tags and captions use the condensed face, not a monospace one */
+  --font-mono: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-condensed: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  --type-heading-weight: 400;
+  --type-heading-transform: uppercase;
+  --type-h1: clamp(2.75rem, 1.6rem + 5vw, 4.5rem);
+  --type-h1-line: 0.95;
+  --type-h1-tracking: 0.005em;
+  --type-h2: clamp(2.125rem, 1.5rem + 2.6vw, 3.25rem);
+  --type-h2-line: 1;
+  --type-h2-tracking: 0.005em;
+  --type-h3: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+  --type-h3-line: 1.05;
+  --type-h3-tracking: 0.01em;
+  --type-h4: 1.25rem;
+  --type-lead: clamp(1.125rem, 1.05rem + 0.3vw, 1.25rem);
+
+  /* ── §3 Components ───────────────────────────────────────────────────────── */
+  /* Button: yellow, slanted, capitals, hard shadow; hover inverts to asphalt */
+  --button-font: var(--font-condensed);
+  --button-skew: -8deg;
+  --button-text-transform: uppercase;
+  --button-letter-spacing: 0.06em;
+  --button-border-width: 2px;
+  --button-min-height: 3rem;
+  --button-solid-bg: var(--color-accent);
+  --button-solid-fg: var(--color-fg);
+  --button-solid-border: var(--color-fg);
+  --button-solid-shadow: var(--chantier-shadow);
+  --button-solid-hover-bg: var(--color-fg);
+  --button-solid-hover-fg: var(--color-accent);
+  --button-solid-hover-border: var(--color-fg);
+  --button-solid-hover-shadow: var(--chantier-shadow-yellow);
+  --button-solid-hover-lift: 0px;
+  --button-solid-active-shadow: none;
+  --button-outline-bg: transparent;
+  --button-outline-fg: var(--color-fg);
+  --button-outline-border: var(--color-fg);
+  --button-outline-hover-bg: var(--color-fg);
+  --button-outline-hover-fg: var(--color-bg);
+  --button-ghost-bg: transparent;
+  --button-ghost-fg: var(--color-fg);
+  --button-ghost-border: transparent;
+  --button-ghost-hover-bg: transparent;
+  --button-ghost-hover-fg: var(--color-fg);
+  --button-focus: var(--color-focus);
+  --button-disabled-opacity: 0.55;
+
+  /* Forms: 2px asphalt borders, light concrete fields */
+  --form-field-gap: 0.375rem;
+  --form-label-font-size: 1rem;
+  --form-input-padding: 0.75rem 0.875rem;
+  --form-input-border: var(--chantier-line);
+  --form-input-border-radius: 0;
+  --form-input-bg: var(--color-surface);
+  --form-input-focus: var(--color-focus);
+  --form-help-color: var(--color-muted);
+  --form-error-color: var(--color-danger-text);
+  /* Optional fields say "(optional)", so the required asterisk is not shown */
+  --form-required-marker: none;
+  --form-upload-button-bg: var(--color-surface);
+  --form-upload-button-fg: var(--color-fg);
+  --form-upload-button-border: var(--chantier-line);
+  --form-upload-button-radius: 0;
+  --form-upload-button-weight: 700;
+
+  /* Radio: square, yellow when chosen, asphalt border and dot */
+  --radio-color: var(--color-fg);
+  --radio-size: 1.25rem;
+  --radio-radius: 0;
+  --radio-border: var(--chantier-line);
+  --radio-bg: var(--color-surface);
+  --radio-checked-border: var(--color-fg);
+  --radio-checked-bg: var(--color-accent);
+  --radio-dot: var(--color-fg);
+  --radio-dot-radius: 0;
+  --radio-tile-bg: var(--color-surface);
+  --radio-tile-border: var(--color-fg);
+  --radio-tile-hover-border: var(--color-fg);
+  --radio-tile-checked-border: var(--color-fg);
+  --radio-tile-checked-bg: var(--color-accent);
+
+  /* Checkbox: square, asphalt when ticked, yellow tick */
+  --checkbox-size: 1.375rem;
+  --checkbox-border: var(--color-fg);
+  --checkbox-checked: var(--color-fg);
+  --checkbox-tick: var(--color-accent);
+  --checkbox-radius: 0;
+  --checkbox-bg: var(--color-surface);
+
+  /* Modal and viewer */
+  --modal-surface: var(--color-surface);
+  --modal-text: var(--color-fg);
+  --modal-border: var(--color-fg);
+  --modal-shadow: none;
+  --modal-radius: 0;
+  --modal-backdrop: var(--color-scrim);
+  --modal-full-surface: var(--color-fg);
+  --modal-full-text: var(--color-bg);
+  --modal-full-close-bg: var(--color-accent);
+  --modal-full-close-fg: var(--color-fg);
+
+  /* Header and footer: hazard band along the top edge */
+  --siteheader-band: var(--chantier-hazard);
+  --siteheader-band-height: 12px;
+  --siteheader-bg: var(--color-bg);
+  --siteheader-border: var(--chantier-heavy);
+  --siteheader-link-font: var(--font-condensed);
+  --siteheader-link-transform: uppercase;
+  --siteheader-link-spacing: 0.06em;
+  --sitefooter-band: var(--chantier-hazard);
+  --sitefooter-band-height: 12px;
+  --sitefooter-bg: var(--color-fg);
+  --sitefooter-fg: var(--color-bg);
+
+  /* Headline highlight, timeline, tags */
+  /* The highlight covers the letters only: Anton's tight lines would overlap a full box */
+  --pagehero-accent-bg: linear-gradient(
+    transparent 0 14%,
+    var(--color-accent) 14% 94%,
+    transparent 94%
+  );
+  --pagehero-accent-fg: var(--color-fg);
+  --pagehero-accent-padding: 0 0.12em;
+  --steps-marker-bg: var(--color-accent);
+  --steps-marker-fg: var(--color-fg);
+  --steps-marker-border: var(--color-fg);
+  --steps-line: var(--color-fg);
+  --steps-number-color: var(--color-fg);
+  --review-quote-font: var(--font-body);
+  --review-quote-weight: 600;
+  --tag-font: var(--font-condensed);
+  --tag-font-size: 0.875rem;
+  --tag-transform: uppercase;
+  --tag-letter-spacing: 0.06em;
+  --tag-border: 2px solid var(--color-fg);
+  --tag-success-bg: var(--color-surface);
+  --tag-success-fg: var(--color-success-text);
+  --tag-muted-bg: var(--color-surface);
+  --tag-muted-fg: var(--color-muted);
+
+  /* Cards: 2px frame, top rule turns yellow on hover */
+  --ycard-border: var(--chantier-line);
+  --ycard-standard-bg: var(--color-surface);
+  --ycard-bg: var(--color-surface);
+  --ycard-body-padding: 1rem 1.125rem 1.25rem;
+  --ycard-badge-bg: var(--color-fg);
+  --ycard-badge-fg: var(--color-accent);
+  --card-top-border: 6px solid var(--color-fg);
+  --card-top-border-hover: 6px solid var(--color-accent);
+
+  /* Prices, view switch, filters */
+  --priceticket-border: 2px dashed var(--color-fg);
+  --priceticket-skew: -6deg;
+  --priceticket-bg: var(--color-surface);
+  --priceticket-highlight-bg: var(--color-accent);
+  --priceticket-highlight-fg: var(--color-fg);
+  --priceticket-amount-font: var(--font-display);
+  --segmented-border: var(--chantier-line);
+  --segmented-bg: var(--color-surface);
+  --segmented-fg: var(--color-fg);
+  --segmented-active-bg: var(--color-fg);
+  --segmented-active-fg: var(--color-accent);
+  --segmented-font: var(--font-condensed);
+  --segmented-transform: uppercase;
+  --filterbar-chip-bg: var(--color-surface);
+  --filterbar-chip-border: var(--chantier-line);
+  --filterbar-active-bg: var(--color-fg);
+  --filterbar-active-fg: var(--color-accent);
+  --filterbar-chip-font: var(--font-condensed);
+  --filterbar-chip-transform: uppercase;
+
+  /* Bands of text, notices, rating sticker, sticky bar */
+  --marquee-font: var(--font-display);
+  --marquee-transform: uppercase;
+  --marquee-border: var(--chantier-heavy);
+  --noticebar-font-size: 0.8125rem;
+  --rating-sticker-rotate: 3deg;
+  --rating-sticker-bg: var(--color-accent);
+  --rating-sticker-fg: var(--color-fg);
+  --rating-sticker-border: var(--chantier-heavy);
+  --rating-sticker-shadow: var(--chantier-shadow);
+  --google-rating-bg: var(--color-surface);
+  --sticky-actions-bg: var(--color-bg);
+  --sticky-actions-border: var(--chantier-heavy);
+  --sticky-actions-lead-font: var(--font-display);
+
+  /* Step by step */
+  --sbs-header-bg: var(--color-surface);
+  --sbs-summary-bg: var(--color-surface);
+
+  /* Icons: thicker lines, square ends */
+  --icon-stroke-width: 2.25;
+  --icon-linecap: square;
+  --icon-linejoin: miter;
+
+  /* Stars, lists, misc. */
+  --star-filled: var(--color-fg);
+  --star-empty: var(--chantier-gravel);
+  --star-rating-filled-color: var(--color-fg);
+  --list-num-bg: var(--color-accent);
+  --list-num-color: var(--color-fg);
+  --list-num-radius: 0;
+  --list-num-weight: 400;
+  --plan-featured-muted: var(--chantier-gravel);
+  --contact-card-bg: var(--color-surface);
+  --review-bg: var(--color-surface);
+  --toc-bg: var(--color-bg);
+  --tooltip-bg: var(--color-fg);
+  --tooltip-fg: var(--color-bg);
+  --accordion-radius: 0;
+  --accordion-shadow: none;
+  --comparison-border: 3px solid var(--color-accent);
+  --comparison-before-bg: var(--color-fg);
+  --comparison-before-color: var(--color-accent);
+  --comparison-after-bg: var(--color-accent);
+  --comparison-after-color: var(--color-fg);
+  --comparison-divider: var(--color-accent);
+  --comparison-tag-bg: var(--color-fg);
+  --comparison-tag-fg: var(--color-accent);
+  --googlereviews-radius: 0;
+  --googlereviews-shadow: none;
+  --googlereviews-card-radius: 0;
+  --googlereviews-card-shadow: none;
+  --googlereviews-card-bg: var(--color-surface);
+  --googlereviews-button-bg: var(--color-accent);
+  --googlereviews-button-color: var(--color-fg);
+  --googlereviews-button-radius: 0;
+  --googlereviews-button-shadow: var(--chantier-shadow);
+  --googlereviews-star-color: var(--color-fg);
+  --googlereviews-link-color: var(--color-fg);
+  --googlereviews-focus-color: var(--color-fg);
+  --photoroll-control-bg: var(--color-accent);
+  --photoroll-control-color: var(--color-fg);
+  --photoroll-control-shadow: var(--chantier-shadow);
+  --photoroll-bullet-active-color: var(--color-accent);
+
+  --band-surface-bg: var(--color-surface);
+
+  background: var(--color-bg);
+  color: var(--color-fg);
+  scroll-padding-top: 6rem;
+  scroll-padding-bottom: 6rem;
+}
+
+/* ── Dark sections (asphalt): yellow buttons, yellow focus, gravel muted text ─── */
+html[data-theme="chantier"] :is(.band--inverse, [data-tone="inverse"], .sitefooter) {
+  --color-muted: var(--chantier-gravel);
+  --muted-text: var(--chantier-gravel);
+  --accent-text: var(--color-accent);
+  --color-border: rgb(74, 65, 54);
+  --color-focus: var(--color-accent);
+  --button-focus: var(--color-accent);
+  --button-solid-bg: var(--color-accent);
+  --button-solid-fg: rgb(23, 21, 15);
+  --button-solid-border: var(--color-accent);
+  --button-solid-shadow: 4px 4px 0 rgb(236, 234, 228);
+  --button-solid-hover-bg: rgb(236, 234, 228);
+  --button-solid-hover-fg: rgb(23, 21, 15);
+  --button-solid-hover-border: rgb(236, 234, 228);
+  --button-solid-hover-shadow: var(--chantier-shadow-yellow);
+  --button-outline-fg: rgb(236, 234, 228);
+  --button-outline-border: rgb(236, 234, 228);
+  --button-outline-hover-bg: rgb(236, 234, 228);
+  --button-outline-hover-fg: rgb(23, 21, 15);
+  --button-ghost-fg: var(--color-accent);
+  --button-ghost-hover-fg: var(--color-accent);
+  --star-filled: var(--color-accent);
+  --star-rating-filled-color: var(--color-accent);
+  --steps-marker-border: var(--color-accent);
+  --steps-line: var(--color-accent);
+  --steps-number-color: var(--color-accent);
+  --tag-border: 2px solid var(--color-accent);
+  --trustbar-bg: var(--color-inverse-surface);
+  --color-bg: var(--color-inverse-surface);
+  --color-bg-rgb: 23, 21, 15;
+}
+
+/* ── Yellow sections (one per page at most): asphalt buttons ───────────────── */
+html[data-theme="chantier"] :is(.band--accent, [data-tone="accent"]) {
+  --color-muted: rgb(23, 21, 15);
+  --muted-text: rgb(23, 21, 15);
+  --accent-text: rgb(23, 21, 15);
+  --color-focus: rgb(23, 21, 15);
+  --button-solid-bg: rgb(23, 21, 15);
+  --button-solid-fg: var(--color-accent);
+  --button-solid-border: rgb(23, 21, 15);
+  --button-solid-shadow: 4px 4px 0 rgb(236, 234, 228);
+  --button-solid-hover-bg: rgb(236, 234, 228);
+  --button-solid-hover-fg: rgb(23, 21, 15);
+  --button-solid-hover-border: rgb(23, 21, 15);
+  --button-solid-hover-shadow: var(--chantier-shadow);
+  --pagehero-accent-bg: linear-gradient(
+    transparent 0 14%,
+    rgb(23, 21, 15) 14% 94%,
+    transparent 94%
+  );
+  --pagehero-accent-fg: var(--color-accent);
+  --steps-marker-bg: rgb(23, 21, 15);
+  --steps-marker-fg: var(--color-accent);
+}
+
+/* Radios: the component sets its colour, size and shape on its wrapper, so the theme
+   sets them on the radio itself */
+html[data-theme="chantier"] .radio {
+  --radio-color: rgb(23, 21, 15);
+  --radio-size: 1.25rem;
+  --radio-radius: 0;
+}
+
+/* Switches: asphalt track when on (the component sets defaults on its wrapper) */
+html[data-theme="chantier"] .toggle {
+  --toggle-radius: 0;
+  --toggle-unchecked: var(--chantier-gravel);
+  --toggle-checked: rgb(23, 21, 15);
+  --toggle-thumb: var(--color-surface);
+}
+
+/* Alerts: light concrete with a solid rule in the state colour, no pastel fill */
+html[data-theme="chantier"] .alert {
+  --alert-bg: var(--color-surface);
+  --alert-border: rgb(var(--alert-tone));
+}
+
+/* ── Base styles of plain elements ─────────────────────────────────────────── */
+html[data-theme="chantier"] *,
+html[data-theme="chantier"] *::before,
+html[data-theme="chantier"] *::after {
+  box-sizing: border-box;
+}
+
+html[data-theme="chantier"] body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="chantier"] :is(h1, h2, h3) {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+html[data-theme="chantier"] h1 {
+  font-size: var(--type-h1);
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+html[data-theme="chantier"] h2 {
+  font-size: var(--type-h2);
+  line-height: var(--type-h2-line);
+  letter-spacing: var(--type-h2-tracking);
+}
+
+html[data-theme="chantier"] h3 {
+  font-size: var(--type-h3);
+  line-height: var(--type-h3-line);
+  letter-spacing: var(--type-h3-tracking);
+}
+
+html[data-theme="chantier"] :is(h4, h5, h6) {
+  font-family: var(--font-body);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+html[data-theme="chantier"] h4 {
+  font-size: var(--type-h4);
+}
+
+html[data-theme="chantier"] p {
+  text-wrap: pretty;
+}
+
+html[data-theme="chantier"] a {
+  color: inherit;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+html[data-theme="chantier"] a:hover {
+  text-decoration-thickness: 3px;
+}
+
+html[data-theme="chantier"]
+  :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+html[data-theme="chantier"] ::selection {
+  background: var(--color-accent);
+  color: rgb(23, 21, 15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="chantier"] {
+    scroll-behavior: auto;
+    --rating-sticker-rotate: 0deg;
+  }
+}

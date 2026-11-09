@@ -5,6 +5,11 @@ Props:
 - class?: string
 - style?: string
 - label?: string — accessible name of the slider, translate it (default "Drag to compare sections")
+- beforeLabel?, afterLabel?: string — small tags in the top corners ("Before", "After")
+Panes that hold an image lose their padding, so the photo fills the frame. A divider
+with a handle shows where the two panes meet.
+Theme variables: --comparison-height, --comparison-border, --comparison-before-bg,
+--comparison-after-bg, --comparison-divider, --comparison-tag-bg, --comparison-tag-fg
 Slots:
 - before: content for the left pane
 - after: content for the right pane
@@ -17,7 +22,9 @@ const Schema = z.looseObject({
   id: z.string().optional(),
   class: z.string().optional(),
   style: z.string().optional(),
-  label: z.string().default("Drag to compare sections")
+  label: z.string().default("Drag to compare sections"),
+  beforeLabel: z.string().optional(),
+  afterLabel: z.string().optional()
 });
 
 type Props = z.input<typeof Schema>;
@@ -27,6 +34,8 @@ const {
   class: className,
   style,
   label,
+  beforeLabel,
+  afterLabel,
   ...rest
 } = parseProps(Schema, Astro.props, {
   component: "ComparisonSlider"
@@ -51,6 +60,9 @@ const defaultAfter = "I'm the right section";
       <p>{defaultAfter}</p>
     </slot>
   </section>
+  <span class="compare__divider" aria-hidden="true"></span>
+  {beforeLabel && <span class="compare__tag compare__tag--before">{beforeLabel}</span>}
+  {afterLabel && <span class="compare__tag compare__tag--after">{afterLabel}</span>}
   <input
     type="range"
     min="0"
@@ -122,6 +134,64 @@ const defaultAfter = "I'm the right section";
       transparent 100%
     );
   }
+  .before:has(:global(img)),
+  .after:has(:global(img)) {
+    padding: 0;
+  }
+
+  .compare {
+    position: relative;
+  }
+
+  .compare__divider {
+    position: relative;
+    z-index: 1;
+    justify-self: start;
+    width: 4px;
+    height: 100%;
+    margin-inline-start: calc(var(--pos, 50%) - 2px);
+    background: var(--comparison-divider, rgb(255 255 255));
+    pointer-events: none;
+  }
+
+  .compare__divider::after {
+    content: "↔";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 2px solid currentColor;
+    background: var(--comparison-divider, rgb(255 255 255));
+    color: rgb(0 0 0);
+    font-size: 1.25rem;
+    font-weight: 700;
+    transform: translate(-50%, -50%);
+  }
+
+  .compare__tag {
+    position: relative;
+    z-index: 1;
+    align-self: start;
+    margin: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    background: var(--comparison-tag-bg, rgb(0 0 0 / 0.75));
+    color: var(--comparison-tag-fg, rgb(255 255 255));
+    font-size: 0.875rem;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .compare__tag--before {
+    justify-self: start;
+  }
+
+  .compare__tag--after {
+    justify-self: end;
+  }
+
   .before :global(img),
   .after :global(img) {
     width: 100%;

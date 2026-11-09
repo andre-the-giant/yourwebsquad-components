@@ -72,6 +72,17 @@ const props = [
     name: "slot meta",
     type: "slot",
     description: "Under the buttons: price chips, a rating badge, short facts."
+  },
+  {
+    name: "--type-heading-transform",
+    type: "CSS variable",
+    default: "none",
+    description: "Case of the title (uppercase in some themes)."
+  },
+  {
+    name: "--pagehero-accent-bg / --pagehero-accent-fg / --pagehero-accent-padding",
+    type: "CSS variables",
+    description: "Highlight of the accent words."
   }
 ];
 const metaCode = `<PageHero eyebrow="Bathroom renovation in Kingston" title="A bathroom that breathes" lead="Walk-in showers, marble, light." actions={[{ label: "Estimate my project" }, { label: "613 555-0142", href: "tel:+16135550142", variant: "ghost" }]}>
@@ -100,5 +111,18 @@ const metaCode = `<PageHero eyebrow="Bathroom renovation in Kingston" title="A b
     >
       <GoogleRating slot="meta" rating={4.9} count={127} variant="inline" />
     </PageHero>
+  </Preview>
+  <Preview
+    title="Highlighted words (theme variables)"
+    code={'<PageHero title="Big machines. Small hassles." accent="Small hassles." style="--pagehero-accent-bg: linear-gradient(transparent 0 14%, #ffc20e 14% 94%, transparent 94%); --pagehero-accent-fg: #17150f; --pagehero-accent-padding: 0 0.12em; --type-heading-transform: uppercase" … />'}
+  >
+    <PageHero
+      eyebrow="Excavation · Belleville"
+      title="Big machines. Small hassles."
+      accent="Small hassles."
+      lead="Equipment rental and earthwork, from the founding hole to the last load of gravel."
+      actions={[{ label: "Rent a machine", href: "#" }]}
+      style="--pagehero-accent-bg:linear-gradient(transparent 0 14%, #ffc20e 14% 94%, transparent 94%);--pagehero-accent-fg:#17150f;--pagehero-accent-padding:0 0.12em;--type-heading-transform:uppercase"
+    />
   </Preview>
 </DocLayout>
