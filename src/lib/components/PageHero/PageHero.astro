@@ -3,6 +3,7 @@
 PageHero — top of a page, with the page's only <h1>.
 Different from Hero, which is a centered banner with a background image and an <h2>.
 Props:
+- eyebrow?: string — short line above the title, such as the trade and the city
 - title: string
 - accent?: string — part of the title to highlight, must appear in `title`
 - lead?: string
@@ -14,6 +15,8 @@ Props:
 - img?: string
 - alt?: string — required for a meaningful image, "" for a decorative one
 - layout?: "text" | "split" | "full"
+Slots:
+- meta — under the buttons: price chips, a rating badge, any short facts
 - id?: string
 - class?: string
 - style?: string
@@ -34,6 +37,7 @@ const Schema = z.looseObject({
   id: z.string().optional(),
   class: z.string().optional(),
   style: z.string().optional(),
+  eyebrow: z.string().optional(),
   title: z.string(),
   accent: z.string().optional(),
   lead: z.string().optional(),
@@ -55,6 +59,7 @@ const {
   id,
   class: className,
   style,
+  eyebrow,
   title,
   accent,
   lead,
@@ -89,6 +94,7 @@ const buttons = actions.slice(0, 2);
           </div>
         )
       }
+      {eyebrow && <p class="pagehero__eyebrow">{eyebrow}</p>}
       <h1 class="pagehero__title">
         {
           parts ? (
@@ -117,6 +123,13 @@ const buttons = actions.slice(0, 2);
           )
         }
       </div>
+      {
+        Astro.slots.has("meta") && (
+          <div class="pagehero__meta">
+            <slot name="meta" />
+          </div>
+        )
+      }
     </div>
     {img && <img class="pagehero__img" src={img} alt={alt} fetchpriority="high" />}
     {slogan && resolvedLayout === "full" && <p class="pagehero__slogan">{slogan}</p>}
@@ -135,6 +148,23 @@ const buttons = actions.slice(0, 2);
 
   .pagehero__crumb {
     margin-block-end: clamp(1.25rem, 3vw, 2.5rem);
+  }
+
+  .pagehero__eyebrow {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    font-weight: var(--weight-semibold, 600);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-text, var(--color-accent));
+  }
+
+  .pagehero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
   }
 
   .pagehero__title {

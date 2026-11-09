@@ -4,6 +4,7 @@ import Preview from "../../../components/Preview.astro";
 import PropsTable from "../../../components/PropsTable.astro";
 import { components } from "../../../data/components.js";
 import PageHero from "@lib/components/PageHero/PageHero.astro";
+import GoogleRating from "@lib/components/GoogleRating/GoogleRating.astro";
 
 const examples: any[] = [
   {
@@ -31,6 +32,11 @@ const props = [
   { name: "id", type: "string", description: "Optional id for the root element." },
   { name: "class", type: "string", description: "Additional class names." },
   { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  {
+    name: "eyebrow",
+    type: "string",
+    description: "Short line above the title, such as the trade and the city."
+  },
   { name: "title", type: "string", description: "Required. The page's only h1." },
   { name: "accent", type: "string", description: "Part of the title to highlight." },
   { name: "lead", type: "string", description: "Text under the title." },
@@ -61,8 +67,16 @@ const props = [
     type: '"text" | "split" | "full"',
     default: '"text"',
     description: "Text only, image on the right, or full-width image below."
+  },
+  {
+    name: "slot meta",
+    type: "slot",
+    description: "Under the buttons: price chips, a rating badge, short facts."
   }
 ];
+const metaCode = `<PageHero eyebrow="Bathroom renovation in Kingston" title="A bathroom that breathes" lead="Walk-in showers, marble, light." actions={[{ label: "Estimate my project" }, { label: "613 555-0142", href: "tel:+16135550142", variant: "ghost" }]}>
+  <GoogleRating slot="meta" rating={4.9} count={127} variant="inline" />
+</PageHero>`;
 ---
 
 <DocLayout
@@ -73,5 +87,18 @@ const props = [
   <PropsTable props={props} />
   <Preview title="Text" code={codes[0]}>
     <PageHero {...examples[0]} />
+  </Preview>
+  <Preview title="Eyebrow and meta slot" code={metaCode}>
+    <PageHero
+      eyebrow="Bathroom renovation in Kingston"
+      title="A bathroom that breathes"
+      lead="Walk-in showers, marble, light."
+      actions={[
+        { label: "Estimate my project", href: "#" },
+        { label: "613 555-0142", href: "tel:+16135550142", variant: "ghost" }
+      ]}
+    >
+      <GoogleRating slot="meta" rating={4.9} count={127} variant="inline" />
+    </PageHero>
   </Preview>
 </DocLayout>

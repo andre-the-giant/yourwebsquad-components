@@ -6,9 +6,11 @@ Props:
 - heading?: string
 - intro?: string
 - items: { title: string, text?: string, href?: string,
-           img?: string, alt?: string, tag?: string, meta?: string, tags?: string[] }[]
+           img?: string, alt?: string, tag?: string, meta?: string, tags?: string[],
+           sort?: { [key: string]: string | number } }[]
   An item with img becomes a photo card: photo, tag, title, text, meta line.
   tags are written to data-tags so a FilterBar can filter the grid.
+  sort values are written to data-sort-<key> so a FilterBar can sort it.
 - columns?: 2 | 3
 - compact?: boolean — photo cards with a square photo on the left
 - ratio?: string — photo ratio of photo cards (default "4/3")
@@ -47,7 +49,8 @@ const Schema = z.looseObject({
         alt: z.string().optional(),
         tag: z.string().optional(),
         meta: z.string().optional(),
-        tags: z.array(z.string()).optional()
+        tags: z.array(z.string()).optional(),
+        sort: z.record(z.string(), z.union([z.string(), z.number()])).optional()
       })
     )
     .default([]),
@@ -95,6 +98,15 @@ const {
 const headingId = nextId("cardgrid");
 const listId = nextId("cardgrid-list");
 const hasMore = typeof initial === "number" && items.length > initial;
+
+// { budget: 32000 } becomes data-sort-budget="32000" for FilterBar's sort select.
+const sortAttrs = (sort?: Record<string, string | number>) =>
+  Object.fromEntries(
+    Object.entries(sort ?? {}).map(([key, value]) => [
+      `data-sort-${key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`,
+      String(value)
+    ])
+  );
 ---
 
 <Band
@@ -140,12 +152,14 @@ const hasMore = typeof initial === "number" && items.length > initial;
             meta={item.meta}
             tags={item.tags}
             tabindex={hasMore ? "-1" : undefined}
+            {...sortAttrs(item.sort)}
           />
         ) : (
           <li
             class:list={["card", item.href && "card--link", filled && "card--filled"]}
             data-tags={item.tags?.length ? item.tags.join(" ") : undefined}
             tabindex={hasMore ? "-1" : undefined}
+            {...sortAttrs(item.sort)}
           >
             {item.tag && <p class="card__tag">{item.tag}</p>}
             <h3 class="card__title">

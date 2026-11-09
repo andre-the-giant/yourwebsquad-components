@@ -42,10 +42,10 @@ const props = [
   { name: "intro", type: "string", description: "Text under the title." },
   {
     name: "items",
-    type: "{ title, text?, href?, img?, alt?, tag?, meta?, tags?: string[] }[]",
+    type: "{ title, text?, href?, img?, alt?, tag?, meta?, tags?: string[], sort?: { [key]: string | number } }[]",
     default: "[]",
     description:
-      "Cards. A card with href is entirely clickable. A card with img becomes a photo card (photo, tag, title, text, meta line). tags go to data-tags for a FilterBar."
+      "Cards. A card with href is entirely clickable. A card with img becomes a photo card (photo, tag, title, text, meta line). tags go to data-tags for a FilterBar; sort values go to data-sort-<key> for its sort select."
   },
   {
     name: "compact",
