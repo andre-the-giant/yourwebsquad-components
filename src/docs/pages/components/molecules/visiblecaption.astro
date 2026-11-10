@@ -1,0 +1,112 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import VisibleCaption from "@lib/components/VisibleCaption/VisibleCaption.astro";
+
+const props = [
+  {
+    name: "label",
+    type: "string",
+    description: "Figure: what the photo shows. Legend: accessible name of the list."
+  },
+  {
+    name: "detail",
+    type: "string",
+    description: "Short fact on the second line, such as a distance."
+  },
+  {
+    name: "position",
+    type: '"bottom-left" | "bottom-right" | "top-left" | "top-right" | "below"',
+    default: '"bottom-left"',
+    description: "Corner of the image, or below it."
+  },
+  {
+    name: "tone",
+    type: '"light" | "inverse"',
+    default: '"light"',
+    description: "Opaque light or dark caption."
+  },
+  {
+    name: "legend",
+    type: "{ label, detail?, marker?, key? }[]",
+    description: "Switches to the legend form: a numbered list that explains the points of a map."
+  },
+  {
+    name: "highlight",
+    type: "string",
+    description: "Key of the legend line that is active at load."
+  },
+  { name: "default slot", type: "image", description: "The photo (figure form)." }
+];
+const photo = "aspect-ratio:3/2;background:linear-gradient(135deg,#d8c9a8,#a58b5c);display:block";
+const points = [
+  { marker: "C", label: "Our counter, 312 Princess St", detail: "0 km", key: "c" },
+  { marker: "1", label: "Cataraqui greenhouses", detail: "6 km", key: "1" },
+  { marker: "2", label: "Sydenham dairy", detail: "24 km", key: "2" },
+  { marker: "3", label: "Grain-d'Or mill", detail: "25 km", key: "3" }
+];
+---
+
+<DocLayout
+  title={"VisibleCaption"}
+  description={"A caption that is always visible, never hover-only: laid over a corner of a photo or placed below it, on an opaque background so the text never sits on the picture. Also a numbered legend for a map."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Over the photo, four corners"}
+    code={'<VisibleCaption label="Organic flour" detail="25 km" position="bottom-right"><img … /></VisibleCaption>'}
+  >
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem">
+      <VisibleCaption label="Organic flour" detail="25 km"
+        ><div role="img" aria-label="Flour on a table" style={photo}></div></VisibleCaption
+      >
+      <VisibleCaption label="Organic flour" detail="25 km" position="bottom-right"
+        ><div role="img" aria-label="Flour on a table" style={photo}></div></VisibleCaption
+      >
+      <VisibleCaption label="Organic flour" detail="25 km" position="top-left"
+        ><div role="img" aria-label="Flour on a table" style={photo}></div></VisibleCaption
+      >
+      <VisibleCaption label="Organic flour" detail="25 km" position="top-right" tone="inverse"
+        ><div role="img" aria-label="Flour on a table" style={photo}></div></VisibleCaption
+      >
+    </div>
+  </Preview>
+  <Preview
+    title={"Below the photo, with and without detail"}
+    code={'<VisibleCaption position="below" label="Eggs · Lalonde farm" detail="28 km"><img … /></VisibleCaption>'}
+  >
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem">
+      <VisibleCaption position="below" label="Eggs · Lalonde farm" detail="28 km"
+        ><div role="img" aria-label="Eggs in a carton" style={photo}></div></VisibleCaption
+      >
+      <VisibleCaption position="below" label="Morning nests · Princess St"
+        ><div role="img" aria-label="Pasta nests on a tray" style={photo}></div></VisibleCaption
+      >
+    </div>
+  </Preview>
+  <Preview
+    title={"Map legend, with an active line"}
+    code={'<VisibleCaption label="Suppliers" legend={[{ marker: "1", label: "…", detail: "6 km", key: "1" }]} highlight="1" />\n<button data-caption-point="1">…</button>'}
+  >
+    <div style="display:grid;gap:1rem;max-width:30rem">
+      <VisibleCaption label="Suppliers and distance" legend={points} highlight="1" />
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        {
+          points.map((point) => (
+            <button
+              type="button"
+              data-caption-point={point.key}
+              style="min-height:2.75rem;padding:0 1rem"
+            >
+              Point {point.marker}
+            </button>
+          ))
+        }
+      </div>
+      <p>Hover or focus a point: its line in the legend lights up.</p>
+    </div>
+  </Preview>
+</DocLayout>

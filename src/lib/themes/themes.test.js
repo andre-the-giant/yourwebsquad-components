@@ -6,7 +6,7 @@ import { themes } from "./index.js";
 // A theme changes the look through CSS variables only. It may style plain HTML
 // elements (body, headings, links, focus), but a rule that targets a component class
 // must only set custom properties: it never overrides a property of the component.
-const strictThemes = ["chantier"];
+const strictThemes = ["chantier", "trattoria"];
 
 const read = (id) => readFileSync(fileURLToPath(new URL(`./${id}.css`, import.meta.url)), "utf8");
 

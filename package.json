@@ -48,6 +48,7 @@
     "./themes/plein-jour.css": "./src/lib/themes/plein-jour.css",
     "./themes/marbre.css": "./src/lib/themes/marbre.css",
     "./themes/chantier.css": "./src/lib/themes/chantier.css",
+    "./themes/trattoria.css": "./src/lib/themes/trattoria.css",
     "./Accordion": "./src/lib/components/Accordion/Accordion.astro",
     "./Alert": "./src/lib/components/Alert/Alert.astro",
     "./Button": "./src/lib/components/Button/Button.astro",
@@ -112,6 +113,9 @@
     "./SegmentedControl": "./src/lib/components/SegmentedControl/SegmentedControl.astro",
     "./Marquee": "./src/lib/components/Marquee/Marquee.astro",
     "./NoticeBar": "./src/lib/components/NoticeBar/NoticeBar.astro",
+    "./MenuLine": "./src/lib/components/MenuLine/MenuLine.astro",
+    "./OptionBuilder": "./src/lib/components/OptionBuilder/OptionBuilder.astro",
+    "./VisibleCaption": "./src/lib/components/VisibleCaption/VisibleCaption.astro",
     "./forms-integration": "./forms-integration.js",
     "./forms-content-schema": "./forms-content-schema.js"
   }

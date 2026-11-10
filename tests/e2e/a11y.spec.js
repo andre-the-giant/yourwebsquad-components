@@ -47,10 +47,13 @@ const pages = [
   "/components/molecules/priceticket",
   "/components/molecules/segmentedcontrol",
   "/components/components/marquee",
-  "/components/components/noticebar"
+  "/components/components/noticebar",
+  "/components/molecules/menuline",
+  "/components/components/optionbuilder",
+  "/components/molecules/visiblecaption"
 ];
 
-const allPages = ["light", "plein-jour", "marbre", "chantier"].flatMap((theme) =>
+const allPages = ["light", "plein-jour", "marbre", "chantier", "trattoria"].flatMap((theme) =>
   pages.map((path) => ({ path, theme }))
 );
 

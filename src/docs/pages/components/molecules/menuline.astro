@@ -1,0 +1,116 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import MenuLine from "@lib/components/MenuLine/MenuLine.astro";
+
+const props = [
+  {
+    name: "items",
+    type: "{ name, price?, description?, tags?, allergens?, href? }[]",
+    description:
+      "One entry per line. price: a number is formatted as a price, a string is shown as written. href makes the line a link."
+  },
+  {
+    name: "size",
+    type: '"sm" | "md" | "lg"',
+    default: '"md"',
+    description: "lg uses the display font for the name and the price."
+  },
+  {
+    name: "leaders",
+    type: "boolean",
+    default: "true",
+    description: "Dotted leader between the name and the price."
+  },
+  {
+    name: "allergensLabel",
+    type: "string",
+    default: '"Contains"',
+    description: "Word before the allergen tags."
+  },
+  {
+    name: "locale",
+    type: "string",
+    default: '"en-CA"',
+    description: "Number format (fr-CA → 9 $)."
+  },
+  { name: "currency", type: "string", default: '"CAD"', description: "ISO currency code." },
+  { name: "label", type: "string", description: "Accessible name of the list." }
+];
+const sauces = [
+  { name: "Tomato and basil", price: 8 },
+  { name: "Alfredo", price: 9 },
+  { name: "Pesto genovese", price: 9 }
+];
+---
+
+<DocLayout
+  title={"MenuLine"}
+  description={"A printed-menu list: name on the left, a dotted leader, the price on the right, then description, tags and allergens. A long name wraps and the price stays on the last line."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Name, leader and price"}
+    code={'<MenuLine label="Sauces" items={[{ name: "Alfredo", price: 9 }, …]} />'}
+  >
+    <div style="max-width:32rem">
+      <MenuLine items={sauces} label="Sauces" />
+    </div>
+  </Preview>
+  <Preview
+    title={"Description, tags and allergens"}
+    code={'<MenuLine items={[{ name: "Pesto genovese", price: 9, description: "…", tags: [{ label: "Local" }], allergens: ["Wheat", "Milk"] }]} />'}
+  >
+    <div style="max-width:36rem">
+      <MenuLine
+        label="Sauces with details"
+        items={[
+          {
+            name: "Tomato and basil",
+            price: 8,
+            description: "Local tomatoes simmered for three hours, olive oil, fresh basil.",
+            tags: [{ label: "Organic" }, { label: "Local" }],
+            allergens: ["Wheat", "Eggs"]
+          },
+          {
+            name: "Pesto genovese with pine nuts and Parmigiano",
+            price: 9,
+            description: "Basil, pine nuts, Parmigiano, olive oil, garlic.",
+            allergens: ["Wheat", "Eggs", "Milk", "Pine nuts"]
+          }
+        ]}
+      />
+    </div>
+  </Preview>
+  <Preview
+    title={"Text price, no price, no leader"}
+    code={'<MenuLine items={[{ name: "Hot chili", price: "Free" }, { name: "Compostable bowls" }]} />'}
+  >
+    <div style="max-width:32rem">
+      <MenuLine
+        label="Extras"
+        items={[
+          { name: "Hot chili", price: "Free" },
+          { name: "Compostable bowls", description: "Eat in or take away, same price." }
+        ]}
+      />
+    </div>
+  </Preview>
+  <Preview
+    title={"Sizes and clickable lines (French format)"}
+    code={'<MenuLine size="lg" locale="fr-CA" items={[{ name: "Alfredo", price: 9, href: "#" }]} />'}
+  >
+    <div style="display:grid;gap:2rem;max-width:36rem">
+      <MenuLine size="sm" label="Small" items={sauces} />
+      <MenuLine
+        size="lg"
+        locale="fr-CA"
+        label="Large, clickable"
+        items={sauces.map((item) => ({ ...item, href: "#" }))}
+      />
+    </div>
+  </Preview>
+</DocLayout>

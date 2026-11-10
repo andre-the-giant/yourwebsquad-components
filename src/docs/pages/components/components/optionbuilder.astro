@@ -1,0 +1,161 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import OptionBuilder from "@lib/components/OptionBuilder/OptionBuilder.astro";
+
+const props = [
+  {
+    name: "groups",
+    type: "{ id, legend, hint?, summaryLabel?, type?, required?, pricing?, columns?, options }[]",
+    description:
+      "One fieldset per group. type: radio (default) or checkbox. pricing: extra (+$1, default), base ($8) or none. An option is { value, label, description?, price?, checked? }; its price is added to the total."
+  },
+  {
+    name: "title",
+    type: "string",
+    default: '"Your choices"',
+    description: "Heading of the summary."
+  },
+  { name: "totalLabel", type: "string", default: '"Total"', description: "Label of the total." },
+  {
+    name: "emptyLabel",
+    type: "string",
+    default: '"–"',
+    description: "Shown while nothing is chosen."
+  },
+  {
+    name: "noneLabel",
+    type: "string",
+    default: '"None"',
+    description: "Optional group with nothing chosen."
+  },
+  {
+    name: "includedLabel",
+    type: "string",
+    description: 'Price text of a free option in an "extra" group.'
+  },
+  {
+    name: "note",
+    type: "string",
+    description: "Line under the total once the required groups are done."
+  },
+  {
+    name: "incompleteMessage",
+    type: "string",
+    description: "Line while a required group is missing."
+  },
+  {
+    name: "liveTemplate",
+    type: "string",
+    default: '"Total: {total}. {choices}"',
+    description: "Sentence announced to screen readers when the total changes."
+  },
+  {
+    name: "actionLabel",
+    type: "string",
+    default: '"Order"',
+    description: "Label of the main action."
+  },
+  {
+    name: "actionHref",
+    type: "string",
+    description: "Link of the main action (tel:, mailto:, a page). None: a submit button."
+  },
+  {
+    name: "resetLabel",
+    type: "string",
+    default: '"Start over"',
+    description: "Clears all choices."
+  },
+  { name: "detailsLabel / hideLabel", type: "string", description: "Toggle of the mobile bar." },
+  {
+    name: "name",
+    type: "string",
+    default: '"option-builder"',
+    description: 'Prefix of the hidden fields "<name>-total" and "<name>-summary".'
+  },
+  { name: "formAction / method", type: "string", description: "Send the choices to an endpoint." },
+  {
+    name: "locale / currency",
+    type: "string",
+    default: '"en-CA" / "CAD"',
+    description: "Price format."
+  },
+  { name: "slot actions", type: "slot", description: "Replaces the main action." },
+  { name: "slot after", type: "slot", description: "Placed under the summary." }
+];
+const bowl = [
+  {
+    id: "pasta",
+    legend: "1. Choose your pasta",
+    summaryLabel: "Pasta",
+    hint: "Included",
+    pricing: "none" as const,
+    columns: 3 as const,
+    options: [
+      { value: "tagliatelle", label: "Tagliatelle", description: "Thin ribbons" },
+      { value: "fettuccine", label: "Fettuccine", description: "A little thicker" },
+      { value: "pappardelle", label: "Pappardelle", description: "Wide ribbons" }
+    ]
+  },
+  {
+    id: "sauce",
+    legend: "2. Choose your sauce",
+    summaryLabel: "Sauce",
+    columns: 3 as const,
+    options: [
+      { value: "tomato", label: "Tomato and basil", price: 0 },
+      { value: "alfredo", label: "Alfredo", price: 1 },
+      { value: "pesto", label: "Pesto genovese", price: 1 }
+    ]
+  },
+  {
+    id: "size",
+    legend: "3. Choose your size",
+    summaryLabel: "Size",
+    pricing: "base" as const,
+    columns: 3 as const,
+    options: [
+      { value: "small", label: "Small · 250 g", price: 6 },
+      { value: "regular", label: "Regular · 350 g", price: 8 },
+      { value: "large", label: "Large · 500 g", price: 11 }
+    ]
+  },
+  {
+    id: "extras",
+    legend: "Extras",
+    summaryLabel: "Extras",
+    hint: "Optional",
+    type: "checkbox" as const,
+    options: [
+      { value: "parmigiano", label: "Grated Parmigiano", price: 1 },
+      { value: "garlic-bread", label: "Garlic bread", price: 2 }
+    ]
+  }
+];
+---
+
+<DocLayout
+  title={"OptionBuilder"}
+  description={"Pick options in groups and watch a live total. Not a wizard: every group is on the page at once. The summary sits beside the groups, and on a small screen it becomes a bar fixed at the bottom with the total, the action and a button that unfolds the details."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"A bowl: three required groups and optional extras"}
+    code={'<OptionBuilder title="Your bowl" actionLabel="Call to order" actionHref="tel:+16135555555" note="Taxes extra · Ready in 5 minutes" incompleteMessage="Choose a pasta, a sauce and a size." groups={[…]} />'}
+  >
+    <OptionBuilder
+      title="Your bowl"
+      actionLabel="Call to order"
+      actionHref="tel:+16135555555"
+      note="Taxes extra · Ready in 5 minutes"
+      incompleteMessage="Choose a pasta, a sauce and a size."
+      liveTemplate="Total: {total}. {choices}"
+      groups={bowl}
+      includedLabel="included"
+    />
+  </Preview>
+</DocLayout>

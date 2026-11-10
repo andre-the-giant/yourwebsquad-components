@@ -1,0 +1,332 @@
+/* =============================================================================
+   Trattoria — theme of the fresh-pasta takeaway template
+   (demo: Pasta di Violette)
+
+   Opt-in only:
+     import "yourwebsquad-components/tokens.css";
+     import "yourwebsquad-components/themes/trattoria.css";
+     <html data-theme="trattoria">
+
+   Every rule sits behind [data-theme="trattoria"], so a site that does not set
+   this attribute renders exactly as before, even if it imports this file.
+
+   Rule of this theme: it only sets CSS variables, plus the base styles of plain
+   HTML elements (body, headings, links, focus). It never rewrites a property of a
+   component class.
+
+   Look: white tablecloth, one brand colour (aubergine) for buttons, links and
+   prices, a darker aubergine for full-width bands, basil green for small details
+   only. Gloock for titles, Hanken Grotesk for text, buttons and labels. Square
+   corners, no shadow except the modal and the option summary, an aubergine gingham
+   band at the top of the header and the footer.
+
+   Fonts are not shipped here. Gloock and Hanken Grotesk are SIL OFL: load them from
+   Google Fonts, @fontsource/gloock and @fontsource-variable/hanken-grotesk, or
+   self-host the files.
+   ============================================================================= */
+
+html[data-theme="trattoria"] {
+  color-scheme: light;
+
+  /* ── §1 Contrat du thème ─────────────────────────── */
+  --color-bg-rgb: 255, 255, 255; /* nappe #FFFFFF */
+  --color-fg-rgb: 42, 21, 48; /* encre #2A1530 */
+  --color-bg: rgb(var(--color-bg-rgb));
+  --color-fg: rgb(var(--color-fg-rgb));
+  --color-surface: rgb(246, 240, 244); /* lin #F6F0F4 */
+  --color-border: rgb(220, 205, 216); /* chardon #DCCDD8, décoratif */
+  --color-muted: rgb(95, 75, 99); /* prune grise #5F4B63 */
+
+  --color-accent: rgb(91, 37, 89); /* aubergine #5B2559 */
+  --color-accent-contrast: rgb(255, 255, 255);
+  --color-accent-muted: var(--color-surface); /* option choisie : lin + bordure aubergine */
+  --color-focus: var(--color-fg);
+  --accent-text: var(--color-accent);
+  --muted-text: var(--color-muted);
+
+  --color-shadow: rgba(42, 21, 48, 0.18); /* seulement pour shadow-lg */
+  --color-scrim: rgba(42, 21, 48, 0.58);
+
+  --color-inverse-surface: rgb(59, 22, 64); /* aubergine foncée #3B1640 */
+  --color-inverse-fg: rgb(255, 255, 255);
+
+  --color-info-rgb: 91, 37, 89;
+  --color-info-text: rgb(91, 37, 89);
+  --color-success-rgb: 61, 106, 59;
+  --color-success-text: rgb(61, 106, 59); /* basilic */
+  --color-warning-rgb: 122, 74, 6;
+  --color-warning-text: rgb(122, 74, 6); /* croûte dorée */
+  --color-danger-rgb: 164, 47, 38;
+  --color-danger-text: rgb(164, 47, 38); /* sauce tomate */
+
+  /* Couleurs propres au thème (hors contrat) */
+  --trattoria-accent-strong: rgb(59, 22, 64);
+  --trattoria-basil: rgb(61, 106, 59);
+  --trattoria-gingham-mid: rgb(173, 146, 172);
+  --trattoria-glycine: rgb(232, 203, 228);
+  --trattoria-inverse-muted: rgb(217, 199, 214);
+  --trattoria-border-strong: var(--color-accent);
+  --trattoria-focus-inverse: rgb(255, 255, 255);
+  /* Nappe à carreaux sans fichier : tuile de 24 px, carreaux de 12 px */
+  --trattoria-gingham: conic-gradient(
+      var(--trattoria-gingham-mid) 0 25%,
+      var(--color-accent) 0 50%,
+      var(--trattoria-gingham-mid) 0 75%,
+      var(--color-bg) 0
+    )
+    0 0 / 24px 24px;
+
+  /* ── §2 Échelle ──────────────────────────────────── */
+  --font-display: "Gloock", "Georgia", "Times New Roman", serif;
+  --font-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-body); /* pas de chasse fixe : tabular-nums suffit */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+
+  --type-heading-weight: 400; /* Gloock n'a qu'un poids */
+  --type-heading-transform: none;
+  --type-h1: clamp(2.75rem, 1.6rem + 5.1vw, 4.75rem);
+  --type-h1-line: 0.98;
+  --type-h1-tracking: -0.015em;
+  --type-h2: clamp(2.125rem, 1.4rem + 3.2vw, 3.375rem);
+  --type-h2-line: 1.02;
+  --type-h2-tracking: -0.01em;
+  --type-h3: clamp(1.5rem, 1.33rem + 0.75vw, 1.875rem);
+  --type-h3-line: 1.12;
+  --type-h3-tracking: -0.005em;
+  --type-h4: clamp(1.125rem, 1.08rem + 0.2vw, 1.25rem);
+  --type-lead: clamp(1.1875rem, 1.13rem + 0.25vw, 1.3125rem);
+
+  /* ── §3 Composants ───────────────────────────────── */
+  --button-font: var(--font-body);
+  --button-text-transform: uppercase;
+  --button-letter-spacing: 0.08em;
+  --button-border-width: 2px;
+  --button-skew: 0deg; /* boutons droits et carrés */
+  --button-solid-bg: var(--color-accent);
+  --button-solid-fg: var(--color-accent-contrast);
+  --button-solid-border: var(--color-accent);
+  --button-solid-shadow: none;
+  --button-solid-hover-bg: var(--trattoria-accent-strong);
+  --button-solid-hover-fg: var(--color-accent-contrast);
+  --button-solid-hover-shadow: none;
+  --button-outline-bg: transparent;
+  --button-outline-fg: var(--color-accent);
+  --button-outline-border: var(--color-accent);
+  --button-outline-hover-bg: var(--color-accent);
+  --button-outline-hover-fg: var(--color-accent-contrast);
+  --button-ghost-fg: var(--color-accent);
+  --button-ghost-hover-bg: var(--color-surface);
+  --button-ghost-hover-fg: var(--color-accent);
+  --button-focus: var(--color-focus);
+
+  --form-field-gap: 0.5rem;
+  --form-label-font-size: 0.9375rem;
+  --form-input-padding: 0.75rem 1rem;
+  --form-input-border: 2px solid var(--trattoria-border-strong);
+  --form-input-border-radius: 0;
+  --form-input-bg: var(--color-bg);
+  --form-input-focus: var(--color-focus);
+  --form-help-color: var(--color-muted);
+  --form-error-color: var(--color-danger-text);
+  --color-fg-muted: var(--color-muted);
+
+  --radio-size: 1.375rem;
+  --radio-radius: 50%;
+  --radio-bg: var(--color-bg);
+  --radio-border: var(--trattoria-border-strong);
+  --radio-checked-bg: var(--color-accent);
+  --radio-checked-border: var(--color-accent);
+  --radio-dot: var(--color-accent-contrast);
+  --radio-tile-bg: var(--color-bg);
+  --radio-tile-border: var(--color-border);
+  --radio-tile-hover-border: var(--color-accent);
+  --radio-tile-checked-bg: var(--color-surface);
+  --radio-tile-checked-border: var(--color-accent);
+  --checkbox-bg: var(--color-bg);
+  --checkbox-border: var(--trattoria-border-strong);
+  --checkbox-checked: var(--color-accent); /* coche blanche posée dessus */
+  --checkbox-radius: 0;
+  --toggle-checked: var(--color-accent);
+  --toggle-unchecked: var(--color-muted);
+  --toggle-thumb: var(--color-bg);
+  --toggle-radius: 0;
+
+  --modal-surface: var(--color-bg);
+  --modal-border: var(--color-accent);
+  --modal-shadow: 0 24px 48px var(--color-shadow);
+  --modal-radius: 0;
+  --tooltip-bg: var(--color-fg);
+  --tooltip-fg: var(--color-bg);
+  --star-filled: var(--color-accent);
+  --star-empty: var(--color-border);
+  --plan-featured-muted: var(--color-muted);
+  --list-num-radius: 0;
+  --list-num-weight: 400;
+  --googlereviews-star-color: var(--color-accent);
+  --googlereviews-radius: 0;
+  --googlereviews-card-radius: 0;
+  --googlereviews-shadow: none;
+  --googlereviews-card-shadow: none;
+  --googlereviews-button-radius: 0;
+  --googlereviews-button-shadow: none;
+
+  --siteheader-band: var(--trattoria-gingham);
+  --siteheader-band-height: 20px;
+  --sitefooter-band: var(--trattoria-gingham);
+  --sitefooter-band-height: 20px;
+  --pagehero-accent-bg: none; /* le mot mis en avant passe en aubergine, sans fond */
+  --pagehero-accent-fg: var(--color-accent);
+  --pagehero-accent-padding: 0;
+
+  /* New in 3.6.0 */
+  --menuline-leader: 2px dotted var(--color-border);
+  --menuline-divider: 1px solid var(--color-border);
+  --menuline-hover-bg: var(--color-surface);
+  --menuline-name-font: var(--font-body);
+  --menuline-price-font: var(--font-body);
+  --menuline-lg-font: var(--font-display);
+  --visiblecaption-detail: var(--trattoria-basil);
+  --visiblecaption-inverse-detail: var(--trattoria-glycine);
+  --visiblecaption-transform: uppercase;
+  --visiblecaption-letter-spacing: 0.06em;
+  --optionbuilder-panel-bg: var(--color-bg);
+  --optionbuilder-bar-bg: var(--trattoria-accent-strong);
+  --optionbuilder-bar-fg: var(--color-inverse-fg);
+  --optionbuilder-total-font: var(--font-display);
+  --optionbuilder-total-color: var(--color-accent);
+  --optionbuilder-bar-total-color: var(--trattoria-glycine);
+  --optionbuilder-bar-action-bg: rgb(255, 255, 255);
+  --optionbuilder-bar-action-fg: var(--color-accent);
+  --optionbuilder-bar-action-hover: var(--trattoria-glycine);
+  --optionbuilder-bar-focus: rgb(255, 255, 255);
+  --optionbuilder-top: 7rem;
+  --optionbuilder-legend-transform: uppercase;
+  --optionbuilder-legend-letter-spacing: 0.12em;
+
+  background: var(--color-bg);
+  color: var(--color-fg);
+  scroll-padding-top: 100px; /* en-tête 80 px + bande de nappe 20 px */
+  scroll-padding-bottom: 72px; /* barre mobile */
+}
+
+@media (max-width: 767px) {
+  html[data-theme="trattoria"] {
+    --siteheader-band-height: 12px;
+    --sitefooter-band-height: 12px;
+    scroll-padding-top: 76px;
+  }
+}
+
+/* ── Dark aubergine bands: white buttons, glycine accents, white focus ─────── */
+html[data-theme="trattoria"] :is(.band--inverse, [data-tone="inverse"], .sitefooter) {
+  --color-muted: var(--trattoria-inverse-muted);
+  --accent-text: var(--trattoria-glycine);
+  --color-focus: var(--trattoria-focus-inverse);
+  --button-focus: var(--trattoria-focus-inverse);
+  --button-solid-bg: rgb(255, 255, 255);
+  --button-solid-fg: var(--color-accent);
+  --button-solid-border: rgb(255, 255, 255);
+  --button-solid-hover-bg: var(--trattoria-glycine);
+  --button-solid-hover-fg: var(--color-accent);
+  --button-outline-fg: rgb(255, 255, 255);
+  --button-outline-border: rgb(255, 255, 255);
+  --button-outline-hover-bg: rgb(255, 255, 255);
+  --button-outline-hover-fg: var(--color-accent);
+  --button-ghost-fg: var(--trattoria-glycine);
+  --star-filled: var(--trattoria-glycine);
+  --pagehero-accent-fg: var(--trattoria-glycine);
+}
+
+/* Réglage « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="trattoria"] {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    scroll-behavior: auto;
+  }
+}
+
+/* ── Base styles of plain elements ─────────────────────────────────────────── */
+html[data-theme="trattoria"] *,
+html[data-theme="trattoria"] *::before,
+html[data-theme="trattoria"] *::after {
+  box-sizing: border-box;
+}
+
+html[data-theme="trattoria"] body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="trattoria"] :is(h1, h2, h3) {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+html[data-theme="trattoria"] h1 {
+  font-size: var(--type-h1);
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+html[data-theme="trattoria"] h2 {
+  font-size: var(--type-h2);
+  line-height: var(--type-h2-line);
+  letter-spacing: var(--type-h2-tracking);
+}
+
+html[data-theme="trattoria"] h3 {
+  font-size: var(--type-h3);
+  line-height: var(--type-h3-line);
+  letter-spacing: var(--type-h3-tracking);
+}
+
+html[data-theme="trattoria"] :is(h4, h5, h6) {
+  font-family: var(--font-body);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+html[data-theme="trattoria"] h4 {
+  font-size: var(--type-h4);
+}
+
+html[data-theme="trattoria"] p {
+  text-wrap: pretty;
+}
+
+html[data-theme="trattoria"] a {
+  color: var(--accent-text);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+html[data-theme="trattoria"] a:hover {
+  text-decoration-thickness: 3px;
+}
+
+html[data-theme="trattoria"]
+  :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+html[data-theme="trattoria"] ::selection {
+  background: var(--trattoria-glycine);
+  color: var(--color-fg);
+}
