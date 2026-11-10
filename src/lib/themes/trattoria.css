@@ -226,6 +226,7 @@ html[data-theme="trattoria"] {
 /* ── Dark aubergine bands: white buttons, glycine accents, white focus ─────── */
 html[data-theme="trattoria"] :is(.band--inverse, [data-tone="inverse"], .sitefooter) {
   --color-muted: var(--trattoria-inverse-muted);
+  --muted-text: var(--trattoria-inverse-muted);
   --accent-text: var(--trattoria-glycine);
   --color-focus: var(--trattoria-focus-inverse);
   --button-focus: var(--trattoria-focus-inverse);
