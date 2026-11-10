@@ -56,3 +56,6 @@ export { default as PriceTicket } from "./components/PriceTicket/PriceTicket.ast
 export { default as SegmentedControl } from "./components/SegmentedControl/SegmentedControl.astro";
 export { default as Marquee } from "./components/Marquee/Marquee.astro";
 export { default as NoticeBar } from "./components/NoticeBar/NoticeBar.astro";
+export { default as MenuLine } from "./components/MenuLine/MenuLine.astro";
+export { default as OptionBuilder } from "./components/OptionBuilder/OptionBuilder.astro";
+export { default as VisibleCaption } from "./components/VisibleCaption/VisibleCaption.astro";

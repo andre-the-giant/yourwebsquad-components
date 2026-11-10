@@ -11,7 +11,8 @@ export const themes = [
   { id: "dark", label: "Dark" },
   { id: "plein-jour", label: "Plein jour" },
   { id: "marbre", label: "Marbre" },
-  { id: "chantier", label: "Chantier" }
+  { id: "chantier", label: "Chantier" },
+  { id: "trattoria", label: "Trattoria" }
 ];
 
 export const defaultTheme = "light";

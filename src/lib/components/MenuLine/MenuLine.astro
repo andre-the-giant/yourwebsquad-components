@@ -1,0 +1,273 @@
+---
+/*
+MenuLine — a printed-menu list. Each line: name on the left, a dotted leader, the price on
+the right, then an optional description, tags and allergens underneath.
+Props:
+- items: {
+    name: string
+    price?: number | string — a number is formatted as a price ("$9"), a string is shown
+      as written ("Free"); no price: no leader
+    description?: string
+    tags?: { label: string, tone?: "neutral" | "success" | "muted" }[] — "Organic", "Local"
+    allergens?: string[] — "Wheat", "Eggs"
+    href?: string — makes the whole line a link (the name is the link)
+  }[]
+- size?: "sm" | "md" | "lg" — lg uses the display font for the name and the price
+- leaders?: boolean — dotted leader between name and price (default true)
+- allergensLabel?: string — word before the allergens ("Contains")
+- locale?: string — "fr-CA" → 9 $, "en-CA" → $9
+- currency?: string — ISO code, default "CAD"
+- label?: string — accessible name of the list
+- id?: string
+- class?: string
+- style?: string
+Layout: a long name wraps on two lines; the price stays on the last line, on the right.
+Accessibility: a real list; the leader is decorative (aria-hidden); the price is plain text
+next to the name.
+Theme variables: --menuline-leader, --menuline-divider, --menuline-hover-bg,
+--menuline-name-font, --menuline-price-font, --menuline-lg-font
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+import Tag from "../Tag/Tag.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        name: z.string(),
+        price: z.union([z.number().nonnegative(), z.string()]).optional(),
+        description: z.string().optional(),
+        tags: z
+          .array(
+            z.looseObject({
+              label: z.string(),
+              tone: z.enum(["neutral", "success", "muted"]).optional()
+            })
+          )
+          .optional(),
+        allergens: z.array(z.string()).optional(),
+        href: z.string().optional()
+      })
+    )
+    .min(1),
+  size: z.enum(["sm", "md", "lg"]).default("md"),
+  leaders: z.boolean().default(true),
+  allergensLabel: z.string().default("Contains"),
+  locale: z.string().default("en-CA"),
+  currency: z.string().default("CAD"),
+  label: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  size,
+  leaders,
+  allergensLabel,
+  locale,
+  currency,
+  label,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "MenuLine" });
+
+const format = new Intl.NumberFormat(locale, {
+  style: "currency",
+  currency,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2
+});
+// fr-CA writes a narrow no-break space before $, keep it unbreakable everywhere
+const money = (value: number | string) =>
+  typeof value === "number" ? format.format(value).replace(/\s/g, "\u00a0") : value;
+---
+
+<ul
+  id={id}
+  class={mergeClasses(
+    "menuline",
+    `menuline--${size}`,
+    !leaders && "menuline--no-leader",
+    className
+  )}
+  style={style}
+  aria-label={label}
+  {...rest}
+>
+  {
+    items.map((item) => (
+      <li class:list={["menuline__item", item.href && "has-link"]}>
+        <p class="menuline__row">
+          <span class="menuline__name">
+            {item.href ? (
+              <a class="menuline__link" href={item.href}>
+                {item.name}
+              </a>
+            ) : (
+              item.name
+            )}
+          </span>
+          {item.price !== undefined && (
+            <>
+              <span class="menuline__leader" aria-hidden="true" />
+              <span class="menuline__price">{money(item.price)}</span>
+            </>
+          )}
+        </p>
+        {item.description && <p class="menuline__description">{item.description}</p>}
+        {(item.tags?.length || item.allergens?.length) && (
+          <div class="menuline__meta">
+            {item.tags?.map((tag) => (
+              <Tag label={tag.label} tone={tag.tone ?? "success"} />
+            ))}
+            {item.allergens?.length ? (
+              <>
+                <span class="menuline__allergens-label">{allergensLabel}</span>
+                {item.allergens.map((allergen) => (
+                  <Tag label={allergen} tone="neutral" />
+                ))}
+              </>
+            ) : null}
+          </div>
+        )}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .menuline {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .menuline__item {
+    position: relative;
+    padding: 1rem 0;
+    border-bottom: var(--menuline-divider, 1px solid var(--color-border));
+    transition: background-color var(--duration-fast, 150ms) ease-out;
+  }
+
+  .menuline__row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0;
+    font-family: var(--menuline-name-font, var(--font-body, inherit));
+    font-size: 1.1875rem;
+    line-height: 1.35;
+  }
+
+  .menuline__name {
+    min-width: 0;
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+
+  .menuline__leader {
+    flex: 1 1 1.5rem;
+    min-width: 1.5rem;
+    border-bottom: var(--menuline-leader, 2px dotted var(--color-border));
+    transform: translateY(-0.3rem);
+  }
+
+  .menuline__price {
+    flex: none;
+    margin-inline-start: auto;
+    font-family: var(--menuline-price-font, var(--font-body, inherit));
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--color-fg);
+  }
+
+  .menuline__leader + .menuline__price {
+    margin-inline-start: 0;
+  }
+
+  .menuline__description {
+    margin: 0.375rem 0 0;
+    max-width: 58ch;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+
+  .menuline__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+  }
+
+  .menuline__allergens-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  /* Sizes */
+  .menuline--sm .menuline__item {
+    padding: 0.625rem 0;
+  }
+
+  .menuline--sm .menuline__row {
+    font-size: 1rem;
+  }
+
+  .menuline--lg .menuline__name,
+  .menuline--lg .menuline__price {
+    font-family: var(--menuline-lg-font, var(--font-display, inherit));
+    font-weight: 400;
+    font-size: clamp(1.375rem, 1.1rem + 1.2vw, 1.75rem);
+    line-height: 1.15;
+  }
+
+  .menuline--no-leader .menuline__leader {
+    display: none;
+  }
+
+  .menuline--no-leader .menuline__price {
+    margin-inline-start: auto;
+  }
+
+  /* A line with a link: the whole line is the target, the name is the link */
+  .menuline__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .menuline__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .menuline__item.has-link:hover,
+  .menuline__item.has-link:focus-within {
+    background: var(--menuline-hover-bg, var(--color-surface));
+  }
+
+  .menuline__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menuline__item {
+      transition: none;
+    }
+  }
+</style>

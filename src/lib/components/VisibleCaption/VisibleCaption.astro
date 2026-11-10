@@ -1,0 +1,298 @@
+---
+/*
+VisibleCaption — a caption that is always visible, never hover-only. Two forms:
+1. A figure: the image (default slot) with a caption laid over a corner or placed below.
+2. A legend: a numbered list that explains the points of a map or of a photo.
+Props (figure):
+- label: string — what the photo shows, "Organic flour"
+- detail?: string — a short fact on the second line, "25 km"
+- position?: "bottom-left" | "bottom-right" | "top-left" | "top-right" | "below"
+- tone?: "light" | "inverse"
+Props (legend):
+- legend?: { label: string, detail?: string, marker?: string, key?: string }[] — switches to
+    the legend form; the default slot is not used
+- highlight?: string — key of the line shown as active at load
+- label: string — accessible name of the list
+Props (both):
+- id?: string
+- class?: string
+- style?: string
+Legend behaviour: any element on the page that carries data-caption-point="<key>" (a map
+point, a button) makes the matching line active while it is hovered or focused.
+Accessibility: the caption has an opaque background (text never sits directly on the photo);
+the active legend line is marked with an outline and aria-current, not by colour alone.
+Theme variables: --visiblecaption-bg, --visiblecaption-fg, --visiblecaption-border,
+--visiblecaption-detail, --visiblecaption-inverse-bg, --visiblecaption-inverse-fg,
+--visiblecaption-inverse-detail, --visiblecaption-transform, --visiblecaption-letter-spacing,
+--visiblecaption-active-outline
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  label: z.string(),
+  detail: z.string().optional(),
+  position: z
+    .enum(["bottom-left", "bottom-right", "top-left", "top-right", "below"])
+    .default("bottom-left"),
+  tone: z.enum(["light", "inverse"]).default("light"),
+  legend: z
+    .array(
+      z.looseObject({
+        label: z.string(),
+        detail: z.string().optional(),
+        marker: z.string().optional(),
+        key: z.string().optional()
+      })
+    )
+    .optional(),
+  highlight: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  label,
+  detail,
+  position,
+  tone,
+  legend,
+  highlight,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "VisibleCaption" });
+---
+
+{
+  legend ? (
+    <ol
+      id={id}
+      class={mergeClasses("visiblecaption-legend", className)}
+      style={style}
+      aria-label={label}
+      data-visiblecaption-legend
+      {...rest}
+    >
+      {legend.map((line, index) => (
+        <li
+          class:list={[
+            "visiblecaption-legend__line",
+            highlight && highlight === line.key && "is-active"
+          ]}
+          data-key={line.key ?? String(index + 1)}
+          aria-current={highlight && highlight === line.key ? "true" : undefined}
+        >
+          {line.marker && (
+            <span class="visiblecaption-legend__marker" aria-hidden="true">
+              {line.marker}
+            </span>
+          )}
+          <span class="visiblecaption-legend__label">{line.label}</span>
+          {line.detail && <span class="visiblecaption-legend__detail">{line.detail}</span>}
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <figure
+      id={id}
+      class={mergeClasses(
+        "visiblecaption",
+        `visiblecaption--${position}`,
+        `visiblecaption--${tone}`,
+        className
+      )}
+      style={style}
+      {...rest}
+    >
+      <div class="visiblecaption__media">
+        <slot />
+      </div>
+      <figcaption class="visiblecaption__caption">
+        <span class="visiblecaption__label">{label}</span>
+        {detail && <span class="visiblecaption__detail">{detail}</span>}
+      </figcaption>
+    </figure>
+  )
+}
+
+<script>
+  // A map point (data-caption-point="key") lights up its legend line while hovered or focused
+  const lines = () => [...document.querySelectorAll<HTMLElement>(".visiblecaption-legend__line")];
+  const set = (key: string | null) => {
+    for (const line of lines()) {
+      const on = key !== null && line.dataset.key === key;
+      line.classList.toggle("is-active", on);
+      if (on) line.setAttribute("aria-current", "true");
+      else line.removeAttribute("aria-current");
+    }
+  };
+  for (const point of document.querySelectorAll<HTMLElement>("[data-caption-point]")) {
+    const key = point.dataset.captionPoint ?? null;
+    for (const event of ["mouseenter", "focusin"]) point.addEventListener(event, () => set(key));
+    for (const event of ["mouseleave", "focusout"]) point.addEventListener(event, () => set(null));
+  }
+</script>
+
+<style>
+  .visiblecaption {
+    position: relative;
+    margin: 0;
+  }
+
+  .visiblecaption__media {
+    display: block;
+  }
+
+  .visiblecaption__media > :global(img),
+  .visiblecaption__media > :global(picture),
+  .visiblecaption__media > :global(picture) :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .visiblecaption__caption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.5rem 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    background: var(--visiblecaption-bg, var(--color-bg));
+    color: var(--visiblecaption-fg, var(--color-fg));
+    border: var(--visiblecaption-border, 1px solid var(--color-border));
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    text-transform: var(--visiblecaption-transform, none);
+    letter-spacing: var(--visiblecaption-letter-spacing, 0.02em);
+  }
+
+  .visiblecaption__detail {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--visiblecaption-detail, var(--accent-text, currentColor));
+  }
+
+  .visiblecaption--inverse .visiblecaption__caption {
+    background: var(--visiblecaption-inverse-bg, var(--color-inverse-surface, var(--color-fg)));
+    color: var(--visiblecaption-inverse-fg, var(--color-inverse-fg, var(--color-bg)));
+    border-color: var(--visiblecaption-inverse-bg, var(--color-inverse-surface, var(--color-fg)));
+  }
+
+  .visiblecaption--inverse .visiblecaption__detail {
+    color: var(--visiblecaption-inverse-detail, currentColor);
+  }
+
+  /* Over the photo */
+  .visiblecaption:not(.visiblecaption--below) .visiblecaption__caption {
+    position: absolute;
+  }
+
+  .visiblecaption--bottom-left .visiblecaption__caption {
+    left: 0.75rem;
+    bottom: 0.75rem;
+  }
+
+  .visiblecaption--bottom-right .visiblecaption__caption {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    text-align: right;
+  }
+
+  .visiblecaption--top-left .visiblecaption__caption {
+    left: 0.75rem;
+    top: 0.75rem;
+  }
+
+  .visiblecaption--top-right .visiblecaption__caption {
+    right: 0.75rem;
+    top: 0.75rem;
+    text-align: right;
+  }
+
+  /* Under the photo: one line, detail on the right; wraps on a narrow screen */
+  .visiblecaption--below .visiblecaption__caption {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    column-gap: 0.75rem;
+    max-width: none;
+    padding: 0.625rem 0 0;
+    background: none;
+    border: 0;
+    color: var(--color-fg);
+  }
+
+  .visiblecaption--below .visiblecaption__detail {
+    white-space: nowrap;
+  }
+
+  /* Legend */
+  .visiblecaption-legend {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .visiblecaption-legend__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    font-variant-numeric: tabular-nums lining-nums;
+    transition: background-color var(--duration-fast, 150ms) ease-out;
+  }
+
+  .visiblecaption-legend__marker {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    background: var(--visiblecaption-inverse-bg, var(--color-inverse-surface, var(--color-fg)));
+    color: var(--visiblecaption-inverse-fg, var(--color-inverse-fg, var(--color-bg)));
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1;
+    align-self: center;
+  }
+
+  .visiblecaption-legend__label {
+    flex: 1 1 8rem;
+    min-width: 0;
+    font-weight: 600;
+    color: var(--color-fg);
+  }
+
+  .visiblecaption-legend__detail {
+    flex: none;
+    margin-inline-start: auto;
+    max-width: 100%;
+    font-weight: 700;
+    color: var(--visiblecaption-detail, var(--accent-text, currentColor));
+  }
+
+  .visiblecaption-legend__line.is-active {
+    background: var(--color-surface);
+    outline: var(--visiblecaption-active-outline, 2px solid var(--color-accent));
+    outline-offset: -2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .visiblecaption-legend__line {
+      transition: none;
+    }
+  }
+</style>

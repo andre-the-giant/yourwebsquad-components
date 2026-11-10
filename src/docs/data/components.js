@@ -352,5 +352,23 @@ export const components = [
     href: "/components/components/noticebar",
     description: "Thin band above the header for a site-wide notice.",
     group: "components"
+  },
+  {
+    name: "MenuLine",
+    href: "/components/molecules/menuline",
+    description: "Printed-menu list: name, dotted leader, price, description.",
+    group: "molecules"
+  },
+  {
+    name: "OptionBuilder",
+    href: "/components/components/optionbuilder",
+    description: "Pick options in groups, see a live total, order from a sticky bar.",
+    group: "components"
+  },
+  {
+    name: "VisibleCaption",
+    href: "/components/molecules/visiblecaption",
+    description: "Photo caption or map legend that is always visible.",
+    group: "molecules"
   }
 ];

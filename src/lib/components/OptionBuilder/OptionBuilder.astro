@@ -1,0 +1,704 @@
+---
+/*
+OptionBuilder — pick options in groups (radios or checkboxes) and watch a live total.
+Not a wizard: every group is on the page at once, in any order. For a bowl, a sandwich, a
+cake, a package. The summary (your choices, the total, the action) sits next to the groups
+on a wide screen; below 48rem it becomes a bar fixed at the bottom with the total and the
+action, and a button that unfolds the details.
+Props:
+- groups: {
+    id: string — name of the group, unique on the page
+    legend: string — "1. Choose your pasta"
+    hint?: string — small text under the legend, "included"
+    summaryLabel?: string — label in the summary (default: the legend)
+    type?: "radio" | "checkbox" — default "radio"
+    required?: boolean — a choice is needed before the total shows (default true for radio,
+      false for checkbox)
+    pricing?: "extra" | "base" | "none" — how an option shows its price: "+$1" (extra, the
+      default), "$8" (base), or nothing
+    columns?: 1 | 2 | 3 — options per row on a wide screen (default 1)
+    options: { value: string, label: string, description?: string, price?: number,
+      checked?: boolean }[] — price is added to the total when chosen (default 0)
+  }[]
+- title?: string — heading of the summary, "Your bowl"
+- totalLabel?: string — "Total"
+- emptyLabel?: string — shown while nothing is chosen, "–"
+- noneLabel?: string — a checkbox group with nothing chosen, "None"
+- includedLabel?: string — price text of a free option in an "extra" group ("included")
+- note?: string — line under the total once complete, "Taxes extra · Ready in 5 minutes"
+- incompleteMessage?: string — line while a required group is missing
+- liveTemplate?: string — announced when the total changes, "Total: {total}. {choices}"
+- actionLabel?: string — "Call to order"
+- actionHref?: string — link of the action (tel:, mailto:, a page); none: a submit button
+- resetLabel?: string — "Start over"
+- detailsLabel?: string / hideLabel?: string — mobile bar toggle, "See details" / "Hide details"
+- name?: string — prefix of the hidden fields (default "option-builder"), which carry
+  "<name>-total" and "<name>-summary" for a form action
+- formAction?: string / method?: string — send the choices (the action becomes a submit button)
+- locale?: string — "fr-CA" → 9 $, "en-CA" → $9
+- currency?: string — ISO code, default "CAD"
+- id?: string
+- class?: string
+- style?: string
+Slots: "actions" replaces the main action; "after" is placed under the summary.
+Accessibility: real fieldsets with legends and native inputs; the total is announced politely
+(aria-live); until the required groups are done the action is aria-disabled and points to the
+message that says what is missing; the mobile toggle uses aria-expanded / aria-controls.
+Without JavaScript the groups still work as a form; the summary is hidden.
+Theme variables: --optionbuilder-panel-bg, --optionbuilder-bar-bg, --optionbuilder-bar-fg,
+--optionbuilder-total-font, --optionbuilder-total-color, --optionbuilder-bar-total-color,
+--optionbuilder-legend-transform, --optionbuilder-legend-letter-spacing, --optionbuilder-top,
+--optionbuilder-bar-action-bg, --optionbuilder-bar-action-fg, --optionbuilder-bar-action-hover,
+--optionbuilder-bar-focus
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+import Button from "../Button/Button.astro";
+import FormFieldset from "../Form-Fieldset/Form-Fieldset.astro";
+import FormRadio from "../Form-Radio/Form-Radio.astro";
+import FormCheckbox from "../Form-Checkbox/Form-Checkbox.astro";
+import FormHidden from "../Form-Hidden/Form-Hidden.astro";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  groups: z
+    .array(
+      z.looseObject({
+        id: z.string(),
+        legend: z.string(),
+        hint: z.string().optional(),
+        summaryLabel: z.string().optional(),
+        type: z.enum(["radio", "checkbox"]).default("radio"),
+        required: z.boolean().optional(),
+        pricing: z.enum(["extra", "base", "none"]).default("extra"),
+        columns: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1),
+        options: z
+          .array(
+            z.looseObject({
+              value: z.string(),
+              label: z.string(),
+              description: z.string().optional(),
+              price: z.number().nonnegative().default(0),
+              checked: z.boolean().optional()
+            })
+          )
+          .min(1)
+      })
+    )
+    .min(1),
+  title: z.string().default("Your choices"),
+  totalLabel: z.string().default("Total"),
+  emptyLabel: z.string().default("–"),
+  noneLabel: z.string().default("None"),
+  includedLabel: z.string().optional(),
+  note: z.string().optional(),
+  incompleteMessage: z.string().default("Make your choices to see the total."),
+  liveTemplate: z.string().default("Total: {total}. {choices}"),
+  actionLabel: z.string().default("Order"),
+  actionHref: z.string().optional(),
+  resetLabel: z.string().default("Start over"),
+  detailsLabel: z.string().default("See details"),
+  hideLabel: z.string().default("Hide details"),
+  name: z.string().default("option-builder"),
+  formAction: z.string().optional(),
+  method: z.string().default("post"),
+  locale: z.string().default("en-CA"),
+  currency: z.string().default("CAD")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  groups,
+  title,
+  totalLabel,
+  emptyLabel,
+  noneLabel,
+  includedLabel,
+  note,
+  incompleteMessage,
+  liveTemplate,
+  actionLabel,
+  actionHref,
+  resetLabel,
+  detailsLabel,
+  hideLabel,
+  name,
+  formAction,
+  method,
+  locale,
+  currency,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "OptionBuilder" });
+
+const uid = id ?? nextId("option-builder");
+const format = new Intl.NumberFormat(locale, {
+  style: "currency",
+  currency,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2
+});
+// fr-CA writes a narrow no-break space before $, keep it unbreakable everywhere
+const money = (value: number) => format.format(value).replace(/\s/g, " ");
+
+const priceText = (group: (typeof groups)[number], price: number) => {
+  if (group.pricing === "none") return undefined;
+  if (group.pricing === "base") return money(price);
+  return price > 0 ? `+${money(price)}` : includedLabel;
+};
+const isRequired = (group: (typeof groups)[number]) => group.required ?? group.type === "radio";
+---
+
+<form
+  id={uid}
+  class={mergeClasses("optionbuilder", className)}
+  style={style}
+  action={formAction}
+  method={formAction ? method : undefined}
+  novalidate
+  data-optionbuilder
+  data-locale={locale}
+  data-currency={currency}
+  data-empty={emptyLabel}
+  data-none={noneLabel}
+  data-incomplete={incompleteMessage}
+  data-note={note ?? ""}
+  data-live-template={liveTemplate}
+  data-details-label={detailsLabel}
+  data-hide-label={hideLabel}
+  data-action-href={actionHref}
+  {...rest}
+>
+  <div class="optionbuilder__panel">
+    {
+      groups.map((group) => (
+        <FormFieldset
+          class="optionbuilder__group"
+          legend={group.legend}
+          description={group.hint}
+          data-ob-group={group.id}
+          data-type={group.type}
+          data-required={isRequired(group) ? "true" : "false"}
+          data-summary-label={group.summaryLabel ?? group.legend}
+        >
+          <div class="optionbuilder__options" style={`--ob-columns:${group.columns}`}>
+            {group.options.map((option) => {
+              const text = [option.description, priceText(group, option.price)]
+                .filter(Boolean)
+                .join(" · ");
+              const common = {
+                name: `${uid}-${group.id}`,
+                label: option.label,
+                value: option.value,
+                description: text || undefined,
+                checked: option.checked ?? false,
+                "data-price": option.price,
+                "data-label": option.label
+              };
+              return group.type === "checkbox" ? (
+                <FormCheckbox appearance="checkbox" {...common} />
+              ) : (
+                <FormRadio appearance="tile" {...common} />
+              );
+            })}
+          </div>
+        </FormFieldset>
+      ))
+    }
+  </div>
+
+  <aside class="optionbuilder__summary" aria-labelledby={`${uid}-title`} data-ob-summary>
+    <div class="optionbuilder__details" id={`${uid}-details`}>
+      <h2 class="optionbuilder__title" id={`${uid}-title`}>{title}</h2>
+      <dl class="optionbuilder__lines">
+        {
+          groups.map((group) => (
+            <div class="optionbuilder__line">
+              <dt>{group.summaryLabel ?? group.legend}</dt>
+              <dd data-ob-line={group.id}>{emptyLabel}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <button type="button" class="optionbuilder__reset" data-ob-reset>{resetLabel}</button>
+    </div>
+    <div class="optionbuilder__bar">
+      <p class="optionbuilder__total">
+        <span class="optionbuilder__total-label">{totalLabel}</span>
+        <span class="optionbuilder__total-value" data-ob-total>{emptyLabel}</span>
+      </p>
+      <p class="optionbuilder__message" id={`${uid}-message`} data-ob-message>
+        {incompleteMessage}
+      </p>
+      <div class="optionbuilder__cta" data-ob-cta>
+        <slot name="actions">
+          {
+            actionHref && !formAction ? (
+              <Button
+                label={actionLabel}
+                href={actionHref}
+                size="lg"
+                aria-describedby={`${uid}-message`}
+              />
+            ) : (
+              <Button
+                label={actionLabel}
+                type="submit"
+                size="lg"
+                aria-describedby={`${uid}-message`}
+              />
+            )
+          }
+        </slot>
+      </div>
+      <button
+        type="button"
+        class="optionbuilder__toggle"
+        aria-expanded="false"
+        aria-controls={`${uid}-details`}
+        data-ob-toggle
+        hidden>{detailsLabel}</button
+      >
+    </div>
+    <slot name="after" />
+  </aside>
+
+  <p class="optionbuilder__live" aria-live="polite" role="status" data-ob-live></p>
+  <FormHidden name={`${name}-total`} data-ob-hidden-total />
+  <FormHidden name={`${name}-summary`} data-ob-hidden-summary />
+</form>
+
+<script>
+  const NBSP = String.fromCharCode(160);
+
+  for (const root of document.querySelectorAll<HTMLFormElement>("[data-optionbuilder]")) {
+    const d = root.dataset;
+    const fmt = new Intl.NumberFormat(d.locale, {
+      style: "currency",
+      currency: d.currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+    const money = (value: number) => fmt.format(value).replace(/\s/g, NBSP);
+    const groups = [...root.querySelectorAll<HTMLElement>("[data-ob-group]")];
+    const summary = root.querySelector<HTMLElement>("[data-ob-summary]")!;
+    const totalEl = root.querySelector<HTMLElement>("[data-ob-total]")!;
+    const messageEl = root.querySelector<HTMLElement>("[data-ob-message]")!;
+    const liveEl = root.querySelector<HTMLElement>("[data-ob-live]")!;
+    const toggle = root.querySelector<HTMLButtonElement>("[data-ob-toggle]")!;
+    const cta = root.querySelector<HTMLElement>("[data-ob-cta]")!;
+    const hiddenTotal = root.querySelector<HTMLInputElement>("[data-ob-hidden-total]");
+    const hiddenSummary = root.querySelector<HTMLInputElement>("[data-ob-hidden-summary]");
+    const action = cta.querySelector<HTMLElement>("a, button");
+    let lastLive = "";
+
+    root.classList.add("is-js");
+    toggle.hidden = false;
+
+    const inputsOf = (group: HTMLElement) => [
+      ...group.querySelectorAll<HTMLInputElement>("input:checked")
+    ];
+
+    const update = () => {
+      let total = 0;
+      let complete = true;
+      const choices: string[] = [];
+      const summaryLines: string[] = [];
+      for (const group of groups) {
+        const checked = inputsOf(group);
+        const required = group.dataset.required === "true";
+        const line = root.querySelector<HTMLElement>(`[data-ob-line="${group.dataset.obGroup}"]`)!;
+        if (required && !checked.length) complete = false;
+        for (const input of checked) {
+          total += Number(input.dataset.price ?? 0);
+          choices.push(input.dataset.label ?? input.value);
+        }
+        line.dataset.text = checked.map((i) => i.dataset.label ?? i.value).join(", ");
+      }
+      for (const group of groups) {
+        const line = root.querySelector<HTMLElement>(`[data-ob-line="${group.dataset.obGroup}"]`)!;
+        const text = line.dataset.text ?? "";
+        const optional = group.dataset.required !== "true";
+        // An optional group reads "None" only once the rest is done
+        line.textContent = text || (optional && complete ? d.none! : d.empty!);
+        summaryLines.push(`${group.dataset.summaryLabel}: ${line.textContent}`);
+      }
+      const any = groups.some((g) => inputsOf(g).length);
+      totalEl.textContent = complete ? money(total) : d.empty!;
+      messageEl.textContent = complete ? (d.note ?? "") : d.incomplete!;
+      messageEl.hidden = !messageEl.textContent;
+      summary.classList.toggle("is-complete", complete);
+      root.classList.toggle("is-complete", complete);
+      if (hiddenTotal) hiddenTotal.value = complete ? String(total) : "";
+      if (hiddenSummary) hiddenSummary.value = complete ? summaryLines.join("; ") : "";
+
+      if (action) {
+        action.setAttribute("aria-disabled", complete ? "false" : "true");
+        if (action instanceof HTMLButtonElement) action.removeAttribute("disabled");
+      }
+
+      const spoken = complete
+        ? (d.liveTemplate ?? "")
+            .replace("{total}", money(total))
+            .replace("{choices}", choices.join(", "))
+        : any
+          ? d.incomplete!
+          : "";
+      if (spoken !== lastLive) {
+        liveEl.textContent = spoken;
+        lastLive = spoken;
+      }
+    };
+
+    // The action does nothing until the required groups are done
+    action?.addEventListener("click", (event) => {
+      if (action.getAttribute("aria-disabled") === "true") {
+        event.preventDefault();
+        const firstMissing = groups.find(
+          (g) => g.dataset.required === "true" && !inputsOf(g).length
+        );
+        firstMissing?.querySelector<HTMLInputElement>("input")?.focus();
+      }
+    });
+    root.addEventListener("submit", (event) => {
+      if (!root.classList.contains("is-complete") || !root.getAttribute("action"))
+        event.preventDefault();
+    });
+
+    root.addEventListener("change", update);
+    root.querySelector("[data-ob-reset]")?.addEventListener("click", () => {
+      root.reset();
+      for (const input of root.querySelectorAll<HTMLInputElement>("input")) input.checked = false;
+      update();
+      root.querySelector<HTMLInputElement>("[data-ob-group] input")?.focus();
+    });
+
+    toggle.addEventListener("click", () => {
+      const open = toggle.getAttribute("aria-expanded") !== "true";
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.textContent = open ? d.hideLabel! : d.detailsLabel!;
+      summary.classList.toggle("is-open", open);
+    });
+
+    update();
+  }
+</script>
+
+<style>
+  .optionbuilder {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .optionbuilder__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 0;
+    padding: 2.25rem;
+    background: var(--optionbuilder-panel-bg, var(--color-bg));
+    color: var(--color-fg);
+  }
+
+  .optionbuilder__options {
+    display: grid;
+    grid-template-columns: repeat(var(--ob-columns, 1), minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .optionbuilder__panel :global(.optionbuilder__group) {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  .optionbuilder__panel :global(.form-fieldset__description) {
+    color: var(--color-fg);
+  }
+
+  .optionbuilder__panel :global(.form-fieldset__legend) {
+    padding: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--accent-text, var(--color-accent));
+    text-transform: var(--optionbuilder-legend-transform, none);
+    letter-spacing: var(--optionbuilder-legend-letter-spacing, normal);
+  }
+
+  /* Summary: a card beside the groups */
+  .optionbuilder__summary {
+    position: sticky;
+    top: var(--optionbuilder-top, 6rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.75rem;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg, none);
+  }
+
+  .optionbuilder__details,
+  .optionbuilder__bar {
+    display: contents;
+  }
+
+  .optionbuilder__title {
+    order: 0;
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .optionbuilder__lines {
+    order: 1;
+    margin: 0;
+  }
+
+  .optionbuilder__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 1rem;
+  }
+
+  .optionbuilder__line dt {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+  }
+
+  .optionbuilder__line dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .optionbuilder__total {
+    order: 2;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0.25rem 0 0;
+  }
+
+  .optionbuilder__total-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .optionbuilder__total-value {
+    flex: 1;
+    text-align: right;
+    font-family: var(--optionbuilder-total-font, inherit);
+    font-size: 3rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--optionbuilder-total-color, var(--accent-text, inherit));
+    animation: optionbuilder-fade var(--duration-base, 220ms) ease-out;
+  }
+
+  .optionbuilder__message {
+    order: 3;
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--color-fg);
+  }
+
+  .optionbuilder__message[hidden] {
+    display: none;
+  }
+
+  .optionbuilder__cta {
+    order: 4;
+    display: grid;
+  }
+
+  .optionbuilder__cta :global(.button) {
+    width: 100%;
+  }
+
+  .optionbuilder__cta :global([aria-disabled="true"]) {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .optionbuilder__reset {
+    order: 5;
+    justify-self: start;
+    padding: 0.5rem 0;
+    min-height: 2.75rem;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--accent-text, inherit);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+  }
+
+  .optionbuilder__toggle {
+    display: none;
+  }
+
+  .optionbuilder__live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Small screens: the summary becomes a bar fixed at the bottom */
+  @media (max-width: 47.99rem) {
+    .optionbuilder {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+
+    .optionbuilder__panel {
+      padding: 1.25rem 1rem;
+      gap: 1.75rem;
+    }
+
+    .optionbuilder__options {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .optionbuilder.is-js {
+      padding-bottom: var(--optionbuilder-bar-space, 6.5rem);
+    }
+
+    .optionbuilder.is-js .optionbuilder__summary {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: var(--z-bottom-bar, 40);
+      gap: 0;
+      padding: 0;
+      border: 0;
+      border-top: 3px solid var(--color-accent);
+      background: var(--optionbuilder-bar-bg, var(--color-bg));
+      color: var(--optionbuilder-bar-fg, var(--color-fg));
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .optionbuilder.is-js .optionbuilder__details {
+      display: none;
+      padding: 1.25rem 1rem 0.5rem;
+      background: var(--color-bg);
+      color: var(--color-fg);
+    }
+
+    .optionbuilder.is-js .optionbuilder__summary.is-open .optionbuilder__details {
+      display: block;
+    }
+
+    .optionbuilder.is-js .optionbuilder__details .optionbuilder__title {
+      margin-bottom: 0.5rem;
+      font-size: 1.25rem;
+    }
+
+    .optionbuilder.is-js .optionbuilder__bar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.375rem 0.75rem;
+      align-items: center;
+      padding: 0.625rem 0.75rem 0.875rem;
+      --button-solid-bg: var(--optionbuilder-bar-action-bg, var(--color-accent));
+      --button-solid-border: var(--optionbuilder-bar-action-bg, var(--color-accent));
+      --button-solid-fg: var(--optionbuilder-bar-action-fg, var(--color-accent-contrast, #fff));
+      --button-solid-hover-bg: var(--optionbuilder-bar-action-hover, var(--color-accent));
+      --button-solid-hover-fg: var(
+        --optionbuilder-bar-action-fg,
+        var(--color-accent-contrast, #fff)
+      );
+      --button-focus: var(--optionbuilder-bar-focus, currentColor);
+      --color-focus: var(--optionbuilder-bar-focus, currentColor);
+    }
+
+    .optionbuilder.is-js .optionbuilder__total {
+      grid-column: 1;
+      grid-row: 1;
+      flex-direction: column;
+      gap: 0.125rem;
+      margin: 0;
+    }
+
+    .optionbuilder.is-js .optionbuilder__total-label {
+      font-size: 0.75rem;
+    }
+
+    .optionbuilder.is-js .optionbuilder__total-value {
+      text-align: left;
+      font-size: 2.125rem;
+      color: var(--optionbuilder-bar-total-color, inherit);
+    }
+
+    .optionbuilder.is-js .optionbuilder__cta {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .optionbuilder.is-js .optionbuilder__message {
+      display: none;
+    }
+
+    .optionbuilder.is-js .optionbuilder__toggle {
+      grid-column: 1 / -1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      border: 0;
+      background: none;
+      font: inherit;
+      font-weight: 600;
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+
+    .optionbuilder.is-js .optionbuilder__toggle[hidden] {
+      display: none;
+    }
+  }
+
+  @keyframes optionbuilder-fade {
+    from {
+      opacity: 0.2;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .optionbuilder__total-value {
+      animation: none;
+    }
+  }
+</style>
