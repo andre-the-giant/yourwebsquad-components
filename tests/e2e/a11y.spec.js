@@ -32,6 +32,13 @@ const pages = [
   "/components/statscounter",
   "/components/logocloud",
   "/components/toast",
+  "/components/bentogrid",
+  "/components/timeline",
+  "/components/teamsection",
+  "/components/tabs",
+  "/components/videofacade",
+  "/components/announcementpill",
+  "/components/slotpicker",
   // Form kit: one entry per tab (the hash opens it; axe skips hidden panels).
   ...formKitTabs.map(({ id }) => `/components/form-kit#${id}`),
   "/components/map",

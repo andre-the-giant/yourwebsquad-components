@@ -1,0 +1,84 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Tabs from "@lib/components/Tabs/Tabs.astro";
+
+const props = [
+  {
+    name: "tabs",
+    type: "{ id: string, label: string, content?: string }[]",
+    description:
+      "id is the panel id (unique on the page). Body from the slot named id, or content (trusted HTML)."
+  },
+  { name: "selected", type: "string", description: "Tab open at first (default: the first)." },
+  { name: "variant", type: '"underline" | "pill"', default: '"underline"', description: "Look." },
+  {
+    name: "hash",
+    type: "boolean",
+    default: "false",
+    description: "Keep the open tab in the URL (#id)."
+  },
+  { name: "label", type: "string", description: "Accessible name of the tab list." }
+];
+---
+
+<DocLayout
+  title={"Tabs"}
+  description={"Switch between a few related panels in place. WAI-ARIA tabs with arrow, Home and End keys; /page#id opens a tab; without JavaScript every panel is shown with its title."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Underline, slots, hash"}
+    code={`<Tabs hash label="Service" tabs={[{ id: "residential", label: "Residential" }, …]}>
+  <div slot="residential">…</div>
+  <div slot="commercial">…</div>
+</Tabs>`}
+  >
+    <Tabs
+      hash
+      label="Service"
+      tabs={[
+        { id: "residential", label: "Residential" },
+        { id: "commercial", label: "Commercial" },
+        { id: "repairs", label: "Repairs" }
+      ]}
+    >
+      <div slot="residential">
+        <p>Driveways, walkways and patios. Most jobs take two to four days.</p>
+        <a href="#quote">Ask for a quote</a>
+      </div>
+      <div slot="commercial">
+        <p>Parking lots, sidewalks and loading areas, scheduled at night if needed.</p>
+      </div>
+      <div slot="repairs">
+        <p>Sunken pavers, frost heave, broken borders. Warranty work is free.</p>
+      </div>
+    </Tabs>
+  </Preview>
+  <Preview
+    title={"Pill, content strings, second tab open"}
+    code={'<Tabs variant="pill" selected="laval" label="Location" tabs={[{ id: "montreal", label: "Montréal", content: "<p>…</p>" }, …]} />'}
+  >
+    <Tabs
+      variant="pill"
+      selected="laval"
+      label="Location"
+      tabs={[
+        {
+          id: "montreal",
+          label: "Montréal",
+          content: "<p>Mon to Fri, 7 a.m. to 5 p.m. · 1250 rue Example</p>"
+        },
+        {
+          id: "laval",
+          label: "Laval",
+          content: "<p>Mon to Sat, 7 a.m. to 6 p.m. · 88 boul. Example</p>"
+        },
+        { id: "longueuil", label: "Longueuil", content: "<p>By appointment only.</p>" }
+      ]}
+    />
+  </Preview>
+</DocLayout>

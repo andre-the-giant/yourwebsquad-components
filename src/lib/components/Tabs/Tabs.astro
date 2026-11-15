@@ -1,0 +1,263 @@
+---
+/*
+Tabs — switch between a few related panels in place: services, hours by location,
+before / during / after.
+Props:
+- tabs: { id: string, label: string, content?: string }[]
+  id: unique on the page; it is the panel id, so /page#id opens that tab.
+  The panel body comes from the named slot with the same name (<div slot="id">…</div>),
+  or from `content` (trusted HTML) when there is no slot.
+- selected?: string — id of the tab open at first (default: the first)
+- variant?: "underline" | "pill"
+- hash?: boolean — write the open tab in the URL (#id) so it can be shared (default false)
+- label?: string — accessible name of the tab list
+- id?: string
+- class?: string
+- style?: string
+Events: the root dispatches "tabs:change" { id } (bubbling).
+Accessibility: WAI-ARIA tabs with automatic activation: left/right arrows, Home and End
+move between tabs, Tab enters the panel. Without JavaScript the tab list is hidden and every
+panel is shown, each with its title. The tab row scrolls sideways on phones rather than
+wrapping.
+Theme variables: --tabs-border, --tabs-fg, --tabs-active-fg, --tabs-indicator,
+--tabs-pill-bg, --tabs-pill-active-bg, --tabs-pill-active-fg
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  tabs: z
+    .array(
+      z.looseObject({
+        id: z.string().regex(/^[A-Za-z][\w-]*$/, "tab id must be a valid HTML id"),
+        label: z.string(),
+        content: z.string().optional()
+      })
+    )
+    .min(2),
+  selected: z.string().optional(),
+  variant: z.enum(["underline", "pill"]).default("underline"),
+  hash: z.boolean().default(false),
+  label: z.string().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  tabs,
+  selected,
+  variant,
+  hash,
+  label,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Tabs" });
+
+const current = tabs.some((tab) => tab.id === selected) ? selected : tabs[0].id;
+const panels = await Promise.all(
+  tabs.map(async (tab) =>
+    Astro.slots.has(tab.id) ? await Astro.slots.render(tab.id) : (tab.content ?? "")
+  )
+);
+---
+
+<div
+  id={id}
+  class={mergeClasses("tabs", `tabs--${variant}`, className)}
+  style={style}
+  data-tabs
+  data-hash={hash ? "" : undefined}
+  {...rest}
+>
+  <div class="tabs__list" role="tablist" aria-label={label}>
+    {
+      tabs.map((tab) => {
+        const active = tab.id === current;
+        return (
+          <button
+            type="button"
+            role="tab"
+            class="tabs__tab"
+            id={`${tab.id}-tab`}
+            aria-controls={tab.id}
+            aria-selected={active ? "true" : "false"}
+            tabindex={active ? 0 : -1}
+          >
+            {tab.label}
+          </button>
+        );
+      })
+    }
+  </div>
+  {
+    tabs.map((tab, i) => (
+      <div
+        class="tabs__panel"
+        role="tabpanel"
+        id={tab.id}
+        aria-labelledby={`${tab.id}-tab`}
+        tabindex="0"
+        hidden={tab.id !== current}
+      >
+        <p class="tabs__panel-title">{tab.label}</p>
+        <Fragment set:html={panels[i]} />
+      </div>
+    ))
+  }
+  <noscript>
+    <style is:inline>
+      [data-tabs] [role="tablist"] {
+        display: none !important;
+      }
+      [data-tabs] [role="tabpanel"][hidden] {
+        display: block !important;
+      }
+      [data-tabs] .tabs__panel-title {
+        display: block !important;
+      }
+    </style>
+  </noscript>
+</div>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>("[data-tabs]")) {
+    const tabs = Array.from(
+      root.querySelectorAll<HTMLButtonElement>(":scope > .tabs__list > [role=tab]")
+    );
+    const useHash = root.hasAttribute("data-hash");
+
+    function select(tab: HTMLButtonElement, { focus = false, write = true } = {}) {
+      for (const other of tabs) {
+        const active = other === tab;
+        other.setAttribute("aria-selected", String(active));
+        other.tabIndex = active ? 0 : -1;
+        const panel = document.getElementById(other.getAttribute("aria-controls") ?? "");
+        if (panel) panel.hidden = !active;
+      }
+      if (focus) tab.focus();
+      const id = tab.getAttribute("aria-controls") ?? "";
+      if (write && useHash) history.replaceState(null, "", `#${id}`);
+      root.dispatchEvent(new CustomEvent("tabs:change", { bubbles: true, detail: { id } }));
+    }
+
+    root.querySelector(".tabs__list")?.addEventListener("click", (event) => {
+      const tab = (event.target as Element).closest<HTMLButtonElement>("[role=tab]");
+      if (tab && tabs.includes(tab)) select(tab);
+    });
+
+    root.querySelector(".tabs__list")?.addEventListener("keydown", (event) => {
+      const e = event as KeyboardEvent;
+      const index = tabs.indexOf(document.activeElement as HTMLButtonElement);
+      if (index < 0) return;
+      const rtl = getComputedStyle(root).direction === "rtl";
+      const next = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[e.key];
+      let target: HTMLButtonElement | undefined;
+      if (next) target = tabs[(index + next + tabs.length) % tabs.length];
+      else if (e.key === "Home") target = tabs[0];
+      else if (e.key === "End") target = tabs[tabs.length - 1];
+      if (!target) return;
+      e.preventDefault();
+      select(target, { focus: true });
+    });
+
+    function fromHash() {
+      const id = decodeURIComponent(location.hash.slice(1));
+      const tab = id && tabs.find((t) => t.getAttribute("aria-controls") === id);
+      if (tab) select(tab, { write: false });
+    }
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+  }
+</script>
+
+<style>
+  .tabs__list {
+    display: flex;
+    gap: var(--space-1);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    margin-bottom: var(--space-4);
+  }
+
+  .tabs--underline .tabs__list {
+    border-bottom: 1px solid var(--tabs-border, var(--color-border));
+  }
+
+  .tabs__tab {
+    flex: none;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-4);
+    border: 0;
+    background: none;
+    color: var(--tabs-fg, var(--color-fg-muted, var(--color-fg)));
+    font: inherit;
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .tabs__tab:hover {
+    color: var(--tabs-active-fg, var(--color-fg));
+  }
+
+  .tabs__tab:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: -3px;
+  }
+
+  .tabs--underline .tabs__tab {
+    margin-bottom: -1px;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tabs--underline .tabs__tab[aria-selected="true"] {
+    border-bottom-color: var(--tabs-indicator, var(--color-fg));
+    color: var(--tabs-active-fg, var(--color-fg));
+    font-weight: var(--weight-semibold);
+  }
+
+  .tabs--pill .tabs__list {
+    padding: var(--space-1);
+    border-radius: 999px;
+    background: var(--tabs-pill-bg, var(--color-surface));
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .tabs--pill .tabs__tab {
+    border-radius: 999px;
+  }
+
+  .tabs--pill .tabs__tab[aria-selected="true"] {
+    background: var(--tabs-pill-active-bg, var(--color-fg));
+    color: var(--tabs-pill-active-fg, var(--color-bg));
+    font-weight: var(--weight-semibold);
+  }
+
+  .tabs--pill .tabs__tab[aria-selected="true"]:focus-visible {
+    outline-offset: 2px;
+  }
+
+  .tabs__panel:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  .tabs__panel-title {
+    display: none;
+    margin: var(--space-4) 0 var(--space-2);
+    font-weight: var(--weight-bold);
+  }
+
+  .tabs__panel > :global(:first-child:not(.tabs__panel-title)),
+  .tabs__panel > .tabs__panel-title + :global(*) {
+    margin-top: 0;
+  }
+</style>

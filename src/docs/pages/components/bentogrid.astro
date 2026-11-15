@@ -1,0 +1,79 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import { landscape as picture } from "@docs/data/demo-images.js";
+import BentoGrid from "@lib/components/BentoGrid/BentoGrid.astro";
+
+const props = [
+  {
+    name: "items",
+    type: '{ title, text?, eyebrow?, href?, image?: { src, alt? }, size?: "sm" | "wide" | "tall" | "large", tone?: "default" | "surface" | "inverse" }[]',
+    description: "Tiles in reading order. wide = 2 columns, tall = 2 rows, large = both."
+  },
+  { name: "heading", type: "string", description: "Section title (h2)." },
+  { name: "intro", type: "string", description: "One line under the title." },
+  {
+    name: "columns",
+    type: "3 | 4",
+    default: "4",
+    description: "Columns on large screens; 2 on tablets, 1 on phones."
+  }
+];
+
+const services = [
+  {
+    title: "Interlocking driveways",
+    text: "Excavation, compacted base and pavers, with a 10-year warranty on the work.",
+    eyebrow: "Most requested",
+    href: "#driveways",
+    image: { src: picture("#3b5d50", "#9cb8a5") },
+    size: "large" as const
+  },
+  { title: "Retaining walls", text: "Natural stone or blocks.", href: "#walls" },
+  { title: "Sealing", text: "Every two to three years.", href: "#sealing" },
+  {
+    title: "Free quote in 48 h",
+    text: "We come on site, measure and send a written price.",
+    href: "#quote",
+    size: "wide" as const,
+    tone: "inverse" as const
+  },
+  {
+    title: "Patios",
+    text: "From 10 to 60 m².",
+    href: "#patios",
+    image: { src: picture("#8a5a3c", "#d9b28c") },
+    size: "tall" as const
+  },
+  { title: "Snow removal", text: "Residential contracts, November to April." },
+  {
+    title: "Fully insured",
+    text: "RBQ licence and $5 M liability.",
+    size: "wide" as const,
+    tone: "default" as const
+  }
+];
+---
+
+<DocLayout
+  title={"BentoGrid"}
+  description={"Tiles of different sizes in one tight grid, for services, features or highlights. Source order is reading order on every screen; a linked tile is a single link stretched over the whole tile."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Services, 4 columns"}
+    code={'<BentoGrid heading="What we build" items={[{ title: "Interlocking driveways", size: "large", image: { src }, href }, …]} />'}
+  >
+    <BentoGrid
+      heading="What we build"
+      intro="Residential and small commercial work, North Shore."
+      items={services}
+    />
+  </Preview>
+  <Preview title={"3 columns, text only"} code={"<BentoGrid columns={3} items={…} />"}>
+    <BentoGrid columns={3} items={services.filter((s) => !s.image).map(({ href, ...s }) => s)} />
+  </Preview>
+</DocLayout>

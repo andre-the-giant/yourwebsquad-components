@@ -1,0 +1,297 @@
+---
+/*
+BentoGrid — tiles of different sizes in one tight grid: services, features, highlights.
+Props:
+- items: { title: string, text?: string, eyebrow?: string, href?: string,
+    image?: { src: string, alt?: string }, size?: "sm" | "wide" | "tall" | "large",
+    tone?: "default" | "surface" | "inverse" }[]  (default "surface")
+  size: wide spans two columns, tall two rows, large both (default "sm").
+  Put the most important tile first: source order is reading order on every screen.
+- heading?: string
+- intro?: string
+- columns?: 3 | 4 — on large screens (default 4); 2 on tablets, 1 on phones
+- id?: string
+- class?: string
+- style?: string
+Accessibility: a list of tiles with h3 titles. A tile with href is one link (the title),
+stretched over the whole tile, so it is announced once with a clear name. Images are
+decorative unless they get an alt.
+Theme variables: --bento-gap, --bento-row, --bento-radius, --bento-bg, --bento-fg,
+--bento-border
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        title: z.string(),
+        text: z.string().optional(),
+        eyebrow: z.string().optional(),
+        href: z.string().optional(),
+        image: z.looseObject({ src: z.string(), alt: z.string().default("") }).optional(),
+        size: z.enum(["sm", "wide", "tall", "large"]).default("sm"),
+        tone: z.enum(["default", "surface", "inverse"]).default("surface")
+      })
+    )
+    .min(1),
+  heading: z.string().optional(),
+  intro: z.string().optional(),
+  columns: z.union([z.literal(3), z.literal(4)]).default(4)
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  heading,
+  intro,
+  columns,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "BentoGrid" });
+
+const headingId = heading ? nextId("bento") : undefined;
+---
+
+<section
+  id={id}
+  class={mergeClasses("bento", `bento--cols-${columns}`, className)}
+  style={style}
+  aria-labelledby={headingId}
+  {...rest}
+>
+  {
+    (heading || intro) && (
+      <div class="bento__head">
+        {heading && (
+          <h2 id={headingId} class="bento__heading">
+            {heading}
+          </h2>
+        )}
+        {intro && <p class="bento__intro">{intro}</p>}
+      </div>
+    )
+  }
+  <ul class="bento__grid">
+    {
+      items.map((item) => (
+        <li
+          class={mergeClasses(
+            "bento__tile",
+            `bento__tile--${item.size}`,
+            `bento__tile--${item.tone}`,
+            item.href && "bento__tile--link",
+            item.image && "bento__tile--media"
+          )}
+        >
+          {item.image && (
+            <img
+              class="bento__image"
+              src={item.image.src}
+              alt={item.image.alt}
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+          <div class="bento__body">
+            {item.eyebrow && <p class="bento__eyebrow">{item.eyebrow}</p>}
+            <h3 class="bento__title">
+              {item.href ? (
+                <a class="bento__link" href={item.href}>
+                  {item.title}
+                </a>
+              ) : (
+                item.title
+              )}
+            </h3>
+            {item.text && <p class="bento__text">{item.text}</p>}
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .bento {
+    --_cols: 4;
+    padding-block: var(--space-6);
+  }
+
+  .bento--cols-3 {
+    --_cols: 3;
+  }
+
+  .bento__head {
+    max-width: 42rem;
+    margin-bottom: var(--space-5);
+  }
+
+  .bento__heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-xl);
+    line-height: var(--line-tight);
+  }
+
+  .bento__intro {
+    margin: var(--space-2) 0 0;
+    color: var(--color-fg-muted, inherit);
+  }
+
+  .bento__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(var(--bento-row, 10rem), auto);
+    grid-auto-flow: dense;
+    gap: var(--bento-gap, var(--space-3));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .bento__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .bento__tile--wide,
+    .bento__tile--large {
+      grid-column: span 2;
+    }
+
+    .bento__tile--tall,
+    .bento__tile--large {
+      grid-row: span 2;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .bento__grid {
+      grid-template-columns: repeat(var(--_cols), minmax(0, 1fr));
+    }
+  }
+
+  .bento__tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--bento-border, var(--color-border));
+    border-radius: var(--bento-radius, var(--radius-lg));
+    background: var(--bento-bg, transparent);
+    color: var(--bento-fg, var(--color-fg));
+  }
+
+  .bento__tile--surface {
+    background: var(--bento-bg, var(--color-surface));
+  }
+
+  .bento__tile--inverse {
+    border-color: transparent;
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-fg);
+  }
+
+  .bento__image {
+    display: block;
+    width: 100%;
+    flex: 1 1 8rem;
+    min-height: 8rem;
+    object-fit: cover;
+  }
+
+  .bento__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding: var(--space-4);
+  }
+
+  .bento__eyebrow {
+    margin: 0;
+    font-size: var(--size-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .bento__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-lg);
+    line-height: var(--line-tight);
+  }
+
+  .bento__tile--large .bento__title {
+    font-size: var(--size-xl);
+  }
+
+  .bento__text {
+    margin: 0;
+    font-size: var(--size-sm);
+    line-height: var(--line-normal);
+  }
+
+  /* Two classes to beat theme link colours (html[data-theme] a:not(.button):hover). */
+  .bento__tile .bento__link,
+  .bento__tile .bento__link:hover {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .bento__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .bento__tile--link {
+    transition:
+      transform var(--duration-fast, 150ms) ease,
+      box-shadow var(--duration-fast, 150ms) ease;
+  }
+
+  .bento__tile--link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px var(--color-shadow, rgb(0 0 0 / 0.12));
+  }
+
+  .bento__tile--link:hover .bento__link {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .bento__link:focus-visible {
+    outline: none;
+  }
+
+  .bento__link:focus-visible::after {
+    outline: 3px solid var(--color-focus);
+    outline-offset: -3px;
+  }
+
+  .bento__tile--inverse .bento__link:focus-visible::after {
+    outline-color: var(--color-focus-inverse, var(--color-inverse-fg));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bento__tile--link,
+    .bento__tile--link:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

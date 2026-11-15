@@ -62,3 +62,10 @@ export { default as VisibleCaption } from "./components/VisibleCaption/VisibleCa
 export { default as StatsCounter } from "./components/StatsCounter/StatsCounter.astro";
 export { default as LogoCloud } from "./components/LogoCloud/LogoCloud.astro";
 export { default as Toast } from "./components/Toast/Toast.astro";
+export { default as BentoGrid } from "./components/BentoGrid/BentoGrid.astro";
+export { default as Timeline } from "./components/Timeline/Timeline.astro";
+export { default as TeamSection } from "./components/TeamSection/TeamSection.astro";
+export { default as Tabs } from "./components/Tabs/Tabs.astro";
+export { default as VideoFacade } from "./components/VideoFacade/VideoFacade.astro";
+export { default as AnnouncementPill } from "./components/AnnouncementPill/AnnouncementPill.astro";
+export { default as SlotPicker } from "./components/SlotPicker/SlotPicker.astro";

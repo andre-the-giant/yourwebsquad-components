@@ -1,0 +1,54 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import AnnouncementPill from "@lib/components/AnnouncementPill/AnnouncementPill.astro";
+
+const props = [
+  { name: "text", type: "string", description: "The announcement. One short line on a phone." },
+  { name: "href", type: "string", description: "Makes the whole pill a link and adds an arrow." },
+  { name: "badge", type: "string", description: 'Short label in front, e.g. "New".' },
+  {
+    name: "tone",
+    type: '"default" | "inverse"',
+    default: '"default"',
+    description: "Inverse for dark heroes."
+  }
+];
+---
+
+<DocLayout
+  title={"AnnouncementPill"}
+  description={"A small rounded line above a hero heading that points to news: a new service, a promotion, a hiring call. The whole pill is one link named by its visible text."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Link with badge"}
+    code={'<AnnouncementPill badge="New" text="Online booking is open" href="/booking" />'}
+  >
+    <AnnouncementPill badge="New" text="Online booking is open" href="#booking" />
+  </Preview>
+  <Preview
+    title={"Plain text, no link"}
+    code={'<AnnouncementPill text="Closed December 24 to January 2" />'}
+  >
+    <AnnouncementPill text="Closed December 24 to January 2" />
+  </Preview>
+  <Preview
+    title={"Inverse, on a dark hero"}
+    code={'<AnnouncementPill tone="inverse" badge="Nouveau" text="Soumission en 48 h" href="/soumission" />'}
+  >
+    <div
+      style="padding: 2rem; background: var(--color-inverse-surface); border-radius: var(--radius-lg);"
+    >
+      <AnnouncementPill
+        tone="inverse"
+        badge="Nouveau"
+        text="Soumission en 48 h"
+        href="#soumission"
+      />
+    </div>
+  </Preview>
+</DocLayout>

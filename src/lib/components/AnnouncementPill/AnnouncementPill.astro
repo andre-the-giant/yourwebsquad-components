@@ -1,0 +1,159 @@
+---
+/*
+AnnouncementPill — a small rounded line above a hero heading: "New · Online booking is open →".
+Props:
+- text: string — the announcement, kept short (one line on a phone)
+- href?: string — makes the whole pill a link and adds an arrow
+- badge?: string — short label in front ("New", "Nouveau")
+- tone?: "default" | "inverse" — inverse sits on dark heroes
+- id?: string
+- class?: string
+- style?: string
+Accessibility: a plain link (or paragraph without href) whose name is the visible text;
+the arrow is decorative. Focus ring stays visible on both tones.
+Theme variables: --pill-bg, --pill-fg, --pill-border, --pill-badge-bg, --pill-badge-fg,
+--pill-radius
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  text: z.string().min(1),
+  href: z.string().optional(),
+  badge: z.string().optional(),
+  tone: z.enum(["default", "inverse"]).default("default")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  text,
+  href,
+  badge,
+  tone,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "AnnouncementPill" });
+
+const Tag = href ? "a" : "p";
+---
+
+<Tag
+  id={id}
+  href={href}
+  class={mergeClasses("pill", `pill--${tone}`, href && "pill--link", className)}
+  style={style}
+  {...rest}
+>
+  {badge && <span class="pill__badge">{badge}</span>}
+  <span class="pill__text">{text}</span>
+  {
+    href && (
+      <svg class="pill__arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path
+          d="M3 8h9M8.5 4.5 12 8l-3.5 3.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    )
+  }
+</Tag>
+
+<style>
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 100%;
+    min-height: 2.75rem;
+    margin: 0;
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+    border: 1px solid var(--pill-border, var(--color-border));
+    border-radius: var(--pill-radius, 999px);
+    background: var(--pill-bg, var(--color-surface));
+    color: var(--pill-fg, var(--color-fg));
+    font-size: var(--size-sm);
+    line-height: var(--line-tight);
+    text-decoration: none;
+  }
+
+  .pill:not(:has(.pill__badge)) {
+    padding-inline-start: var(--space-3);
+  }
+
+  .pill--inverse {
+    border-color: var(--pill-border, rgb(255 255 255 / 0.35));
+    background: var(--pill-bg, rgb(255 255 255 / 0.1));
+    color: var(--pill-fg, var(--color-inverse-fg));
+  }
+
+  /* Beat theme link colours (html[data-theme] a:not(.button), incl. :hover). */
+  .pill.pill--link,
+  .pill.pill--link:hover {
+    color: var(--pill-fg, var(--color-fg));
+  }
+
+  .pill.pill--inverse.pill--link,
+  .pill.pill--inverse.pill--link:hover {
+    color: var(--pill-fg, var(--color-inverse-fg));
+  }
+
+  .pill__badge {
+    flex: none;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--pill-radius, 999px);
+    background: var(--pill-badge-bg, var(--color-fg));
+    color: var(--pill-badge-fg, var(--color-bg));
+    font-size: var(--size-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
+  }
+
+  .pill--inverse .pill__badge {
+    background: var(--pill-badge-bg, var(--color-inverse-fg));
+    color: var(--pill-badge-fg, var(--color-inverse-surface));
+  }
+
+  .pill__text {
+    min-width: 0;
+  }
+
+  .pill__arrow {
+    flex: none;
+    transition: transform var(--duration-fast, 150ms) ease;
+  }
+
+  .pill--link:hover .pill__text {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .pill--link:hover .pill__arrow {
+    transform: translateX(2px);
+  }
+
+  .pill--link:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .pill--inverse.pill--link:focus-visible {
+    outline-color: var(--color-focus-inverse, var(--color-inverse-fg));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pill__arrow {
+      transition: none;
+    }
+  }
+</style>

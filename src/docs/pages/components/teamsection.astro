@@ -1,0 +1,87 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import { portrait } from "@docs/data/demo-images.js";
+import TeamSection from "@lib/components/TeamSection/TeamSection.astro";
+
+const props = [
+  {
+    name: "members",
+    type: "{ name, role?, photo?, bio?, email?, phone?, links?: { label, href }[] }[]",
+    description: "Without photo, the initials are shown."
+  },
+  { name: "heading", type: "string", description: "Section title (h2)." },
+  { name: "intro", type: "string", description: "One line under the title." },
+  { name: "shape", type: '"circle" | "square"', default: '"square"', description: "Photo shape." },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." },
+  {
+    name: "emailLabel",
+    type: "string",
+    default: '"Email"',
+    description: "Visible text of the email link."
+  },
+  {
+    name: "phoneLabel",
+    type: "string",
+    default: '"Call"',
+    description: "Visible text of the phone link."
+  }
+];
+
+const team = [
+  {
+    name: "Marie Tremblay",
+    role: "Founder, estimator",
+    photo: portrait("#56707f"),
+    bio: "Visits every site before we send a price.",
+    email: "marie@example.com",
+    phone: "514 555-0142"
+  },
+  {
+    name: "Karim Haddad",
+    role: "Crew lead",
+    photo: portrait("#7b6a58"),
+    bio: "Twenty years of pavers and retaining walls.",
+    links: [{ label: "LinkedIn", href: "https://www.linkedin.com/" }]
+  },
+  {
+    name: "Sophie Nguyen",
+    role: "Office and scheduling",
+    photo: portrait("#5d7458"),
+    phone: "514 555-0100"
+  },
+  { name: "Jean-Luc Côté", role: "Warranty and repairs" }
+];
+---
+
+<DocLayout
+  title={"TeamSection"}
+  description={"The people behind the business: photo, name, role, a line of bio and how to reach them. Photos are decorative because the name is right below; contact links tell screen readers whose they are."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Square photos"}
+    code={'<TeamSection heading="The team" members={[{ name: "Marie Tremblay", role, photo, email, phone }, …]} />'}
+  >
+    <TeamSection
+      heading="The team"
+      intro="Small crew, same faces from quote to final sweep."
+      members={team}
+    />
+  </Preview>
+  <Preview
+    title={"Circles on surface, French labels"}
+    code={'<TeamSection shape="circle" tone="surface" emailLabel="Courriel" phoneLabel="Appeler" members={…} />'}
+  >
+    <TeamSection
+      shape="circle"
+      tone="surface"
+      emailLabel="Courriel"
+      phoneLabel="Appeler"
+      members={team.slice(0, 3)}
+    />
+  </Preview>
+</DocLayout>

@@ -443,6 +443,62 @@ export const components = [
     category: "Feedback & overlays",
     level: "molecules",
     tags: ["notification", "snackbar", "flash"]
+  },
+  {
+    name: "BentoGrid",
+    href: "/components/bentogrid",
+    description: "Tiles of different sizes in one tight grid: services, features, highlights.",
+    category: "Layout",
+    level: "components",
+    tags: ["bento", "grid", "features", "tiles"]
+  },
+  {
+    name: "Timeline",
+    href: "/components/timeline",
+    description: "Dated milestones: company history, project diary.",
+    category: "Content",
+    level: "components",
+    tags: ["history", "milestones", "chronology"]
+  },
+  {
+    name: "TeamSection",
+    href: "/components/teamsection",
+    description: "The people behind the business, with photo, role and contacts.",
+    category: "Trust & proof",
+    level: "components",
+    tags: ["team", "staff", "people", "about"]
+  },
+  {
+    name: "Tabs",
+    href: "/components/tabs",
+    description: "Switch between a few related panels in place; #id opens a tab.",
+    category: "Content",
+    level: "molecules",
+    tags: ["tablist", "panels"]
+  },
+  {
+    name: "VideoFacade",
+    href: "/components/videofacade",
+    description: "YouTube or Vimeo that loads nothing until the visitor presses play.",
+    category: "Media",
+    level: "molecules",
+    tags: ["video", "youtube", "vimeo", "embed", "lite"]
+  },
+  {
+    name: "AnnouncementPill",
+    href: "/components/announcementpill",
+    description: "Small rounded line above a hero heading that points to news.",
+    category: "Page openers",
+    level: "atoms",
+    tags: ["badge", "banner", "news", "pill"]
+  },
+  {
+    name: "SlotPicker",
+    href: "/components/slotpicker",
+    description: "Pick a day, then a time, for an appointment. A plain form field.",
+    category: "Contact & forms",
+    level: "components",
+    tags: ["appointment", "booking", "calendar", "schedule", "time"]
   }
 ];
 

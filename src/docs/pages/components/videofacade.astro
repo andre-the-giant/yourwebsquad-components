@@ -1,0 +1,65 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import { landscape } from "@docs/data/demo-images.js";
+import VideoFacade from "@lib/components/VideoFacade/VideoFacade.astro";
+
+const props = [
+  { name: "provider", type: '"youtube" | "vimeo"', default: '"youtube"', description: "Platform." },
+  { name: "videoId", type: "string", description: "The bare id, not the URL." },
+  {
+    name: "title",
+    type: "string",
+    description: "What the video is about. Names the button and the player."
+  },
+  {
+    name: "poster",
+    type: "string",
+    description: "Self-hosted image. YouTube falls back to its thumbnail; Vimeo to a plain surface."
+  },
+  { name: "aspect", type: "string", default: '"16 / 9"', description: "CSS aspect-ratio." },
+  { name: "start", type: "number", description: "Start time in seconds." },
+  { name: "caption", type: "string", description: "Visible caption." },
+  {
+    name: "playLabel",
+    type: "string",
+    default: '"Play video"',
+    description: "Prefix of the button name, for translation."
+  }
+];
+
+// Self-hosted poster for the demo.
+const poster = landscape("#23313a", "#5b7b86", "0 0 1600 900");
+---
+
+<DocLayout
+  title={"VideoFacade"}
+  description={"A YouTube or Vimeo video that loads nothing from the platform until the visitor presses play: lighter pages and no platform cookies before consent. The facade is a real link, so it still works without JavaScript."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"YouTube, default thumbnail"}
+    code={'<VideoFacade videoId="aqz-KE-bpKQ" title="Big Buck Bunny" caption="Blender Foundation, CC BY 3.0" />'}
+  >
+    <VideoFacade
+      videoId="aqz-KE-bpKQ"
+      title="Big Buck Bunny"
+      caption="Blender Foundation, CC BY 3.0"
+    />
+  </Preview>
+  <Preview
+    title={"Vimeo, self-hosted poster, French label"}
+    code={'<VideoFacade provider="vimeo" videoId="76979871" poster="/posters/visite.jpg" playLabel="Lire la vidéo" title="Visite du chantier" />'}
+  >
+    <VideoFacade
+      provider="vimeo"
+      videoId="76979871"
+      poster={poster}
+      playLabel="Lire la vidéo"
+      title="Visite du chantier"
+    />
+  </Preview>
+</DocLayout>

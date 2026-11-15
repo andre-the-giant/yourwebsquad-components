@@ -1,0 +1,97 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Timeline from "@lib/components/Timeline/Timeline.astro";
+
+const props = [
+  {
+    name: "items",
+    type: "{ date: string, datetime?: string, title: string, text?: string, image?: { src, alt? } }[]",
+    description: "Milestones in order. date is shown; datetime goes in <time>."
+  },
+  { name: "heading", type: "string", description: "Section title (h2)." },
+  {
+    name: "layout",
+    type: '"single" | "alternate"',
+    default: '"single"',
+    description: "Alternate sides on large screens."
+  },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." }
+];
+
+const history = [
+  {
+    date: "1998",
+    datetime: "1998",
+    title: "Founded in Laval",
+    text: "Two brothers, one truck and a plate compactor."
+  },
+  {
+    date: "2006",
+    datetime: "2006",
+    title: "First commercial contract",
+    text: "Parking lot for a grocery store in Sainte-Rose."
+  },
+  {
+    date: "2014",
+    datetime: "2014",
+    title: "RBQ general contractor licence",
+    text: "We start doing retaining walls and full landscaping."
+  },
+  {
+    date: "Spring 2021",
+    datetime: "2021-04",
+    title: "Team of 25",
+    text: "Three crews, one dedicated to repairs and warranty work."
+  },
+  {
+    date: "2026",
+    datetime: "2026",
+    title: "1,200 driveways",
+    text: "And still the same phone number."
+  }
+];
+
+const diary = [
+  {
+    date: "Mon. Nov 9",
+    datetime: "2026-11-09",
+    title: "Demolition",
+    text: "Old asphalt removed and hauled away."
+  },
+  {
+    date: "Tue. Nov 10",
+    datetime: "2026-11-10",
+    title: "Excavation and base",
+    text: "30 cm of crushed stone, compacted in three layers."
+  },
+  {
+    date: "Thu. Nov 12",
+    datetime: "2026-11-12",
+    title: "Pavers laid",
+    text: "Borders cut, polymeric sand swept in."
+  }
+];
+---
+
+<DocLayout
+  title={"Timeline"}
+  description={'Dated milestones: company history, a project diary, a renovation log. An ordered list in reading order; the line and dots are decorative. For numbered how-it-works steps, use Steps with layout="timeline".'}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Alternate, company history"}
+    code={'<Timeline layout="alternate" heading="Our story" items={[{ date: "1998", datetime: "1998", title: "Founded in Laval", text }, …]} />'}
+  >
+    <Timeline layout="alternate" heading="Our story" items={history} />
+  </Preview>
+  <Preview
+    title={"Single, project diary on surface"}
+    code={'<Timeline tone="surface" items={…} />'}
+  >
+    <Timeline tone="surface" items={diary} />
+  </Preview>
+</DocLayout>

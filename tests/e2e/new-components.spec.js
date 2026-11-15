@@ -41,3 +41,82 @@ test.describe("StatsCounter", () => {
     await expect(first.locator(".stats__number").nth(1)).toHaveText("1,200", { timeout: 4000 });
   });
 });
+
+test.describe("Tabs", () => {
+  test("arrow keys move and select, hash follows", async ({ page }) => {
+    await page.goto("/components/tabs");
+    const first = page.getByRole("tab", { name: "Residential" });
+    await first.click();
+    await page.keyboard.press("ArrowRight");
+    const second = page.getByRole("tab", { name: "Commercial" });
+    await expect(second).toBeFocused();
+    await expect(second).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#commercial")).toBeVisible();
+    await expect(page.locator("#residential")).toBeHidden();
+    expect(page.url()).toContain("#commercial");
+    await page.keyboard.press("End");
+    await expect(page.getByRole("tab", { name: "Repairs" })).toBeFocused();
+  });
+
+  test("hash opens a tab and selected opens the second", async ({ page }) => {
+    await page.goto("/components/tabs#repairs");
+    await expect(page.getByRole("tab", { name: "Repairs" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator("#laval")).toBeVisible();
+    await expect(page.locator("#montreal")).toBeHidden();
+  });
+});
+
+test.describe("VideoFacade", () => {
+  test("loads nothing from the platform until play, then swaps in the player", async ({ page }) => {
+    const requests = [];
+    await page.route(/youtube(-nocookie)?\.com|vimeo\.com|ytimg\.com/, (route) => {
+      requests.push(route.request().url());
+      return route.abort();
+    });
+    await page.goto("/components/videofacade");
+    const play = page.getByRole("link", { name: "Play video: Big Buck Bunny" });
+    await expect(play).toHaveAttribute("href", /youtube\.com\/watch\?v=aqz-KE-bpKQ/);
+    expect(requests.some((url) => /youtube(-nocookie)?\.com\/(embed|watch)/.test(url))).toBe(false);
+
+    await play.click();
+    const iframe = page.locator('iframe[title="Big Buck Bunny"]');
+    await expect(iframe).toHaveAttribute(
+      "src",
+      /youtube-nocookie\.com\/embed\/aqz-KE-bpKQ\?autoplay=1/
+    );
+    await expect(play).toHaveCount(0);
+  });
+});
+
+test.describe("SlotPicker", () => {
+  test("shows one day at a time and submits the chosen slot", async ({ page }) => {
+    await page.goto("/components/slotpicker");
+    const form = page.locator("#slot-demo");
+    await expect(form.locator(".slots__day:visible")).toHaveCount(1);
+
+    await form.getByRole("button", { name: /Thu.*26/ }).click();
+    await form.getByRole("radio", { name: "10:30 a.m." }).check();
+    await expect(form.locator("[data-status]")).toContainText("Thursday, November 26 at 10:30");
+    await form.getByRole("button", { name: "Book the visit" }).click();
+    await expect(form.locator("output")).toHaveText("2026-11-26T10:30");
+  });
+
+  test("required: shows its own message instead of a broken native bubble", async ({ page }) => {
+    await page.goto("/components/slotpicker");
+    const form = page.locator("#slot-demo");
+    await form.getByRole("button", { name: "Book the visit" }).click();
+    await expect(form.locator("[data-error]")).toBeVisible();
+    await expect(form.locator(".slots__input:focus")).toHaveCount(1);
+  });
+
+  test("taken slots are disabled and a full day says so", async ({ page }) => {
+    await page.goto("/components/slotpicker");
+    const form = page.locator("#slot-demo");
+    await expect(form.getByRole("radio", { name: "11:00 a.m." })).toBeDisabled();
+    await form.getByRole("button", { name: /Wed.*25/ }).click();
+    await expect(form.locator(".slots__day:visible .slots__none")).toHaveText("Full");
+  });
+});

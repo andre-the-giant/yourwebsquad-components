@@ -1,0 +1,233 @@
+---
+/*
+VideoFacade — a YouTube or Vimeo video that loads nothing from the platform until the
+visitor presses play. Saves roughly 500 KB to 1 MB of scripts per embed and sets no
+platform cookie before consent (Quebec Law 25 / PIPEDA friendly).
+Props:
+- provider?: "youtube" | "vimeo" (default "youtube")
+- videoId: string — "dQw4w9WgXcQ" for YouTube, "76979871" for Vimeo
+- title: string — what the video is about; names the play button and the iframe
+- poster?: string — image shown before play. YouTube defaults to its thumbnail
+  (i.ytimg.com, which is a request to Google: self-host a poster to avoid it). Vimeo has
+  no public thumbnail URL, so pass one or a plain surface is shown.
+- aspect?: string — CSS aspect-ratio (default "16 / 9")
+- start?: number — start time in seconds
+- caption?: string — visible caption under the video
+- playLabel?: string — prefix of the button name (default "Play video")
+- id?: string
+- class?: string
+- style?: string
+Accessibility: the facade is a real link to the video page, so it works without
+JavaScript and opens in a new tab with modifier keys. With JavaScript the click swaps in
+the player (privacy-enhanced youtube-nocookie.com / Vimeo dnt=1) and moves focus to it.
+Performance: lazy poster with fixed aspect ratio; the connection to the player is warmed
+on hover or focus only.
+Theme variables: --video-radius, --video-bg, --video-button-bg, --video-button-fg
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  provider: z.enum(["youtube", "vimeo"]).default("youtube"),
+  videoId: z.string().regex(/^[\w-]+$/, "videoId must be the bare id, not a URL"),
+  title: z.string().min(1),
+  poster: z.string().optional(),
+  aspect: z.string().default("16 / 9"),
+  start: z.number().int().min(0).optional(),
+  caption: z.string().optional(),
+  playLabel: z.string().default("Play video")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  provider,
+  videoId,
+  title,
+  poster,
+  aspect,
+  start,
+  caption,
+  playLabel,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "VideoFacade" });
+
+const youtube = provider === "youtube";
+const watchUrl = youtube
+  ? `https://www.youtube.com/watch?v=${videoId}${start ? `&t=${start}s` : ""}`
+  : `https://vimeo.com/${videoId}${start ? `#t=${start}s` : ""}`;
+const embedUrl = youtube
+  ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0${start ? `&start=${start}` : ""}`
+  : `https://player.vimeo.com/video/${videoId}?autoplay=1&dnt=1${start ? `#t=${start}s` : ""}`;
+const origin = youtube ? "https://www.youtube-nocookie.com" : "https://player.vimeo.com";
+const posterSrc =
+  poster ?? (youtube ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : undefined);
+---
+
+<figure
+  id={id}
+  class={mergeClasses("video", className)}
+  style={`--_aspect: ${aspect};${style ? ` ${style}` : ""}`}
+  {...rest}
+>
+  <div
+    class="video__frame"
+    data-video
+    data-embed={embedUrl}
+    data-origin={origin}
+    data-title={title}
+  >
+    <a class="video__play" href={watchUrl} aria-label={`${playLabel}: ${title}`}>
+      {
+        posterSrc && (
+          <img class="video__poster" src={posterSrc} alt="" loading="lazy" decoding="async" />
+        )
+      }
+      <span class="video__title" aria-hidden="true">{title}</span>
+      <span class="video__button" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28"
+          ><path d="M8 5.5v13l11-6.5z" fill="currentColor"></path></svg
+        >
+      </span>
+    </a>
+  </div>
+  {caption && <figcaption class="video__caption">{caption}</figcaption>}
+</figure>
+
+<script>
+  const warmed = new Set<string>();
+
+  function warm(origin: string) {
+    if (warmed.has(origin)) return;
+    warmed.add(origin);
+    const link = document.createElement("link");
+    link.rel = "preconnect";
+    link.href = origin;
+    document.head.append(link);
+  }
+
+  for (const frame of document.querySelectorAll<HTMLElement>("[data-video]")) {
+    const link = frame.querySelector<HTMLAnchorElement>(".video__play");
+    if (!link) continue;
+    const origin = frame.dataset.origin ?? "";
+    link.addEventListener("pointerenter", () => warm(origin), { once: true });
+    link.addEventListener("focus", () => warm(origin), { once: true });
+    link.addEventListener("click", (event) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      const iframe = document.createElement("iframe");
+      iframe.className = "video__iframe";
+      iframe.src = frame.dataset.embed ?? "";
+      iframe.title = frame.dataset.title ?? "";
+      iframe.allow =
+        "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen";
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = "strict-origin-when-cross-origin";
+      link.replaceWith(iframe);
+      iframe.focus();
+    });
+  }
+</script>
+
+<style>
+  .video {
+    margin: 0;
+  }
+
+  .video__frame {
+    position: relative;
+    aspect-ratio: var(--_aspect);
+    overflow: hidden;
+    border-radius: var(--video-radius, var(--radius-lg));
+    background: var(--video-bg, var(--color-inverse-surface));
+  }
+
+  .video__play {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: var(--color-inverse-fg);
+    text-decoration: none;
+  }
+
+  .video__poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video__title {
+    position: absolute;
+    inset: 0 0 auto;
+    padding: var(--space-3) var(--space-4) var(--space-6);
+    background: linear-gradient(rgb(0 0 0 / 0.7), transparent);
+    color: #fff;
+    font-weight: var(--weight-semibold);
+    line-height: var(--line-tight);
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+  }
+
+  .video__button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    place-items: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: var(--video-button-bg, rgb(0 0 0 / 0.75));
+    color: var(--video-button-fg, #fff);
+    transform: translate(-50%, -50%);
+    transition:
+      transform var(--duration-fast, 150ms) ease,
+      background var(--duration-fast, 150ms) ease;
+  }
+
+  .video__button svg {
+    margin-inline-start: 3px;
+  }
+
+  .video__play:hover .video__button {
+    background: var(--video-button-bg, rgb(0 0 0 / 0.9));
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+
+  .video__play:focus-visible {
+    outline: none;
+  }
+
+  .video__play:focus-visible .video__button {
+    outline: 3px solid #fff;
+    box-shadow: 0 0 0 6px rgb(0 0 0 / 0.8);
+  }
+
+  .video__frame :global(.video__iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video__caption {
+    margin-top: var(--space-2);
+    font-size: var(--size-sm);
+    color: var(--color-fg-muted, inherit);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .video__button,
+    .video__play:hover .video__button {
+      transition: none;
+      transform: translate(-50%, -50%);
+    }
+  }
+</style>

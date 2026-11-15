@@ -1,0 +1,86 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import SlotPicker from "@lib/components/SlotPicker/SlotPicker.astro";
+
+const props = [
+  {
+    name: "days",
+    type: '{ date: "YYYY-MM-DD", slots: ("HH:MM" | { time, available? })[] }[]',
+    description: "A day with no available slot shows as full."
+  },
+  {
+    name: "name",
+    type: "string",
+    default: '"slot"',
+    description: "Form field name; sends 2026-11-17T09:30."
+  },
+  { name: "legend", type: "string", default: '"Choose a time"', description: "Visible question." },
+  { name: "value", type: "string", description: "Preselected slot." },
+  {
+    name: "required",
+    type: "boolean",
+    default: "false",
+    description: "Must pick before submitting."
+  },
+  { name: "locale", type: "string", default: '"en-CA"', description: "Date and time formatting." },
+  {
+    name: "labels",
+    type: "{ days?, full?, selected?, at?, required? }",
+    description: "UI text, for translation."
+  }
+];
+
+const days = [
+  {
+    date: "2026-11-23",
+    slots: ["08:00", "09:30", { time: "11:00", available: false }, "13:30", "15:00"]
+  },
+  { date: "2026-11-24", slots: [{ time: "08:00", available: false }, "10:00", "14:00"] },
+  { date: "2026-11-25", slots: [] },
+  { date: "2026-11-26", slots: ["09:00", "10:30", "12:00", "13:30", "15:00", "16:30"] },
+  { date: "2026-11-27", slots: ["08:00", "09:00"] }
+];
+---
+
+<DocLayout
+  title={"SlotPicker"}
+  description={"Choose a day, then a time, for an appointment, a site visit or a call-back. It is a plain form field built from radio buttons, so it submits without JavaScript and works with the keyboard and screen readers."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Required, inside a form"}
+    code={'<SlotPicker required legend="When can we visit?" days={[{ date: "2026-11-23", slots: ["08:00", "09:30", { time: "11:00", available: false }] }, …]} />'}
+  >
+    <form
+      id="slot-demo"
+      onsubmit="event.preventDefault(); this.querySelector('output').value = new FormData(this).get('slot');"
+    >
+      <SlotPicker required legend="When can we visit?" days={days} />
+      <button type="submit">Book the visit</button>
+      <p>Sent: <output>—</output></p>
+    </form>
+  </Preview>
+  <Preview
+    title={"French, preselected"}
+    code={'<SlotPicker locale="fr-CA" name="rendez-vous" legend="Choisissez une heure" value="2026-11-26T10:30" labels={{ days: "Jour", full: "Complet", selected: "Choisi :", at: "à", required: "Choisissez une heure." }} days={…} />'}
+  >
+    <SlotPicker
+      locale="fr-CA"
+      name="rendez-vous"
+      legend="Choisissez une heure"
+      value="2026-11-26T10:30"
+      labels={{
+        days: "Jour",
+        full: "Complet",
+        selected: "Choisi :",
+        at: "à",
+        required: "Choisissez une heure."
+      }}
+      days={days}
+    />
+  </Preview>
+</DocLayout>

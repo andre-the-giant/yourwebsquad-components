@@ -1,0 +1,444 @@
+---
+/*
+SlotPicker — choose a day, then a time, for an appointment, a visit or a call-back.
+It is a plain form field: the chosen slot is sent as `name=2026-11-17T09:30`.
+Props:
+- days: { date: string, slots: (string | { time: string, available?: boolean })[] }[]
+  date: "YYYY-MM-DD"; time: "HH:MM" (24 h). A day with no available slot shows as full.
+- name?: string — form field name (default "slot")
+- legend?: string — visible question (default "Choose a time")
+- value?: string — preselected "YYYY-MM-DDTHH:MM"
+- required?: boolean
+- locale?: string — date and time formatting (default "en-CA")
+- labels?: { days?: string, full?: string, selected?: string, at?: string,
+    required?: string } — UI text, for translation
+- id?: string
+- class?: string
+- style?: string
+Events: the root dispatches "slotpicker:change" { value } (bubbling).
+Accessibility: real radio buttons inside one fieldset per day, each with the full date as
+its legend, so it works with keyboard (arrows inside a day) and screen readers. With
+JavaScript a row of day buttons (aria-pressed) shows one day at a time and a polite live
+line confirms the choice; without JavaScript every day is listed. 44px targets.
+Times are shown in the visitor's locale but never converted: they are the business's
+local times.
+Theme variables: --slot-bg, --slot-fg, --slot-border, --slot-active-bg, --slot-active-fg,
+--slot-radius
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const SlotSchema = z.union([
+  z.string(),
+  z.looseObject({ time: z.string(), available: z.boolean().default(true) })
+]);
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  days: z
+    .array(
+      z.looseObject({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD"),
+        slots: z.array(SlotSchema).default([])
+      })
+    )
+    .min(1),
+  name: z.string().default("slot"),
+  legend: z.string().default("Choose a time"),
+  value: z.string().optional(),
+  required: z.boolean().default(false),
+  locale: z.string().default("en-CA"),
+  labels: z
+    .looseObject({
+      days: z.string().default("Day"),
+      full: z.string().default("Full"),
+      selected: z.string().default("Selected:"),
+      at: z.string().default("at"),
+      required: z.string().default("Choose a time to continue.")
+    })
+    .default({
+      days: "Day",
+      full: "Full",
+      selected: "Selected:",
+      at: "at",
+      required: "Choose a time to continue."
+    })
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  days,
+  name,
+  legend,
+  value,
+  required,
+  locale,
+  labels,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "SlotPicker" });
+
+const base = id ?? nextId("slots");
+const asDate = (date: string) => new Date(`${date}T12:00:00Z`);
+const fullDate = new Intl.DateTimeFormat(locale, {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC"
+});
+const weekday = new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" });
+const dayMonth = new Intl.DateTimeFormat(locale, {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC"
+});
+const clock = new Intl.DateTimeFormat(locale, {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "UTC"
+});
+
+const model = days.map((day, i) => {
+  const slots = day.slots.map((slot) => {
+    const { time, available } = typeof slot === "string" ? { time: slot, available: true } : slot;
+    return {
+      time,
+      available,
+      value: `${day.date}T${time}`,
+      label: clock.format(new Date(`1970-01-01T${time}:00Z`))
+    };
+  });
+  return {
+    id: `${base}-day-${i + 1}`,
+    date: day.date,
+    full: fullDate.format(asDate(day.date)),
+    weekday: weekday.format(asDate(day.date)),
+    dayMonth: dayMonth.format(asDate(day.date)),
+    slots,
+    open: slots.some((slot) => slot.available)
+  };
+});
+
+const initial =
+  model.find((day) => day.slots.some((slot) => slot.value === value && slot.available)) ??
+  model.find((day) => day.open) ??
+  model[0];
+---
+
+<fieldset
+  id={id}
+  class={mergeClasses("slots", className)}
+  style={style}
+  data-slots
+  data-selected-label={labels.selected}
+  data-at-label={labels.at}
+  {...rest}
+>
+  <legend class="slots__legend">
+    {legend}
+    {required && <span aria-hidden="true"> *</span>}
+  </legend>
+
+  <div class="slots__days" role="group" aria-label={labels.days} hidden data-days>
+    {
+      model.map((day) => (
+        <button
+          type="button"
+          class="slots__daybtn"
+          aria-pressed={day.id === initial.id ? "true" : "false"}
+          aria-controls={day.id}
+          data-day={day.id}
+        >
+          <span class="slots__weekday">{day.weekday}</span>
+          <span class="slots__date">{day.dayMonth}</span>
+          {!day.open && <span class="slots__full">{labels.full}</span>}
+          <span class="slots__sr">, {day.full}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    model.map((day) => (
+      <fieldset class="slots__day" id={day.id} data-panel>
+        <legend class="slots__daylegend">{day.full}</legend>
+        {day.open ? (
+          <div class="slots__grid">
+            {day.slots.map((slot) => (
+              <label class={mergeClasses("slots__slot", !slot.available && "is-taken")}>
+                <input
+                  class="slots__input"
+                  type="radio"
+                  name={name}
+                  value={slot.value}
+                  checked={slot.available && slot.value === value}
+                  disabled={!slot.available}
+                  required={required}
+                  data-label={`${day.full} ${labels.at} ${slot.label}`}
+                />
+                <span class="slots__chip">{slot.label}</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <p class="slots__none">{labels.full}</p>
+        )}
+      </fieldset>
+    ))
+  }
+
+  <p class="slots__status" aria-live="polite" data-status></p>
+  <p class="slots__error" id={`${base}-error`} hidden data-error>{labels.required}</p>
+</fieldset>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLFieldSetElement>("[data-slots]")) {
+    const daysRow = root.querySelector<HTMLElement>("[data-days]");
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-day]"));
+    const panels = Array.from(root.querySelectorAll<HTMLFieldSetElement>("[data-panel]"));
+    const status = root.querySelector<HTMLElement>("[data-status]");
+    const error = root.querySelector<HTMLElement>("[data-error]");
+    if (!daysRow || !status || !error) continue;
+
+    function showDay(dayId: string) {
+      for (const button of buttons) {
+        button.setAttribute("aria-pressed", String(button.dataset.day === dayId));
+      }
+      for (const panel of panels) panel.hidden = panel.id !== dayId;
+    }
+
+    function announce(input: HTMLInputElement) {
+      status!.textContent = `${root.dataset.selectedLabel} ${input.dataset.label}`;
+    }
+
+    const pressed = buttons.find((b) => b.getAttribute("aria-pressed") === "true") ?? buttons[0];
+    daysRow.hidden = false;
+    root.classList.add("is-enhanced");
+    showDay(pressed.dataset.day ?? "");
+    const checked = root.querySelector<HTMLInputElement>(".slots__input:checked");
+    if (checked) status.textContent = `${root.dataset.selectedLabel} ${checked.dataset.label}`;
+
+    daysRow.addEventListener("click", (event) => {
+      const button = (event.target as Element).closest<HTMLButtonElement>("[data-day]");
+      if (button) showDay(button.dataset.day ?? "");
+    });
+
+    root.addEventListener("change", (event) => {
+      const input = event.target as HTMLInputElement;
+      if (!input.matches(".slots__input")) return;
+      error.hidden = true;
+      root.removeAttribute("aria-describedby");
+      announce(input);
+      root.dispatchEvent(
+        new CustomEvent("slotpicker:change", { bubbles: true, detail: { value: input.value } })
+      );
+    });
+
+    // Native validation cannot point at a radio inside a hidden day: show our own message.
+    let reported = false;
+    root.addEventListener(
+      "invalid",
+      (event) => {
+        event.preventDefault();
+        if (reported) return;
+        reported = true;
+        queueMicrotask(() => (reported = false));
+        error.hidden = false;
+        root.setAttribute("aria-describedby", error.id);
+        const visible = panels.find((panel) => !panel.hidden);
+        const target =
+          visible?.querySelector<HTMLInputElement>(".slots__input:not(:disabled)") ??
+          buttons.find((b) => b.getAttribute("aria-pressed") === "true");
+        target?.focus();
+      },
+      true
+    );
+  }
+</script>
+
+<style>
+  .slots {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .slots__legend {
+    margin-bottom: var(--space-3);
+    padding: 0;
+    font-weight: var(--weight-semibold);
+    font-size: var(--size-md);
+  }
+
+  .slots__days {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding: 3px;
+    margin: -3px -3px var(--space-3);
+    scrollbar-width: thin;
+  }
+
+  .slots__days[hidden] {
+    display: none;
+  }
+
+  .slots__daybtn {
+    flex: none;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 4.5rem;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--slot-border, var(--color-border));
+    border-radius: var(--slot-radius, var(--radius-md));
+    background: var(--slot-bg, var(--color-bg));
+    color: var(--slot-fg, var(--color-fg));
+    font: inherit;
+    line-height: var(--line-tight);
+    cursor: pointer;
+  }
+
+  .slots__daybtn[aria-pressed="true"] {
+    border-color: var(--slot-active-bg, var(--color-fg));
+    background: var(--slot-active-bg, var(--color-fg));
+    color: var(--slot-active-fg, var(--color-bg));
+  }
+
+  .slots__weekday {
+    font-size: var(--size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .slots__date {
+    font-weight: var(--weight-semibold);
+  }
+
+  .slots__full {
+    font-size: var(--size-xs);
+  }
+
+  .slots__day {
+    min-width: 0;
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    border: 0;
+  }
+
+  .slots__day[hidden] {
+    display: none;
+  }
+
+  .slots__daylegend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    font-size: var(--size-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .slots.is-enhanced .slots__day {
+    margin-bottom: var(--space-2);
+  }
+
+  .slots__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+    gap: var(--space-2);
+  }
+
+  .slots__slot {
+    position: relative;
+    display: block;
+  }
+
+  .slots__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .slots__chip {
+    display: grid;
+    place-items: center;
+    min-height: 2.75rem;
+    padding: var(--space-2);
+    border: 1px solid var(--slot-border, var(--color-border));
+    border-radius: var(--slot-radius, var(--radius-md));
+    background: var(--slot-bg, var(--color-bg));
+    color: var(--slot-fg, var(--color-fg));
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--weight-medium);
+  }
+
+  .slots__slot:hover .slots__input:not(:disabled) + .slots__chip {
+    border-color: var(--slot-active-bg, var(--color-fg));
+  }
+
+  .slots__input:checked + .slots__chip {
+    border-color: var(--slot-active-bg, var(--color-fg));
+    background: var(--slot-active-bg, var(--color-fg));
+    color: var(--slot-active-fg, var(--color-bg));
+    font-weight: var(--weight-semibold);
+  }
+
+  .slots__input:focus-visible + .slots__chip,
+  .slots__daybtn:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .slots__slot.is-taken .slots__input {
+    cursor: not-allowed;
+  }
+
+  .slots__slot.is-taken .slots__chip {
+    border-style: dashed;
+    color: var(--color-fg-muted, var(--color-fg));
+    text-decoration: line-through;
+  }
+
+  .slots__none {
+    margin: 0;
+    color: var(--color-fg-muted, inherit);
+  }
+
+  .slots__status {
+    min-height: 1.5em;
+    margin: 0;
+    font-size: var(--size-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .slots__error {
+    margin: var(--space-1) 0 0;
+    color: var(--color-danger-text, inherit);
+    font-size: var(--size-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .slots__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

@@ -1,0 +1,290 @@
+---
+/*
+TeamSection — the people behind the business: photo, name, role, short bio and contacts.
+Props:
+- members: { name: string, role?: string, photo?: string, bio?: string, email?: string,
+    phone?: string, links?: { label: string, href: string }[] }[]
+  Without photo, the person's initials are shown instead.
+- heading?: string
+- intro?: string
+- shape?: "circle" | "square" — photo shape (default "square")
+- tone?: "default" | "surface"
+- emailLabel?: string — visible text of email links (default "Email")
+- phoneLabel?: string — visible text of phone links (default "Call")
+- id?: string
+- class?: string
+- style?: string
+Accessibility: a list of people with an h3 per name. Photos are decorative (the name is
+right below), so alt is empty. Contact links say whose they are to screen readers
+("Email — Marie Tremblay") while staying short on screen; every link has a 44px target.
+Performance: lazy, async-decoded photos with a fixed aspect ratio (no layout shift).
+Theme variables: --team-card-bg, --team-card-border, --team-photo-radius, --team-photo-bg,
+--team-role-color, --team-columns-min, --team-card-padding
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  members: z
+    .array(
+      z.looseObject({
+        name: z.string(),
+        role: z.string().optional(),
+        photo: z.string().optional(),
+        bio: z.string().optional(),
+        email: z.string().optional(),
+        phone: z.string().optional(),
+        links: z.array(z.looseObject({ label: z.string(), href: z.string() })).default([])
+      })
+    )
+    .min(1),
+  heading: z.string().optional(),
+  intro: z.string().optional(),
+  shape: z.enum(["circle", "square"]).default("square"),
+  tone: z.enum(["default", "surface"]).default("default"),
+  emailLabel: z.string().default("Email"),
+  phoneLabel: z.string().default("Call")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  members,
+  heading,
+  intro,
+  shape,
+  tone,
+  emailLabel,
+  phoneLabel,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "TeamSection" });
+
+const headingId = heading ? nextId("team") : undefined;
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+---
+
+<section
+  id={id}
+  class={mergeClasses("team", `team--${shape}`, `team--${tone}`, className)}
+  style={style}
+  aria-labelledby={headingId}
+  {...rest}
+>
+  {
+    (heading || intro) && (
+      <div class="team__head">
+        {heading && (
+          <h2 id={headingId} class="team__heading">
+            {heading}
+          </h2>
+        )}
+        {intro && <p class="team__intro">{intro}</p>}
+      </div>
+    )
+  }
+  <ul class="team__list">
+    {
+      members.map((member) => {
+        const contacts = [
+          ...(member.email ? [{ label: emailLabel, href: `mailto:${member.email}` }] : []),
+          ...(member.phone
+            ? [{ label: phoneLabel, href: `tel:${member.phone.replace(/[^\d+]/g, "")}` }]
+            : []),
+          ...member.links
+        ];
+        return (
+          <li class="team__member">
+            {member.photo ? (
+              <img
+                class="team__photo"
+                src={member.photo}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                width="320"
+                height="320"
+              />
+            ) : (
+              <span class="team__photo team__initials" aria-hidden="true">
+                {initials(member.name)}
+              </span>
+            )}
+            <div class="team__body">
+              <h3 class="team__name">{member.name}</h3>
+              {member.role && <p class="team__role">{member.role}</p>}
+              {member.bio && <p class="team__bio">{member.bio}</p>}
+              {contacts.length > 0 && (
+                <ul class="team__links">
+                  {contacts.map((link) => (
+                    <li>
+                      <a class="team__link" href={link.href}>
+                        {link.label}
+                        <span class="team__sr"> — {member.name}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ul>
+</section>
+
+<style>
+  .team {
+    padding-block: var(--space-6);
+  }
+
+  .team--surface {
+    background: var(--color-surface);
+    padding-inline: var(--space-4);
+  }
+
+  .team__head {
+    max-width: 42rem;
+    margin-bottom: var(--space-5);
+  }
+
+  .team__heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-xl);
+    line-height: var(--line-tight);
+  }
+
+  .team__intro {
+    margin: var(--space-2) 0 0;
+    color: var(--color-fg-muted, inherit);
+  }
+
+  .team__list {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(100%, var(--team-columns-min, 14rem)), 1fr)
+    );
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .team__member {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--team-card-padding, 0);
+    border: var(--team-card-border, 0);
+    background: var(--team-card-bg, transparent);
+  }
+
+  .team__photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--team-photo-radius, var(--radius-lg));
+    background: var(--team-photo-bg, var(--color-surface));
+  }
+
+  .team--circle .team__photo {
+    width: min(100%, 12rem);
+    border-radius: 50%;
+  }
+
+  .team__initials {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+    font-weight: var(--weight-bold);
+    color: var(--color-fg);
+    letter-spacing: 0.04em;
+    box-shadow: inset 0 0 0 1px var(--color-border);
+  }
+
+  .team__body {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .team__name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-lg);
+    line-height: var(--line-tight);
+  }
+
+  .team__role {
+    margin: 0;
+    font-size: var(--size-sm);
+    font-weight: var(--weight-medium);
+    color: var(--team-role-color, var(--color-fg-muted, inherit));
+  }
+
+  .team__bio {
+    margin: var(--space-1) 0 0;
+    font-size: var(--size-sm);
+    line-height: var(--line-normal);
+  }
+
+  .team__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .team__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: inherit;
+    font-size: var(--size-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .team__link:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .team__link:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .team__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

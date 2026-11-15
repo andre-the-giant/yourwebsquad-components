@@ -1,0 +1,233 @@
+---
+/*
+Timeline — dated milestones: company history, project log, renovation diary.
+For numbered "how it works" steps use Steps (layout="timeline") instead.
+Props:
+- items: { date: string, datetime?: string, title: string, text?: string,
+    image?: { src: string, alt?: string } }[]
+  date: what readers see ("Spring 2019"); datetime: machine value ("2019-04").
+- heading?: string
+- layout?: "single" | "alternate" — alternate puts items left and right of a centre
+  line on large screens; phones always get a single column (default "single")
+- tone?: "default" | "surface"
+- id?: string
+- class?: string
+- style?: string
+Accessibility: an ordered list in reading order, each date in <time> when datetime is set;
+the line and dots are decorative. Alternate layout only moves boxes, never the order.
+Theme variables: --timeline-line, --timeline-dot, --timeline-dot-size, --timeline-date-color,
+--timeline-card-bg
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        date: z.string(),
+        datetime: z.string().optional(),
+        title: z.string(),
+        text: z.string().optional(),
+        image: z.looseObject({ src: z.string(), alt: z.string().default("") }).optional()
+      })
+    )
+    .min(1),
+  heading: z.string().optional(),
+  layout: z.enum(["single", "alternate"]).default("single"),
+  tone: z.enum(["default", "surface"]).default("default")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  heading,
+  layout,
+  tone,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Timeline" });
+
+const headingId = heading ? nextId("timeline") : undefined;
+---
+
+<section
+  id={id}
+  class={mergeClasses("timeline", `timeline--${layout}`, `timeline--${tone}`, className)}
+  style={style}
+  aria-labelledby={headingId}
+  {...rest}
+>
+  {
+    heading && (
+      <h2 id={headingId} class="timeline__heading">
+        {heading}
+      </h2>
+    )
+  }
+  <ol class="timeline__list">
+    {
+      items.map((item) => (
+        <li class="timeline__item">
+          <span class="timeline__dot" aria-hidden="true" />
+          <div class="timeline__card">
+            {item.datetime ? (
+              <time class="timeline__date" datetime={item.datetime}>
+                {item.date}
+              </time>
+            ) : (
+              <span class="timeline__date">{item.date}</span>
+            )}
+            <h3 class="timeline__title">{item.title}</h3>
+            {item.text && <p class="timeline__text">{item.text}</p>}
+            {item.image && (
+              <img
+                class="timeline__image"
+                src={item.image.src}
+                alt={item.image.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .timeline {
+    --_dot: var(--timeline-dot-size, 0.875rem);
+    --_gutter: 2rem;
+    padding-block: var(--space-6);
+  }
+
+  .timeline--surface {
+    background: var(--color-surface);
+    padding-inline: var(--space-4);
+  }
+
+  .timeline__heading {
+    margin: 0 0 var(--space-5);
+    font-family: var(--font-display);
+    font-size: var(--size-xl);
+    line-height: var(--line-tight);
+  }
+
+  .timeline__list {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* The line. */
+  .timeline__list::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.5rem;
+    inset-inline-start: calc(var(--_dot) / 2 - 1px);
+    width: 2px;
+    background: var(--timeline-line, var(--color-border));
+  }
+
+  .timeline__item {
+    position: relative;
+    padding-inline-start: var(--_gutter);
+  }
+
+  .timeline__dot {
+    position: absolute;
+    top: 0.35rem;
+    inset-inline-start: 0;
+    width: var(--_dot);
+    height: var(--_dot);
+    border-radius: 50%;
+    background: var(--timeline-dot, var(--color-fg));
+    box-shadow: 0 0 0 4px var(--color-bg);
+  }
+
+  .timeline--surface .timeline__dot {
+    box-shadow: 0 0 0 4px var(--color-surface);
+  }
+
+  .timeline__card {
+    display: grid;
+    gap: var(--space-1);
+    max-width: 38rem;
+  }
+
+  .timeline__date {
+    font-size: var(--size-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--timeline-date-color, var(--color-fg-muted, inherit));
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-lg);
+    line-height: var(--line-tight);
+  }
+
+  .timeline__text {
+    margin: 0;
+    line-height: var(--line-normal);
+  }
+
+  .timeline__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: var(--space-2);
+    border-radius: var(--radius-md);
+  }
+
+  @media (min-width: 48rem) {
+    .timeline--alternate .timeline__list::before {
+      inset-inline-start: calc(50% - 1px);
+    }
+
+    .timeline--alternate .timeline__item {
+      width: 50%;
+      padding-inline: 0 var(--_gutter);
+      text-align: end;
+    }
+
+    .timeline--alternate .timeline__item:nth-child(even) {
+      margin-inline-start: 50%;
+      padding-inline: var(--_gutter) 0;
+      text-align: start;
+    }
+
+    .timeline--alternate .timeline__dot {
+      inset-inline-start: auto;
+      inset-inline-end: calc(var(--_dot) / -2);
+    }
+
+    .timeline--alternate .timeline__item:nth-child(even) .timeline__dot {
+      inset-inline-start: calc(var(--_dot) / -2);
+      inset-inline-end: auto;
+    }
+
+    .timeline--alternate .timeline__card {
+      margin-inline-start: auto;
+    }
+
+    .timeline--alternate .timeline__item:nth-child(even) .timeline__card {
+      margin-inline-start: 0;
+    }
+  }
+</style>
