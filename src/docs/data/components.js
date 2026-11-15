@@ -490,10 +490,20 @@ export const components = [
     name: "ShaderBackground",
     href: "/components/shaderbackground",
     description:
-      "Animated WebGL background (21st.dev shader presets). Built into Hero, PageHero and CtaBand.",
+      "Animated WebGL background (21st.dev and Paper Shaders presets). Built into Hero, PageHero and CtaBand.",
     category: "Media",
     level: "atoms",
-    tags: ["shader", "webgl", "waves", "gradient", "animated background"]
+    tags: [
+      "shader",
+      "webgl",
+      "waves",
+      "smoke ring",
+      "god rays",
+      "neuro noise",
+      "paper",
+      "gradient",
+      "animated background"
+    ]
   },
   {
     name: "AnnouncementPill",

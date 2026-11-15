@@ -172,7 +172,7 @@ test.describe("ShaderBackground", () => {
   ]) {
     test(`shader starts on ${url}`, async ({ page }) => {
       await page.goto(url);
-      const canvas = page.locator('canvas[data-shader="waves"]').first();
+      const canvas = page.locator('[data-shader="waves"]').first();
       await canvas.scrollIntoViewIfNeeded();
       await expect(canvas).toHaveAttribute("data-ready", "");
       await expect(canvas.locator("xpath=..")).toHaveAttribute("aria-hidden", "true");
@@ -190,5 +190,30 @@ test.describe("ShaderBackground", () => {
       "color",
       "rgb(255, 255, 255)"
     );
+  });
+});
+
+test.describe("ShaderBackground (Paper Shaders)", () => {
+  test("smoke ring, god rays and neuro noise start", async ({ page }) => {
+    const warnings = [];
+    page.on(
+      "console",
+      (m) => m.type() === "warning" && /ShaderBackground/.test(m.text()) && warnings.push(m.text())
+    );
+    await page.goto("/components/shaderbackground");
+    for (const name of ["smoke-ring", "god-rays", "neuro-noise"]) {
+      const el = page.locator(`[data-shader="${name}"]`).first();
+      await el.scrollIntoViewIfNeeded();
+      await expect(el).toHaveAttribute("data-ready", "");
+      await expect(el.locator("canvas")).toHaveCount(1);
+    }
+    expect(warnings).toEqual([]);
+  });
+
+  test("god rays work inside CtaBand", async ({ page }) => {
+    await page.goto("/components/ctaband");
+    const el = page.locator('.ctaband--shader [data-shader="god-rays"]');
+    await el.scrollIntoViewIfNeeded();
+    await expect(el).toHaveAttribute("data-ready", "");
   });
 });

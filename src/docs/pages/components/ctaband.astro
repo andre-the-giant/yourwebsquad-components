@@ -32,7 +32,13 @@ const examples: any[] = [
     }
   }
 ];
-const bodies = ["", "", ""];
+examples.push({
+  shader: "god-rays",
+  heading: "Night shifts, same crew",
+  text: "Emergency repairs from 6 pm to 6 am, one call.",
+  action: { label: "Call the night line", href: "#" }
+});
+const bodies = ["", "", "", ""];
 const codes = examples.map((p, i) =>
   bodies[i]
     ? `<CtaBand {...${JSON.stringify(p)}}>${bodies[i]}</CtaBand>`
@@ -58,7 +64,7 @@ const props = [
   },
   {
     name: "shader",
-    type: '"waves"',
+    type: '"waves" | "smoke-ring" | "god-rays" | "neuro-noise"',
     default: "—",
     description: "Animated WebGL background (see ShaderBackground). Text turns light."
   },
@@ -92,5 +98,8 @@ const props = [
   </Preview>
   <Preview title="Shader background" code={codes[2]}>
     <CtaBand {...examples[2]} />
+  </Preview>
+  <Preview title="Shader background (god rays)" code={codes[3]}>
+    <CtaBand {...examples[3]} />
   </Preview>
 </DocLayout>

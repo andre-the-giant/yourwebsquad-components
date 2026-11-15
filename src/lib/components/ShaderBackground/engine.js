@@ -21,7 +21,7 @@ function hexToRgb(hex) {
           .split("")
           .map((c) => c + c)
           .join("")
-      : h;
+      : h.slice(0, 6);
   const n = parseInt(full, 16);
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }

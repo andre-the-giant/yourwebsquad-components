@@ -74,10 +74,14 @@ const searchText = (item) =>
 </nav>
 
 <script>
+  // The search is kept for this browser tab, so it survives clicking a result
+  // (every docs page is a full page load). Clearing the field clears it.
+  const STORAGE_KEY = "docs-sidebar-search";
   const input = document.querySelector<HTMLInputElement>("[data-sidebar-search]");
   const empty = document.querySelector<HTMLElement>("[data-sidebar-empty]");
-  input?.addEventListener("input", () => {
-    const terms = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  const filter = (value: string) => {
+    const terms = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
     let shown = 0;
     document.querySelectorAll<HTMLElement>("[data-sidebar-group]").forEach((group) => {
       let groupShown = 0;
@@ -91,7 +95,33 @@ const searchText = (item) =>
       shown += groupShown;
     });
     if (empty) empty.hidden = shown > 0;
-  });
+  };
+
+  const save = (value: string) => {
+    try {
+      if (value.trim()) sessionStorage.setItem(STORAGE_KEY, value);
+      else sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Storage blocked (private mode, policy): search still works on this page.
+    }
+  };
+
+  if (input) {
+    let saved = "";
+    try {
+      saved = sessionStorage.getItem(STORAGE_KEY) ?? "";
+    } catch {
+      saved = "";
+    }
+    // Keep what the browser restored (back/forward) if it already filled the field.
+    if (!input.value && saved) input.value = saved;
+    if (input.value) filter(input.value);
+
+    input.addEventListener("input", () => {
+      filter(input.value);
+      save(input.value);
+    });
+  }
 </script>
 <style>
   .sidebar {

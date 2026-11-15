@@ -20,6 +20,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@paper-design/shaders": "0.0.82",
     "astro": "7.0.3",
     "zod": "^4.3.6"
   },

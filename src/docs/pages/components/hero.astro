@@ -55,7 +55,7 @@ const props = [
   },
   {
     name: "shader",
-    type: '"waves"',
+    type: '"waves" | "smoke-ring" | "god-rays" | "neuro-noise"',
     default: "—",
     description:
       "Animated WebGL background (see ShaderBackground). On default it replaces the image; showcase uses waves when unset; kinetic ignores it."
@@ -181,7 +181,7 @@ const wavesCode = `<Hero
 <Hero variant="showcase" shaderColors={["#1A0B2E", "#6B2D8F", "#F08A5D", "#FFE8D6"]} … />`;
 
 const shaderDefaultCode = `<Hero
-  shader="waves"
+  shader="smoke-ring"
   title="Your Web Squad is here for you"
   body="The default layout with a shader instead of a photo."
   cta={{ href: "/", label: "Pump up the volume!" }}
@@ -256,9 +256,9 @@ const kineticCode = `<Hero
     </Hero>
   </Preview>
 
-  <Preview title="Default layout with a shader" code={shaderDefaultCode}>
+  <Preview title="Default layout with a shader (smoke ring)" code={shaderDefaultCode}>
     <Hero
-      shader="waves"
+      shader="smoke-ring"
       title="Your Web Squad is here for you"
       body="The default layout with a shader instead of a photo."
       cta={{ href: "/", label: "Pump up the volume!" }}

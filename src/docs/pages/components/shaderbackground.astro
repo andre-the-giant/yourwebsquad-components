@@ -11,16 +11,17 @@ const props = [
   { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   {
     name: "shader",
-    type: '"waves"',
+    type: '"waves" | "smoke-ring" | "god-rays" | "neuro-noise"',
     default: '"waves"',
-    description: "Preset from the 21st.dev Shader Builder. New presets go in presets/."
+    description:
+      "waves comes from the 21st.dev Shader Builder (WebGL1). smoke-ring, god-rays and neuro-noise come from Paper Shaders (Apache-2.0, WebGL2). New presets go in presets/."
   },
   {
     name: "colors",
     type: "string[]",
     default: "the preset's colours",
     description:
-      "2 to 8 hex colours, low → high. The first is the dark base text sits on, so keep it dark."
+      "2 to 8 hex colours; the first is the dark base text sits on, so keep it dark. waves: low → high. smoke-ring: background, ring colours. god-rays: background, bloom, rays. neuro-noise: background, lines, highlights. #rrggbbaa sets opacity on Paper presets."
   },
   {
     name: "animate",
@@ -68,12 +69,19 @@ const usage = `<!-- Hero, PageHero and CtaBand have it built in -->
   …
 </div>`;
 
+const paperCode = `<ShaderBackground shader="smoke-ring" />
+<ShaderBackground shader="god-rays" />
+<ShaderBackground shader="neuro-noise" />
+
+<!-- God rays in your colours: background, bloom, then rays -->
+<ShaderBackground shader="god-rays" colors={["#090f1d", "#ffffff", "#148effa6", "#c4dffebe", "#232a47"]} />`;
+
 const paletteCode = `<ShaderBackground colors={["#1A0B2E", "#6B2D8F", "#F08A5D", "#FFE8D6"]} scrim="none" />`;
 ---
 
 <DocLayout
   title="ShaderBackground"
-  description="Animated WebGL background that fills its parent. Plain WebGL1, no libraries, a CSS gradient when WebGL is missing."
+  description="Animated WebGL background that fills its parent: a 21st.dev Waves shader and three Paper Shaders presets, with a CSS gradient when WebGL is missing."
   items={components}
 >
   <PropsTable props={props} />
@@ -84,6 +92,31 @@ const paletteCode = `<ShaderBackground colors={["#1A0B2E", "#6B2D8F", "#F08A5D",
       <ShaderBackground scrim="start" />
       <p class="demo__title">Waves, start scrim</p>
       <p>The overlay is darkest behind the text.</p>
+    </div>
+  </Preview>
+
+  <Preview title="Paper Shaders: smoke ring, god rays, neuro noise" code={paperCode}>
+    <div class="demo-stack">
+      <div class="demo" style="background-color: #000000">
+        <ShaderBackground shader="smoke-ring" scrim="none" />
+        <p class="demo__title">Smoke ring</p>
+      </div>
+      <div class="demo" style="background-color: #000000">
+        <ShaderBackground shader="god-rays" scrim="none" />
+        <p class="demo__title">God rays</p>
+      </div>
+      <div class="demo" style="background-color: #000000">
+        <ShaderBackground shader="neuro-noise" scrim="start" />
+        <p class="demo__title">Neuro noise</p>
+      </div>
+      <div class="demo" style="background-color: #090f1d">
+        <ShaderBackground
+          shader="god-rays"
+          colors={["#090f1d", "#ffffff", "#148effa6", "#c4dffebe", "#232a47"]}
+          scrim="none"
+        />
+        <p class="demo__title">God rays, “Ether” colours</p>
+      </div>
     </div>
   </Preview>
 
@@ -115,6 +148,11 @@ const paletteCode = `<ShaderBackground colors={["#1A0B2E", "#6B2D8F", "#F08A5D",
     /* Solid base under the canvas, the preset's first colour */
     background-color: #031c26;
     color: rgb(255, 255, 255);
+  }
+  .demo-stack {
+    display: grid;
+    gap: 1rem;
+    width: min(100%, 48rem);
   }
   .demo p {
     margin: 0;

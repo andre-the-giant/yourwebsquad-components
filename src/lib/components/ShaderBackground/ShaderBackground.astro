@@ -4,8 +4,11 @@ ShaderBackground — animated WebGL background (21st.dev Shader Builder presets)
 its parent. The parent needs `position: relative` and `isolation: isolate`; Hero, PageHero
 and CtaBand do this for you through their `shader` prop.
 Props:
-- shader?: "waves" — preset name (see presets/index.js)
-- colors?: string[] — 2 to 8 hex colours, low → high; the first is the dark base text sits on
+- shader?: "waves" | "smoke-ring" | "god-rays" | "neuro-noise" — preset name (see presets/index.js).
+    waves: 21st.dev Shader Builder (WebGL1). The others: Paper Shaders, Apache-2.0 (WebGL2).
+- colors?: string[] — 2 to 8 hex colours; the first is the dark base text sits on.
+    waves: low → high. smoke-ring: background, ring colours. god-rays: background, bloom, rays.
+    neuro-noise: background, lines, highlights. #rrggbbaa sets opacity (Paper presets).
 - animate?: boolean — default true. false, or prefers-reduced-motion, draws one still frame
 - scrim?: "even" | "start" | "corner" | "none" — dark overlay so text stays readable
     even: the whole area, start: from the inline start edge, corner: from the bottom-left corner
@@ -21,7 +24,13 @@ Without WebGL a CSS gradient of the same colours shows instead.
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
-import { shaderNames, shaderPalette, hexToRgbTriplet, HEX_COLOR } from "./presets/index.js";
+import {
+  shaderNames,
+  shaderPresets,
+  shaderPalette,
+  hexToRgbTriplet,
+  HEX_COLOR
+} from "./presets/index.js";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
@@ -51,6 +60,7 @@ const {
 const resolvedShader = shader ?? "waves";
 const palette = shaderPalette(resolvedShader, colors);
 const resolvedScrim = scrim ?? "even";
+const isPaper = "engine" in shaderPresets[resolvedShader];
 const gradientDirection =
   (palette.darkEdge === "bottom") !== Boolean(flip) ? "to top" : "to bottom";
 
@@ -70,11 +80,23 @@ const resolvedClass = mergeClasses(
 ---
 
 <div id={id} class={resolvedClass} style={resolvedStyle || undefined} aria-hidden="true" {...rest}>
-  <canvas
-    class="shader-bg__canvas"
-    data-shader={resolvedShader}
-    data-colors={JSON.stringify(palette.colors)}
-    data-animate={String(animate ?? true)}></canvas>
+  {
+    isPaper ? (
+      <div
+        class="shader-bg__canvas"
+        data-shader={resolvedShader}
+        data-colors={JSON.stringify(palette.colors)}
+        data-animate={String(animate ?? true)}
+      />
+    ) : (
+      <canvas
+        class="shader-bg__canvas"
+        data-shader={resolvedShader}
+        data-colors={JSON.stringify(palette.colors)}
+        data-animate={String(animate ?? true)}
+      />
+    )
+  }
 </div>
 
 <style>
@@ -87,6 +109,7 @@ const resolvedClass = mergeClasses(
     background: rgb(var(--shader-ink));
   }
   .shader-bg__canvas {
+    position: relative;
     display: block;
     width: 100%;
     height: 100%;
@@ -132,25 +155,29 @@ const resolvedClass = mergeClasses(
 
 <script>
   import { mountShader } from "./engine.js";
+  import { mountPaper } from "./paper-engine.js";
   import { shaderPresets } from "./presets/index.js";
 
-  // One WebGL context per canvas. Under reduced motion or animate={false} the
-  // engine draws a single still frame instead of looping.
+  // One WebGL context per shader. Under reduced motion or animate={false} it draws a
+  // single still frame. Both engines pause while the tab is hidden or the shader is
+  // off screen.
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  document.querySelectorAll<HTMLCanvasElement>("canvas[data-shader]").forEach((canvas) => {
-    if (canvas.dataset.mounted !== undefined) return;
-    canvas.dataset.mounted = "";
-    const preset = shaderPresets[canvas.dataset.shader as keyof typeof shaderPresets];
+  document.querySelectorAll<HTMLElement>(".shader-bg__canvas[data-shader]").forEach((el) => {
+    if (el.dataset.mounted !== undefined) return;
+    el.dataset.mounted = "";
+    const preset = shaderPresets[el.dataset.shader as keyof typeof shaderPresets];
     if (!preset) return;
     let colors: string[] = [];
     try {
-      colors = JSON.parse(canvas.dataset.colors ?? "[]");
+      colors = JSON.parse(el.dataset.colors ?? "[]");
     } catch {
       colors = [];
     }
-    mountShader(canvas, preset, {
+    const options = {
       colors,
-      animate: canvas.dataset.animate !== "false" && !reduceMotion.matches
-    });
+      animate: el.dataset.animate !== "false" && !reduceMotion.matches
+    };
+    if ("engine" in preset) mountPaper(el, preset, options);
+    else if (el instanceof HTMLCanvasElement) mountShader(el, preset, options);
   });
 </script>
