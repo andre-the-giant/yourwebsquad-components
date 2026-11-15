@@ -38,30 +38,30 @@ const props = [
 ];
 ---
 
-  <PropsTable props={props} />
+<PropsTable props={props} />
 
-  <Preview title="Basic" code={basicCode}>
-    <div class="row">
-      <FormTextarea label="Message" id="message" placeholder="Write your message" />
-    </div>
-  </Preview>
+<Preview title="Basic" code={basicCode}>
+  <div class="row">
+    <FormTextarea label="Message" id="message" placeholder="Write your message" />
+  </div>
+</Preview>
 
-  <Preview title="States" code={statesCode}>
-    <div class="row">
-      <FormTextarea label="Notes" id="notes" rows={6} />
-      <FormTextarea label="Disabled" id="notes-disabled" disabled />
-    </div>
-  </Preview>
+<Preview title="States" code={statesCode}>
+  <div class="row">
+    <FormTextarea label="Notes" id="notes" rows={6} />
+    <FormTextarea label="Disabled" id="notes-disabled" disabled />
+  </div>
+</Preview>
 
-  <Preview title="CSS variables" code={cssVarCode}>
-    <div class="row">
-      <FormTextarea
-        label="Padded notes"
-        placeholder="Tweaked padding"
-        style="--form-input-padding: 0.9rem 1.1rem; --form-input-border: 1px solid #0d6ea8;"
-      />
-    </div>
-  </Preview>
+<Preview title="CSS variables" code={cssVarCode}>
+  <div class="row">
+    <FormTextarea
+      label="Padded notes"
+      placeholder="Tweaked padding"
+      style="--form-input-padding: 0.9rem 1.1rem; --form-input-border: 1px solid #0d6ea8;"
+    />
+  </div>
+</Preview>
 
 <style>
   .row {

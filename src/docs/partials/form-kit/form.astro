@@ -245,82 +245,82 @@ const props = [
 ];
 ---
 
-  <PropsTable props={props} />
+<PropsTable props={props} />
 
-  <Preview title="Basic form" code={basicCode}>
-    <div class="column">
-      <Form formId="contact" />
-    </div>
-  </Preview>
+<Preview title="Basic form" code={basicCode}>
+  <div class="column">
+    <Form formId="contact" />
+  </div>
+</Preview>
 
-  <Preview title="Setup: Astro config" code={integrationSnippet} lang="js">
-    <div class="column">
-      <p>Add the forms integration to generate PHP endpoints during <code>astro build</code>.</p>
-    </div>
-  </Preview>
+<Preview title="Setup: Astro config" code={integrationSnippet} lang="js">
+  <div class="column">
+    <p>Add the forms integration to generate PHP endpoints during <code>astro build</code>.</p>
+  </div>
+</Preview>
 
-  <Preview title="Setup: Content collection" code={contentSnippet} lang="ts">
-    <div class="column">
-      <p>Define the <code>forms</code> collection (JSON data) in your project.</p>
-    </div>
-  </Preview>
+<Preview title="Setup: Content collection" code={contentSnippet} lang="ts">
+  <div class="column">
+    <p>Define the <code>forms</code> collection (JSON data) in your project.</p>
+  </div>
+</Preview>
 
-  <Preview title="Sample form entry" code={sampleForm} lang="json">
-    <div class="column">
-      <p>
-        Place JSON files in <code>src/forms/</code>. Build will emit <code
-          >/build/api/&lt;id&gt;/index.php</code
-        >.
-      </p>
-    </div>
-  </Preview>
+<Preview title="Sample form entry" code={sampleForm} lang="json">
+  <div class="column">
+    <p>
+      Place JSON files in <code>src/forms/</code>. Build will emit <code
+        >/build/api/&lt;id&gt;/index.php</code
+      >.
+    </p>
+  </div>
+</Preview>
 
-  <Preview title="Styling with CSS variables" code={stylingSnippet}>
-    <div class="column">
-      <p>
-        Set CSS variables on <code>&lt;Form&gt;</code> (or a parent class) to cascade into inputs and
-        the built-in buttons. Use <code>submitStyle</code>/<code>resetStyle</code> when you want to target
-        only the default actions without affecting other buttons inside the form.
-      </p>
-    </div>
-  </Preview>
+<Preview title="Styling with CSS variables" code={stylingSnippet}>
+  <div class="column">
+    <p>
+      Set CSS variables on <code>&lt;Form&gt;</code> (or a parent class) to cascade into inputs and the
+      built-in buttons. Use <code>submitStyle</code>/<code>resetStyle</code> when you want to target only
+      the default actions without affecting other buttons inside the form.
+    </p>
+  </div>
+</Preview>
 
-  <Preview title="Styled live example" code={stylingSnippet}>
-    <div class="column">
-      <Form
-        style="--form-input-border: 1px solid #0d6ea8; --form-input-padding: 0.85rem 1rem; --button-solid-bg: #0ea5e9; --button-solid-border: #0ea5e9; --button-ghost-fg: #0ea5e9;"
-        submitStyle="--button-solid-shadow: 0 10px 20px color-mix(in srgb, #0ea5e9 35%, transparent);"
-        resetStyle="--button-outline-fg: #0ea5e9; --button-outline-border: #0ea5e9;"
-      >
-        <FormInput label="Name" placeholder="Ada Lovelace" required />
-        <FormSelect
-          label="Project type"
-          required
-          options={[
-            { label: "Website", value: "website" },
-            { label: "SEO", value: "seo" },
-            { label: "Brand", value: "brand" }
-          ]}
-          placeholder="Choose one"
-        />
-        <FormTextarea label="Message" placeholder="Tell us about your project" required />
-        <FormUpload
-          label="Reference images"
-          name="images"
-          accept="image/*"
-          multiple
-          maxFiles={3}
-          maxFileSizeMb={5}
-        />
-      </Form>
-    </div>
-  </Preview>
+<Preview title="Styled live example" code={stylingSnippet}>
+  <div class="column">
+    <Form
+      style="--form-input-border: 1px solid #0d6ea8; --form-input-padding: 0.85rem 1rem; --button-solid-bg: #0ea5e9; --button-solid-border: #0ea5e9; --button-ghost-fg: #0ea5e9;"
+      submitStyle="--button-solid-shadow: 0 10px 20px color-mix(in srgb, #0ea5e9 35%, transparent);"
+      resetStyle="--button-outline-fg: #0ea5e9; --button-outline-border: #0ea5e9;"
+    >
+      <FormInput label="Name" placeholder="Ada Lovelace" required />
+      <FormSelect
+        label="Project type"
+        required
+        options={[
+          { label: "Website", value: "website" },
+          { label: "SEO", value: "seo" },
+          { label: "Brand", value: "brand" }
+        ]}
+        placeholder="Choose one"
+      />
+      <FormTextarea label="Message" placeholder="Tell us about your project" required />
+      <FormUpload
+        label="Reference images"
+        name="images"
+        accept="image/*"
+        multiple
+        maxFiles={3}
+        maxFileSizeMb={5}
+      />
+    </Form>
+  </div>
+</Preview>
 
-  <style>
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-4);
-      width: min(640px, 100%);
-    }
-  </style>
+<style>
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: min(640px, 100%);
+  }
+</style>

@@ -44,7 +44,35 @@ const props = [
     type: "string",
     default: "—",
     description:
-      "Relative (important!) SVG path for clipPath. Run it through path converter https://yoksel.github.io/relative-clip-path/"
+      "Relative (important!) SVG path for clipPath. Run it through path converter https://yoksel.github.io/relative-clip-path/ (default variant only)."
+  },
+  {
+    name: "variant",
+    type: '"default" | "kinetic" | "showcase"',
+    default: '"default"',
+    description:
+      "Layout template; content stays the same. default: full-bleed image with centred copy. kinetic: big centred title whose words blur in, the image as a wide window below that widens as it scrolls into view. showcase: shader background with the copy bottom left and the image as a framed card on the right."
+  },
+  {
+    name: "shader",
+    type: '"waves"',
+    default: "—",
+    description:
+      "Animated WebGL background (see ShaderBackground). On default it replaces the image; showcase uses waves when unset; kinetic ignores it."
+  },
+  {
+    name: "shaderColors",
+    type: "string[]",
+    default: '["#031C26", "#1B6CA8", "#5AD2F4", "#EAF9FF"]',
+    description:
+      "With a shader: 2 to 8 hex colours, low → high. The first is the dark base the white text sits on, so keep it dark. Also used for the still CSS gradient when WebGL is unavailable."
+  },
+  {
+    name: "animate",
+    type: "boolean",
+    default: "true",
+    description:
+      "Entrance motion. default: slow zoom on the image, title words rise from a mask, copy fades up. kinetic: words blur in one by one. With a shader, it loops (paused when the tab is hidden or the hero is off screen); false draws one still frame. Always off when the visitor prefers reduced motion."
   }
 ];
 
@@ -74,11 +102,110 @@ const styleVars = [
     name: "--hero-gradient-end",
     description: "Gradient end color/stop.",
     default: "rgba(var(--color-bg-rgb), 80%)"
+  },
+  {
+    name: "--hero-title-font",
+    description: "kinetic: title font.",
+    default: "var(--font-display)"
+  },
+  {
+    name: "--hero-title-size",
+    description: "kinetic: title size.",
+    default: "clamp(2.4rem, 6.5vw, 4.75rem)"
+  },
+  { name: "--hero-title-weight", description: "kinetic: title weight.", default: "700" },
+  { name: "--hero-title-line", description: "kinetic: title line height.", default: "1.02" },
+  {
+    name: "--hero-title-tracking",
+    description: "kinetic: title letter spacing.",
+    default: "-0.025em"
+  },
+  {
+    name: "--hero-title-transform",
+    description: "kinetic: title text-transform.",
+    default: "none"
+  },
+  {
+    name: "--hero-body-color",
+    description: "kinetic: body colour.",
+    default: "var(--color-muted)"
+  },
+  { name: "--hero-kinetic-bg", description: "kinetic: background.", default: "transparent" },
+  {
+    name: "--hero-glow",
+    description: "kinetic: spotlight behind the title (any background value, none to remove).",
+    default: "radial accent glow at 18%"
+  },
+  {
+    name: "--hero-window-radius",
+    description: "kinetic: top corner radius of the image window.",
+    default: "1.5rem"
+  },
+  {
+    name: "--hero-window-border",
+    description: "kinetic: border of the image window.",
+    default: "0"
+  },
+  {
+    name: "--hero-window-shadow",
+    description: "kinetic: shadow of the image window.",
+    default: "none"
+  },
+  {
+    name: "--hero-showcase-min-height",
+    description: "showcase: minimum height.",
+    default: "clamp(30rem, 52vw, 42rem)"
+  },
+  {
+    name: "--hero-showcase-card-radius",
+    description: "showcase: radius of the image card.",
+    default: "var(--surface-radius, 1.25rem)"
   }
 ];
+
+const wavesCode = `<Hero
+  variant="showcase"
+  shader="waves"
+  title="Pools opened, cleaned and closed for the season"
+  body="Weekly visits from May to September, one technician who knows your pool."
+  img="https://picsum.photos/800/1000"
+  cta={{ href: "/", label: "Get my season price" }}
+>
+  <Fragment slot="meta">
+    <Tag label="From $95 a visit" />
+    <Tag label="Chemicals included" />
+  </Fragment>
+</Hero>
+
+<!-- Your own palette, low → high -->
+<Hero variant="showcase" shaderColors={["#1A0B2E", "#6B2D8F", "#F08A5D", "#FFE8D6"]} … />`;
+
+const shaderDefaultCode = `<Hero
+  shader="waves"
+  title="Your Web Squad is here for you"
+  body="The default layout with a shader instead of a photo."
+  cta={{ href: "/", label: "Pump up the volume!" }}
+/>`;
+
+const kineticCode = `<Hero
+  variant="kinetic"
+  title="Kitchens rebuilt in five weeks, permits handled"
+  body="We design, demolish and rebuild your kitchen with one crew and one fixed price."
+  img="https://picsum.photos/1600/610"
+  cta={{ href: "/", label: "Book a free estimate" }}
+>
+  <Fragment slot="meta">
+    <Tag label="From $18,000" />
+    <Tag label="3 to 5 weeks" />
+  </Fragment>
+</Hero>`;
 ---
 
-<DocLayout title="Hero" description={"A big fat image with a text and a cta "} items={components}>
+<DocLayout
+  title="Hero"
+  description={"A big opening block: image, title, text and a CTA. Three layouts (default, kinetic, showcase), entrance motion and an optional WebGL shader background."}
+  items={components}
+>
   <PropsTable props={props} />
 
   <PropsTable title="Slots" props={slots} />
@@ -95,6 +222,46 @@ const styleVars = [
         href: "/",
         label: "Pump up the volume!"
       }}
+    />
+  </Preview>
+
+  <Preview title="Kinetic variant" code={kineticCode}>
+    <Hero
+      variant="kinetic"
+      title="Kitchens rebuilt in five weeks, permits handled"
+      body="We design, demolish and rebuild your kitchen with one crew and one fixed price."
+      img="https://picsum.photos/1600/610"
+      cta={{ href: "/", label: "Book a free estimate" }}
+    >
+      <Fragment slot="meta">
+        <Tag label="From $18,000" />
+        <Tag label="3 to 5 weeks" />
+      </Fragment>
+    </Hero>
+  </Preview>
+
+  <Preview title="Showcase variant (waves shader)" code={wavesCode}>
+    <Hero
+      variant="showcase"
+      shader="waves"
+      title="Pools opened, cleaned and closed for the season"
+      body="Weekly visits from May to September, one technician who knows your pool."
+      img="https://picsum.photos/800/1000"
+      cta={{ href: "/", label: "Get my season price" }}
+    >
+      <Fragment slot="meta">
+        <Tag label="From $95 a visit" />
+        <Tag label="Chemicals included" />
+      </Fragment>
+    </Hero>
+  </Preview>
+
+  <Preview title="Default layout with a shader" code={shaderDefaultCode}>
+    <Hero
+      shader="waves"
+      title="Your Web Squad is here for you"
+      body="The default layout with a shader instead of a photo."
+      cta={{ href: "/", label: "Pump up the volume!" }}
     />
   </Preview>
 

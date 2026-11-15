@@ -39,6 +39,7 @@ const pages = [
   "/components/videofacade",
   "/components/announcementpill",
   "/components/slotpicker",
+  "/components/shaderbackground",
   // Form kit: one entry per tab (the hash opens it; axe skips hidden panels).
   ...formKitTabs.map(({ id }) => `/components/form-kit#${id}`),
   "/components/map",

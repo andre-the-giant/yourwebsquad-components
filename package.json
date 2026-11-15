@@ -69,6 +69,7 @@
     "./Form-Upload": "./src/lib/components/Form-Upload/Form-Upload.astro",
     "./GoogleReviews": "./src/lib/components/GoogleReviews/GoogleReviews.astro",
     "./Hero": "./src/lib/components/Hero/Hero.astro",
+    "./ShaderBackground": "./src/lib/components/ShaderBackground/ShaderBackground.astro",
     "./Icon": "./src/lib/components/Icon/Icon.astro",
     "./Image": "./src/lib/components/Image/Image.astro",
     "./Link": "./src/lib/components/Link/Link.astro",

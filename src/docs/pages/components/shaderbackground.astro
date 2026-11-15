@@ -1,0 +1,127 @@
+---
+import DocLayout from "../../layouts/DocLayout.astro";
+import Preview from "../../components/Preview.astro";
+import PropsTable from "../../components/PropsTable.astro";
+import { components } from "../../data/components.js";
+import ShaderBackground from "@lib/components/ShaderBackground/ShaderBackground.astro";
+
+const props = [
+  { name: "id", type: "string", description: "Optional id for the root element." },
+  { name: "class", type: "string", description: "Additional class names." },
+  { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+  {
+    name: "shader",
+    type: '"waves"',
+    default: '"waves"',
+    description: "Preset from the 21st.dev Shader Builder. New presets go in presets/."
+  },
+  {
+    name: "colors",
+    type: "string[]",
+    default: "the preset's colours",
+    description:
+      "2 to 8 hex colours, low → high. The first is the dark base text sits on, so keep it dark."
+  },
+  {
+    name: "animate",
+    type: "boolean",
+    default: "true",
+    description:
+      "false, or prefers-reduced-motion, draws one still frame. The loop pauses when the tab is hidden or the canvas is off screen."
+  },
+  {
+    name: "scrim",
+    type: '"even" | "start" | "corner" | "none"',
+    default: '"even"',
+    description:
+      "Dark overlay so text stays readable: the whole area, from the start edge, or from the bottom-left corner."
+  },
+  {
+    name: "flip",
+    type: "boolean",
+    default: "false",
+    description: "Turns the pattern upside down, so the palette's dark end sits at the top."
+  }
+];
+
+const styleVars = [
+  {
+    name: "--shader-scrim",
+    description: "Replaces the overlay (any background value).",
+    default: "—"
+  },
+  {
+    name: "--shader-scrim-opacity",
+    description: "Strength of the even overlay.",
+    default: "0.6"
+  }
+];
+
+const usage = `<!-- Hero, PageHero and CtaBand have it built in -->
+<Hero variant="showcase" shader="waves" … />
+<PageHero shader="waves" … />
+<CtaBand shader="waves" … />
+
+<!-- Anywhere else: the parent needs position: relative and isolation: isolate -->
+<div style="position: relative; isolation: isolate; color: white">
+  <ShaderBackground shader="waves" scrim="start" />
+  …
+</div>`;
+
+const paletteCode = `<ShaderBackground colors={["#1A0B2E", "#6B2D8F", "#F08A5D", "#FFE8D6"]} scrim="none" />`;
+---
+
+<DocLayout
+  title="ShaderBackground"
+  description="Animated WebGL background that fills its parent. Plain WebGL1, no libraries, a CSS gradient when WebGL is missing."
+  items={components}
+>
+  <PropsTable props={props} />
+  <PropsTable title="Style variables" props={styleVars} />
+
+  <Preview title="Usage" code={usage}>
+    <div class="demo">
+      <ShaderBackground scrim="start" />
+      <p class="demo__title">Waves, start scrim</p>
+      <p>The overlay is darkest behind the text.</p>
+    </div>
+  </Preview>
+
+  <Preview title="Your own palette, no scrim, flipped" code={paletteCode}>
+    <div class="demo" style="background-color: #1a0b2e">
+      <ShaderBackground colors={["#1A0B2E", "#6B2D8F", "#F08A5D", "#FFE8D6"]} scrim="none" flip />
+      <p class="demo__title">Dusk palette</p>
+    </div>
+  </Preview>
+
+  <Preview title="Still frame (animate false)" code={`<ShaderBackground animate={false} />`}>
+    <div class="demo">
+      <ShaderBackground animate={false} />
+      <p class="demo__title">One frame, no loop</p>
+    </div>
+  </Preview>
+</DocLayout>
+
+<style>
+  .demo {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-content: end;
+    gap: 0.5rem;
+    width: min(100%, 48rem);
+    min-height: 18rem;
+    padding: 2rem;
+    /* Solid base under the canvas, the preset's first colour */
+    background-color: #031c26;
+    color: rgb(255, 255, 255);
+  }
+  .demo p {
+    margin: 0;
+  }
+  .demo__title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+</style>

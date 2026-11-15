@@ -33,21 +33,21 @@ const props = [
 ];
 ---
 
-  <PropsTable props={props} />
+<PropsTable props={props} />
 
-  <Preview title="Usage" code={basicCode}>
-    <div class="row">
-      <FormInput
-        label="Email"
-        id="signup-email"
-        name="email"
-        type="email"
-        ariaInvalid={true}
-        errorId="signup-email-error"
-      />
-      <FormError id="signup-email-error">Please enter a valid email address.</FormError>
-    </div>
-  </Preview>
+<Preview title="Usage" code={basicCode}>
+  <div class="row">
+    <FormInput
+      label="Email"
+      id="signup-email"
+      name="email"
+      type="email"
+      ariaInvalid={true}
+      errorId="signup-email-error"
+    />
+    <FormError id="signup-email-error">Please enter a valid email address.</FormError>
+  </div>
+</Preview>
 
 <style>
   .row {

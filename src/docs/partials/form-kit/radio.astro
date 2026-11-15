@@ -13,155 +13,155 @@ const styleVars = [
 ];
 ---
 
-  <PropsTable
-    props={[
-      { name: "id", type: "string", description: "Radio id; auto-generated if missing." },
-      { name: "class", type: "string", description: "Wrapper class names." },
-      { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
-      { name: "name", type: "string", description: "Form field name (groups radios)." },
-      { name: "label", type: "string", description: "Label text." },
-      { name: "value", type: "string", description: "Submitted value for this radio." },
-      { name: "checked", type: "boolean", default: "false", description: "Checked state." },
-      { name: "disabled", type: "boolean", default: "false", description: "Disable radio." },
-      {
-        name: "required",
-        type: "boolean",
-        default: "false",
-        description: "Mark required; adds asterisk."
-      },
-      {
-        name: "layout",
-        type: `"row" | "column"`,
-        default: '"row"',
-        description: "Wrapper layout (stack radios)."
-      },
-      {
-        name: "position",
-        type: `"left" | "right"`,
-        default: '"left"',
-        description: "Radio placement relative to label."
-      },
-      {
-        name: "appearance",
-        type: `"default" | "tile"`,
-        default: '"default"',
-        description:
-          "tile: a large card (48px or more), the whole card is clickable. Used for the questions of a step-by-step quote."
-      },
-      { name: "description", type: "string", description: "Second line under the label (tile)." },
-      { name: "icon", type: "string", description: "Icon name shown before the text (tile)." },
-      {
-        deprecated: true,
-        name: "color",
-        type: "string",
-        description: "Deprecated — use style vars (see below)."
-      },
-      {
-        deprecated: true,
-        name: "size",
-        type: "string",
-        default: '"20px"',
-        description: "Deprecated — use style vars (--radio-size)."
-      },
-      {
-        deprecated: true,
-        name: "radius",
-        type: "string",
-        default: '"50%"',
-        description: "Deprecated — use style vars (--radio-radius)."
-      },
-      { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
-      {
-        name: "ariaDescribedBy",
-        type: "string",
-        description: "IDs to include in aria-describedby."
-      },
-      {
-        name: "helpId",
-        type: "string",
-        description: "Help text id to append to aria-describedby."
-      },
-      {
-        name: "errorId",
-        type: "string",
-        description: "Error text id to append to aria-describedby."
-      },
-      {
-        name: "ariaInvalid",
-        type: "boolean",
-        default: "false",
-        description: 'Sets aria-invalid="true".'
-      },
-      { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
-    ]}
-  />
+<PropsTable
+  props={[
+    { name: "id", type: "string", description: "Radio id; auto-generated if missing." },
+    { name: "class", type: "string", description: "Wrapper class names." },
+    { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
+    { name: "name", type: "string", description: "Form field name (groups radios)." },
+    { name: "label", type: "string", description: "Label text." },
+    { name: "value", type: "string", description: "Submitted value for this radio." },
+    { name: "checked", type: "boolean", default: "false", description: "Checked state." },
+    { name: "disabled", type: "boolean", default: "false", description: "Disable radio." },
+    {
+      name: "required",
+      type: "boolean",
+      default: "false",
+      description: "Mark required; adds asterisk."
+    },
+    {
+      name: "layout",
+      type: `"row" | "column"`,
+      default: '"row"',
+      description: "Wrapper layout (stack radios)."
+    },
+    {
+      name: "position",
+      type: `"left" | "right"`,
+      default: '"left"',
+      description: "Radio placement relative to label."
+    },
+    {
+      name: "appearance",
+      type: `"default" | "tile"`,
+      default: '"default"',
+      description:
+        "tile: a large card (48px or more), the whole card is clickable. Used for the questions of a step-by-step quote."
+    },
+    { name: "description", type: "string", description: "Second line under the label (tile)." },
+    { name: "icon", type: "string", description: "Icon name shown before the text (tile)." },
+    {
+      deprecated: true,
+      name: "color",
+      type: "string",
+      description: "Deprecated — use style vars (see below)."
+    },
+    {
+      deprecated: true,
+      name: "size",
+      type: "string",
+      default: '"20px"',
+      description: "Deprecated — use style vars (--radio-size)."
+    },
+    {
+      deprecated: true,
+      name: "radius",
+      type: "string",
+      default: '"50%"',
+      description: "Deprecated — use style vars (--radio-radius)."
+    },
+    { name: "ariaLabel", type: "string", description: "aria-label fallback when no label." },
+    {
+      name: "ariaDescribedBy",
+      type: "string",
+      description: "IDs to include in aria-describedby."
+    },
+    {
+      name: "helpId",
+      type: "string",
+      description: "Help text id to append to aria-describedby."
+    },
+    {
+      name: "errorId",
+      type: "string",
+      description: "Error text id to append to aria-describedby."
+    },
+    {
+      name: "ariaInvalid",
+      type: "boolean",
+      default: "false",
+      description: 'Sets aria-invalid="true".'
+    },
+    { name: "ariaControls", type: "string", description: "Optional aria-controls id." }
+  ]}
+/>
 
-  <PropsTable title="Style variables" props={styleVars} />
+<PropsTable title="Style variables" props={styleVars} />
 
-  <Preview
-    title="Tile appearance"
-    code={`<FormRadio appearance="tile" name="finish" value="essentiel" label="Essentiel" description="Ceramic, chrome fixtures, stock vanity." />
+<Preview
+  title="Tile appearance"
+  code={`<FormRadio appearance="tile" name="finish" value="essentiel" label="Essentiel" description="Ceramic, chrome fixtures, stock vanity." />
 <FormRadio appearance="tile" name="finish" value="confort" checked label="Confort" description="Large porcelain, glass shower, custom vanity." />`}
-  >
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:0.75rem;">
-      <FormRadio
-        appearance="tile"
-        name="finish"
-        id="finish-a"
-        value="essentiel"
-        label="Essentiel"
-        description="Ceramic, chrome fixtures, stock vanity."
-      />
-      <FormRadio
-        appearance="tile"
-        name="finish"
-        id="finish-b"
-        value="confort"
-        checked
-        label="Confort"
-        description="Large porcelain, glass shower, custom vanity."
-      />
-      <FormRadio
-        appearance="tile"
-        name="finish"
-        id="finish-c"
-        value="haut"
-        label="Haut de gamme"
-        description="Marble, heated floor, custom niche."
-      />
-      <FormRadio
-        appearance="tile"
-        name="finish"
-        id="finish-d"
-        value="nsp"
-        label="Not sure yet"
-        description="We will show you samples at the visit."
-      />
-    </div>
-  </Preview>
+>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:0.75rem;">
+    <FormRadio
+      appearance="tile"
+      name="finish"
+      id="finish-a"
+      value="essentiel"
+      label="Essentiel"
+      description="Ceramic, chrome fixtures, stock vanity."
+    />
+    <FormRadio
+      appearance="tile"
+      name="finish"
+      id="finish-b"
+      value="confort"
+      checked
+      label="Confort"
+      description="Large porcelain, glass shower, custom vanity."
+    />
+    <FormRadio
+      appearance="tile"
+      name="finish"
+      id="finish-c"
+      value="haut"
+      label="Haut de gamme"
+      description="Marble, heated floor, custom niche."
+    />
+    <FormRadio
+      appearance="tile"
+      name="finish"
+      id="finish-d"
+      value="nsp"
+      label="Not sure yet"
+      description="We will show you samples at the visit."
+    />
+  </div>
+</Preview>
 
-  <Preview title="Basic" code={basicCode}>
-    <div class="row">
-      <FormRadio label="Option A" id="opt-a" value="a" name="example" />
-      <FormRadio label="Option B" id="opt-b" value="b" name="example" />
-    </div>
-  </Preview>
+<Preview title="Basic" code={basicCode}>
+  <div class="row">
+    <FormRadio label="Option A" id="opt-a" value="a" name="example" />
+    <FormRadio label="Option B" id="opt-b" value="b" name="example" />
+  </div>
+</Preview>
 
-  <Preview title="Variants" code={variantsCode}>
-    <div class="row">
-      <FormRadio label="Left radio" position="left" style="--radio-color: #0d6ea8;" />
-      <FormRadio label="Right radio" position="right" style="--radio-color: #c92a2a;" />
-    </div>
-  </Preview>
+<Preview title="Variants" code={variantsCode}>
+  <div class="row">
+    <FormRadio label="Left radio" position="left" style="--radio-color: #0d6ea8;" />
+    <FormRadio label="Right radio" position="right" style="--radio-color: #c92a2a;" />
+  </div>
+</Preview>
 
-  <Preview title="CSS variables" code={cssVarCode}>
-    <div class="row">
-      <FormRadio
-        label="Custom color"
-        style="--radio-color: rebeccapurple; --radio-size: 24px; --radio-radius: 8px;"
-      />
-    </div>
-  </Preview>
+<Preview title="CSS variables" code={cssVarCode}>
+  <div class="row">
+    <FormRadio
+      label="Custom color"
+      style="--radio-color: rebeccapurple; --radio-size: 24px; --radio-radius: 8px;"
+    />
+  </div>
+</Preview>
 
 <style>
   .row {

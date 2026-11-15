@@ -658,3 +658,20 @@ html[data-theme="chantier"] {
   --slot-font: var(--font-condensed);
   --slot-day-font: var(--font-condensed);
 }
+
+/* Hero kinetic: condensed caps poster title, square window with an asphalt rule and a hard yellow offset */
+html[data-theme="chantier"] {
+  --hero-title-font: var(--font-display);
+  --hero-title-weight: 400;
+  --hero-title-transform: uppercase;
+  --hero-title-tracking: 0.01em;
+  --hero-title-line: 0.95;
+  --hero-window-radius: 0;
+  --hero-window-border: 2px solid var(--color-fg);
+  --hero-window-shadow: 8px -8px 0 var(--color-accent);
+}
+
+/* PageHero on a shader: keep the yellow highlight with asphalt letters */
+html[data-theme="chantier"] {
+  --pagehero-accent-inverse-fg: rgb(23, 21, 15);
+}

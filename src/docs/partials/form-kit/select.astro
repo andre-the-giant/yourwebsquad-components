@@ -39,29 +39,29 @@ const props = [
 ];
 ---
 
-  <PropsTable props={props} />
+<PropsTable props={props} />
 
-  <Preview title="Basic" code={basicCode}>
-    <div class="row">
-      <FormSelect label="Country" id="country" options={options} placeholder="Select a country" />
-    </div>
-  </Preview>
+<Preview title="Basic" code={basicCode}>
+  <div class="row">
+    <FormSelect label="Country" id="country" options={options} placeholder="Select a country" />
+  </div>
+</Preview>
 
-  <Preview title="States" code={statesCode}>
-    <div class="row">
-      <FormSelect label="Disabled" id="country-disabled" options={options} disabled />
-    </div>
-  </Preview>
+<Preview title="States" code={statesCode}>
+  <div class="row">
+    <FormSelect label="Disabled" id="country-disabled" options={options} disabled />
+  </div>
+</Preview>
 
-  <Preview title="CSS variables" code={cssVarCode}>
-    <div class="row">
-      <FormSelect
-        label="Spacious select"
-        options={options}
-        style="--form-input-padding: 0.85rem 1.1rem; --form-input-border: 1px solid #0d6ea8;"
-      />
-    </div>
-  </Preview>
+<Preview title="CSS variables" code={cssVarCode}>
+  <div class="row">
+    <FormSelect
+      label="Spacious select"
+      options={options}
+      style="--form-input-padding: 0.85rem 1.1rem; --form-input-border: 1px solid #0d6ea8;"
+    />
+  </div>
+</Preview>
 
 <style>
   .row {

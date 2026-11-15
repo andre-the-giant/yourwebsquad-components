@@ -21,9 +21,18 @@ const examples: any[] = [
       label: "See our plans",
       href: "#"
     }
+  },
+  {
+    shader: "waves",
+    heading: "Book your spring opening",
+    text: "Slots for April fill up by March. Reserve yours in two minutes.",
+    action: {
+      label: "Reserve my opening",
+      href: "#"
+    }
   }
 ];
-const bodies = ["", ""];
+const bodies = ["", "", ""];
 const codes = examples.map((p, i) =>
   bodies[i]
     ? `<CtaBand {...${JSON.stringify(p)}}>${bodies[i]}</CtaBand>`
@@ -41,7 +50,31 @@ const props = [
     type: "{ label: string, href?: string }",
     description: "Required. The only action."
   },
-  { name: "tone", type: '"accent" | "inverse"', default: '"accent"', description: "Background." }
+  {
+    name: "tone",
+    type: '"accent" | "inverse"',
+    default: '"accent"',
+    description: "Background. Ignored with a shader."
+  },
+  {
+    name: "shader",
+    type: '"waves"',
+    default: "—",
+    description: "Animated WebGL background (see ShaderBackground). Text turns light."
+  },
+  {
+    name: "shaderColors",
+    type: "string[]",
+    default: "the preset's colours",
+    description: "2 to 8 hex colours, low → high. The first is the dark base the text sits on."
+  },
+  {
+    name: "animate",
+    type: "boolean",
+    default: "true",
+    description:
+      "Shader motion. false, or reduced motion, draws one still frame. Paused when the tab is hidden or off screen."
+  }
 ];
 ---
 
@@ -56,5 +89,8 @@ const props = [
   </Preview>
   <Preview title="Inverse" code={codes[1]}>
     <CtaBand {...examples[1]} />
+  </Preview>
+  <Preview title="Shader background" code={codes[2]}>
+    <CtaBand {...examples[2]} />
   </Preview>
 </DocLayout>

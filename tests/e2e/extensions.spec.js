@@ -171,9 +171,7 @@ test("StepByStepWizard: the works path skips the rental questions", async ({ pag
 });
 
 test("StepByStepWizard: answers in the address fill the first steps", async ({ page }) => {
-  await page.goto(
-    "/components/stepbystepwizard?theme=chantier&service=rental&machine=mini-35"
-  );
+  await page.goto("/components/stepbystepwizard?theme=chantier&service=rental&machine=mini-35");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   const root = page.locator("#request-demo");

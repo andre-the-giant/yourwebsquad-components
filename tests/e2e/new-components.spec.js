@@ -120,3 +120,75 @@ test.describe("SlotPicker", () => {
     await expect(form.locator(".slots__day:visible .slots__none")).toHaveText("Full");
   });
 });
+
+test.describe("Hero", () => {
+  test("kinetic variant keeps the title readable as one heading", async ({ page }) => {
+    await page.goto("/components/hero");
+    const hero = page.locator(".hero-kinetic").first();
+    await expect(
+      hero.getByRole("heading", { name: "Kitchens rebuilt in five weeks, permits handled" })
+    ).toBeVisible();
+    await expect(hero.locator(".hero-kinetic__word")).toHaveCount(7);
+    await expect(hero.getByRole("link", { name: "Book a free estimate" })).toBeVisible();
+    await expect(hero.locator(".hero-kinetic__window img")).toHaveAttribute("alt", "");
+  });
+
+  test("showcase variant starts the WebGL shader behind the copy", async ({ page }) => {
+    const errors = [];
+    page.on(
+      "console",
+      (msg) =>
+        msg.type() === "warning" && /ShaderBackground/.test(msg.text()) && errors.push(msg.text())
+    );
+    await page.goto("/components/hero");
+    const hero = page.locator(".hero-showcase").first();
+    await hero.scrollIntoViewIfNeeded();
+    await expect(
+      hero.getByRole("heading", { name: "Pools opened, cleaned and closed for the season" })
+    ).toBeVisible();
+    const canvas = hero.locator('canvas[data-shader="waves"]');
+    await expect(hero.locator(".shader-bg")).toHaveAttribute("aria-hidden", "true");
+    await expect(canvas).toHaveAttribute("data-ready", "");
+    const size = await canvas.evaluate((c) => ({ w: c.width, h: c.height, cw: c.clientWidth }));
+    expect(size.w).toBeGreaterThanOrEqual(size.cw);
+    expect(size.h).toBeGreaterThan(0);
+    expect(errors).toEqual([]);
+  });
+
+  test("entrance motion is off under reduced motion", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/components/hero");
+    const word = page.locator(".hero .hero-word > span").first();
+    await expect(word).toHaveCSS("animation-name", "none");
+    await expect(page.locator(".hero-kinetic__word").first()).toHaveCSS("animation-name", "none");
+  });
+});
+
+test.describe("ShaderBackground", () => {
+  for (const url of [
+    "/components/pagehero",
+    "/components/ctaband",
+    "/components/shaderbackground"
+  ]) {
+    test(`shader starts on ${url}`, async ({ page }) => {
+      await page.goto(url);
+      const canvas = page.locator('canvas[data-shader="waves"]').first();
+      await canvas.scrollIntoViewIfNeeded();
+      await expect(canvas).toHaveAttribute("data-ready", "");
+      await expect(canvas.locator("xpath=..")).toHaveAttribute("aria-hidden", "true");
+    });
+  }
+
+  test("shader text turns white in PageHero and CtaBand", async ({ page }) => {
+    await page.goto("/components/pagehero");
+    await expect(page.locator(".pagehero--shader .pagehero__title").first()).toHaveCSS(
+      "color",
+      "rgb(255, 255, 255)"
+    );
+    await page.goto("/components/ctaband");
+    await expect(page.locator(".ctaband--shader .ctaband__title").first()).toHaveCSS(
+      "color",
+      "rgb(255, 255, 255)"
+    );
+  });
+});

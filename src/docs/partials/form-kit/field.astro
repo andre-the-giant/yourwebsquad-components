@@ -32,41 +32,41 @@ const radioCode = `<FormField name="size" type="radio" label="Size"
   options={[{ label: "S", value: "s" }, { label: "M", value: "m" }]} />`;
 ---
 
-  <PropsTable props={propsTable} />
+<PropsTable props={propsTable} />
 
-  <div class="preview-grid">
-    <Preview title="With label + help" code={withHelp}>
-      <FormField name="email" type="email" label="Email" help="We'll never share it." required />
-    </Preview>
+<div class="preview-grid">
+  <Preview title="With label + help" code={withHelp}>
+    <FormField name="email" type="email" label="Email" help="We'll never share it." required />
+  </Preview>
 
-    <Preview title="With error (aria-invalid)" code={withError}>
-      <FormField name="name" label="Full name" error="This field is required." required />
-    </Preview>
+  <Preview title="With error (aria-invalid)" code={withError}>
+    <FormField name="name" label="Full name" error="This field is required." required />
+  </Preview>
 
-    <Preview title="Select" code={selectCode}>
-      <FormField
-        name="plan"
-        type="select"
-        label="Plan"
-        options={[
-          { label: "Free", value: "free" },
-          { label: "Pro", value: "pro" }
-        ]}
-      />
-    </Preview>
+  <Preview title="Select" code={selectCode}>
+    <FormField
+      name="plan"
+      type="select"
+      label="Plan"
+      options={[
+        { label: "Free", value: "free" },
+        { label: "Pro", value: "pro" }
+      ]}
+    />
+  </Preview>
 
-    <Preview title="Radio group" code={radioCode}>
-      <FormField
-        name="size"
-        type="radio"
-        label="Size"
-        options={[
-          { label: "Small", value: "s" },
-          { label: "Medium", value: "m" }
-        ]}
-      />
-    </Preview>
-  </div>
+  <Preview title="Radio group" code={radioCode}>
+    <FormField
+      name="size"
+      type="radio"
+      label="Size"
+      options={[
+        { label: "Small", value: "s" },
+        { label: "Medium", value: "m" }
+      ]}
+    />
+  </Preview>
+</div>
 
 <style>
   .preview-grid {

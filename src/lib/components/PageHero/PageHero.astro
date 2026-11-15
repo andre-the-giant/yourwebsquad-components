@@ -15,10 +15,17 @@ Props:
 - img?: string
 - alt?: string — required for a meaningful image, "" for a decorative one
 - layout?: "text" | "split" | "full"
+- shader?: "waves" — animated WebGL background behind the text block (see ShaderBackground);
+    text turns light. Flipped so the palette's dark end sits under the title.
+- shaderColors?: string[] — 2 to 8 hex colours, low → high; the first is the dark base
+- animate?: boolean — shader motion, default true (still frame under prefers-reduced-motion)
 Theme variables:
 - --type-heading-transform: case of the title (default none)
 - --pagehero-accent-bg, --pagehero-accent-fg: the highlighted words (default: accent
   colour text, no background); --pagehero-accent-padding pads a highlight
+- --pagehero-accent-inverse-fg, --pagehero-accent-inverse-bg: the highlighted words on a shader
+  (default: the shader's light colour, same background as above)
+- --pagehero-eyebrow-inverse-color: the eyebrow on a shader (default: white at 85%)
 Slots:
 - meta — under the buttons: price chips, a rating badge, any short facts
 - id?: string
@@ -30,6 +37,8 @@ import { parseProps } from "../../utils/props.js";
 import { mergeClasses } from "../../utils/style.js";
 import Button from "../Button/Button.astro";
 import Breadcrumb from "../Breadcrumb/Breadcrumb.astro";
+import ShaderBackground from "../ShaderBackground/ShaderBackground.astro";
+import { shaderNames, shaderPalette, HEX_COLOR } from "../ShaderBackground/presets/index.js";
 
 const Action = z.looseObject({
   label: z.string(),
@@ -54,7 +63,10 @@ const Schema = z.looseObject({
   breadcrumbLabel: z.string().optional(),
   img: z.string().optional(),
   alt: z.string().default(""),
-  layout: z.enum(["text", "split", "full"]).default("text")
+  layout: z.enum(["text", "split", "full"]).default("text"),
+  shader: z.enum(shaderNames).optional(),
+  shaderColors: z.array(z.string().regex(HEX_COLOR)).min(2).max(8).optional(),
+  animate: z.boolean().optional()
 });
 
 type Props = z.input<typeof Schema>;
@@ -75,22 +87,47 @@ const {
   img,
   alt,
   layout,
+  shader,
+  shaderColors,
+  animate,
   ...rest
 } = parseProps(Schema, Astro.props, { component: "PageHero" });
 
 const parts = accent && title.includes(accent) ? title.split(accent) : null;
 const resolvedLayout = layout !== "text" && !img ? "text" : layout;
 const buttons = actions.slice(0, 2);
+const palette = shader ? shaderPalette(shader, shaderColors) : null;
 ---
 
 <section
   id={id}
-  class={mergeClasses("pagehero", `pagehero--${resolvedLayout}`, className)}
+  class={mergeClasses(
+    "pagehero",
+    `pagehero--${resolvedLayout}`,
+    shader && "pagehero--shader",
+    className
+  )}
   style={style}
   {...rest}
 >
   <div class="pagehero__grid">
-    <div class="pagehero__text">
+    <div
+      class="pagehero__text"
+      style={palette
+        ? `--_shader-highlight: ${palette.highlight}; --_shader-base: ${palette.ink}`
+        : undefined}
+    >
+      {
+        shader && (
+          <ShaderBackground
+            shader={shader}
+            colors={shaderColors}
+            animate={animate ?? true}
+            flip
+            scrim="even"
+          />
+        )
+      }
       {
         breadcrumb.length > 0 && (
           <div class="pagehero__crumb">
@@ -242,6 +279,30 @@ const buttons = actions.slice(0, 2);
     font-weight: var(--type-heading-weight, var(--weight-bold));
     line-height: 1.1;
     letter-spacing: -0.02em;
+  }
+
+  /* ── Shader background behind the text block ─────────────────────────────── */
+  .pagehero--shader .pagehero__text {
+    --color-fg: rgb(255, 255, 255);
+    --color-fg-rgb: 255, 255, 255;
+    --button-outline-fg: rgb(255, 255, 255);
+    --button-outline-border: rgb(255, 255, 255);
+    --button-ghost-fg: rgb(255, 255, 255);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    /* Solid base under the canvas: shows before WebGL starts and gives checkers a background */
+    background-color: var(--_shader-base);
+    color: rgb(255, 255, 255);
+  }
+
+  .pagehero--shader .pagehero__eyebrow {
+    color: var(--pagehero-eyebrow-inverse-color, rgb(255 255 255 / 0.85));
+  }
+
+  .pagehero--shader .pagehero__accent {
+    background: var(--pagehero-accent-inverse-bg, var(--pagehero-accent-bg, none));
+    color: var(--pagehero-accent-inverse-fg, var(--_shader-highlight));
   }
 
   @media (min-width: 56.25rem) {

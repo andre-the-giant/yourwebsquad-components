@@ -5,7 +5,15 @@ Props:
 - body?: string — HTML allowed
 - cta?: { href?: string, label?: string }
 - img?: string — src passed to <Image>
-- clip?: string — SVG path for clipPath
+- clip?: string — SVG path for clipPath (default variant only)
+- variant?: "default" | "kinetic" | "showcase" — layout template, same content
+    default: full-bleed image (or shader), centred copy, cinematic entrance (slow zoom, title rises word by word)
+    kinetic: big centred title whose words blur in, image as a wide window below that widens on scroll
+    showcase: shader background, copy bottom left, image as a framed card on the right (shader defaults to "waves")
+- shader?: "waves" — animated WebGL background (see ShaderBackground). default and showcase only;
+    on default it replaces the background image.
+- shaderColors?: string[] — 2 to 8 hex colours, low → high. The first is the dark base the text sits on.
+- animate?: boolean — entrance motion, default true (always off under prefers-reduced-motion)
 Slots:
 - meta — under the button: price chips, a rating badge, any short facts
 - id?: string
@@ -18,6 +26,8 @@ import { nextId } from "../../utils/id.js";
 import { makeStyleVars, mergeClasses } from "../../utils/style.js";
 import Image from "../Image/Image.astro";
 import Link from "../Link/Link.astro";
+import ShaderBackground from "../ShaderBackground/ShaderBackground.astro";
+import { shaderNames, shaderPalette, HEX_COLOR } from "../ShaderBackground/presets/index.js";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
@@ -27,7 +37,11 @@ const Schema = z.looseObject({
   body: z.string().optional(),
   cta: z.looseObject({}).optional(),
   img: z.string().optional(),
-  clip: z.string().optional()
+  clip: z.string().optional(),
+  variant: z.enum(["default", "kinetic", "showcase"]).optional(),
+  shader: z.enum(shaderNames).optional(),
+  shaderColors: z.array(z.string().regex(HEX_COLOR)).min(2).max(8).optional(),
+  animate: z.boolean().optional()
 });
 
 type Props = z.input<typeof Schema>;
@@ -41,55 +55,166 @@ const {
   cta,
   img,
   clip,
+  variant,
+  shader,
+  shaderColors,
+  animate,
   ...rest
 } = parseProps(Schema, Astro.props, { component: "Hero" });
 
 const resolvedId = id ?? nextId("hero");
+const resolvedVariant = variant ?? "default";
+const isKinetic = resolvedVariant === "kinetic";
+const isShowcase = resolvedVariant === "showcase";
+// The kinetic layout sits on the page background, so it ignores `shader`.
+const resolvedShader = isShowcase ? (shader ?? "waves") : isKinetic ? null : (shader ?? null);
+const hasShader = resolvedShader !== null;
+const resolvedAnimate = animate ?? true;
 const resolvedTitle = title ?? null;
+const titleWords = resolvedTitle ? resolvedTitle.trim().split(/\s+/) : [];
 const resolvedBody = body ?? null;
-const resolvedClip = clip ?? null;
+const resolvedClip = isKinetic || hasShader ? null : (clip ?? null);
 const resolvedCtaHref = (cta?.href ?? null) as string | null;
 const resolvedCtaLabel = (cta?.label ?? null) as string | null;
 const isCta = Boolean(resolvedCtaHref && resolvedCtaLabel);
 const resolvedImage = img ?? null;
+const hasMeta = Astro.slots.has("meta");
 
-const styleVars = {
-  "--hero-gradient-start": "rgba(var(--color-bg-rgb), 30%)",
-  "--hero-gradient-end": "rgba(var(--color-bg-rgb), 80%)"
-};
+const shaderBase = resolvedShader
+  ? { "--_shader-base": shaderPalette(resolvedShader, shaderColors).ink }
+  : {};
+const styleVars =
+  isShowcase || isKinetic
+    ? shaderBase
+    : {
+        ...shaderBase,
+        "--hero-gradient-start": "rgba(var(--color-bg-rgb), 30%)",
+        "--hero-gradient-end": "rgba(var(--color-bg-rgb), 80%)"
+      };
 
 const resolvedStyle = makeStyleVars(styleVars, style);
-const resolvedClass = mergeClasses("hero", className);
+const resolvedClass = mergeClasses(
+  isShowcase ? "hero-showcase" : isKinetic ? "hero-kinetic" : "hero",
+  hasShader && !isShowcase && "hero--shader",
+  resolvedAnimate && "hero--animate",
+  className
+);
 ---
 
-<div id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
-  {
-    resolvedImage && (
-      <div class="hero-bg">
-        <Image src={resolvedImage} alt="" aspectRatio="16/9" backgroundPosition="center" />
+{
+  isShowcase ? (
+    <div id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+      <ShaderBackground
+        shader={resolvedShader ?? "waves"}
+        colors={shaderColors}
+        animate={resolvedAnimate}
+        scrim="corner"
+      />
+      <div class="hero-showcase__inner">
+        <div class="hero-showcase__copy">
+          {resolvedTitle && (
+            <h2 class="hero-showcase__title">
+              {titleWords.map((word, i) => (
+                <>
+                  <span class="hero-word" style={`--i: ${i}`}>
+                    <span>{word}</span>
+                  </span>{" "}
+                </>
+              ))}
+            </h2>
+          )}
+          {resolvedBody && <p class="hero-showcase__body" set:html={resolvedBody} />}
+          {isCta && (
+            <div class="hero-cta">
+              <Link variant="solid" size="lg" href={resolvedCtaHref} label={resolvedCtaLabel} />
+            </div>
+          )}
+          {hasMeta && (
+            <div class="hero-meta">
+              <slot name="meta" />
+            </div>
+          )}
+        </div>
+        {resolvedImage && (
+          <div class="hero-showcase__card">
+            <Image src={resolvedImage} alt="" aspectRatio="4/5" backgroundPosition="center" />
+          </div>
+        )}
       </div>
-    )
-  }
-  <div class="hero-content">
-    {resolvedTitle && <h2>{resolvedTitle}</h2>}
-    {resolvedBody && <p set:html={resolvedBody} />}
-    {
-      isCta && (
-        <div class="hero-cta">
-          <Link variant="solid" size="lg" href={resolvedCtaHref} label={resolvedCtaLabel} />
+    </div>
+  ) : isKinetic ? (
+    <div id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+      <div class="hero-kinetic__copy">
+        {resolvedTitle && (
+          <h2 class="hero-kinetic__title">
+            {titleWords.map((word, i) => (
+              <>
+                <span class="hero-kinetic__word" style={`--i: ${i}`}>
+                  {word}
+                </span>{" "}
+              </>
+            ))}
+          </h2>
+        )}
+        {resolvedBody && <p class="hero-kinetic__body" set:html={resolvedBody} />}
+        {(isCta || hasMeta) && (
+          <div class="hero-kinetic__actions">
+            {isCta && (
+              <Link variant="solid" size="lg" href={resolvedCtaHref} label={resolvedCtaLabel} />
+            )}
+            {hasMeta && (
+              <div class="hero-meta">
+                <slot name="meta" />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {resolvedImage && (
+        <div class="hero-kinetic__window">
+          <Image src={resolvedImage} alt="" aspectRatio="21/8" backgroundPosition="center" />
         </div>
-      )
-    }
-    {
-      Astro.slots.has("meta") && (
-        <div class="hero-meta">
-          <slot name="meta" />
+      )}
+    </div>
+  ) : (
+    <div id={resolvedId} class={resolvedClass} style={resolvedStyle || undefined} {...rest}>
+      {resolvedShader && (
+        <ShaderBackground shader={resolvedShader} colors={shaderColors} animate={resolvedAnimate} />
+      )}
+      {!resolvedShader && resolvedImage && (
+        <div class="hero-bg">
+          <Image src={resolvedImage} alt="" aspectRatio="16/9" backgroundPosition="center" />
         </div>
-      )
-    }
-  </div>
-</div>
+      )}
+      <div class="hero-content">
+        {resolvedTitle && (
+          <h2>
+            {titleWords.map((word, i) => (
+              <>
+                <span class="hero-word" style={`--i: ${i}`}>
+                  <span>{word}</span>
+                </span>{" "}
+              </>
+            ))}
+          </h2>
+        )}
+        {resolvedBody && <p set:html={resolvedBody} />}
+        {isCta && (
+          <div class="hero-cta">
+            <Link variant="solid" size="lg" href={resolvedCtaHref} label={resolvedCtaLabel} />
+          </div>
+        )}
+        {hasMeta && (
+          <div class="hero-meta">
+            <slot name="meta" />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 <style>
+  /* ── Default ─────────────────────────────────────────────────────────────── */
   .hero {
     position: relative;
     width: 100%;
@@ -129,6 +254,18 @@ const resolvedClass = mergeClasses("hero", className);
     text-align: center;
   }
 
+  /* Each word sits in a mask so it can rise from behind the baseline. */
+  .hero-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding-block: 0.08em;
+    margin-block: -0.08em;
+  }
+  .hero-word > span {
+    display: inline-block;
+  }
+
   .hero-meta {
     display: flex;
     flex-wrap: wrap;
@@ -144,6 +281,265 @@ const resolvedClass = mergeClasses("hero", className);
     object-position: var(--image-object-position);
     aspect-ratio: var(--image-aspect-ratio);
     scroll-snap-align: start;
+  }
+
+  /* ── Kinetic ─────────────────────────────────────────────────────────────── */
+  .hero-kinetic {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-6, 2rem);
+    padding: clamp(2.5rem, 7vw, 5rem) var(--space-4, 1rem) 0;
+    background: var(--hero-kinetic-bg, transparent);
+    color: var(--color-fg);
+    text-align: center;
+  }
+  .hero-kinetic:not(:has(.hero-kinetic__window)) {
+    padding-bottom: clamp(2.5rem, 7vw, 5rem);
+  }
+  /* Soft spotlight behind the title */
+  .hero-kinetic::before {
+    content: "";
+    position: absolute;
+    inset: -25% 5% auto;
+    height: 75%;
+    z-index: -1;
+    pointer-events: none;
+    background: var(
+      --hero-glow,
+      radial-gradient(
+        closest-side,
+        color-mix(in srgb, var(--color-accent) 18%, transparent),
+        transparent
+      )
+    );
+  }
+  .hero-kinetic__copy {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-5, 1.5rem);
+    max-width: 60rem;
+  }
+  .hero-kinetic__title {
+    margin: 0;
+    max-width: 16ch;
+    font-family: var(--hero-title-font, var(--font-display));
+    font-size: var(--hero-title-size, clamp(2.4rem, 6.5vw, 4.75rem));
+    font-weight: var(--hero-title-weight, 700);
+    line-height: var(--hero-title-line, 1.02);
+    letter-spacing: var(--hero-title-tracking, -0.025em);
+    text-transform: var(--hero-title-transform, none);
+    text-wrap: balance;
+  }
+  .hero-kinetic__word {
+    display: inline-block;
+  }
+  .hero-kinetic__body {
+    margin: 0;
+    max-width: 46ch;
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+    color: var(--hero-body-color, var(--color-muted));
+  }
+  .hero-kinetic__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3, 0.75rem) var(--space-5, 1.5rem);
+  }
+  .hero-kinetic__window {
+    width: 100%;
+    max-width: 72rem;
+    overflow: hidden;
+    border-radius: var(--hero-window-radius, 1.5rem) var(--hero-window-radius, 1.5rem) 0 0;
+    outline: var(--media-frame, none);
+    outline-offset: var(--media-frame-offset, -12px);
+    border: var(--hero-window-border, 0);
+    border-bottom: 0;
+    box-shadow: var(--hero-window-shadow, none);
+  }
+  .hero-kinetic__window :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 21 / 8;
+    object-fit: cover;
+  }
+
+  /* ── Shader on the default layout: the shader's own overlay replaces the scrim ── */
+  .hero--shader {
+    isolation: isolate;
+    background-color: var(--_shader-base);
+  }
+  .hero--shader .hero-content {
+    background: none;
+  }
+
+  /* ── Showcase ────────────────────────────────────────────────────────────── */
+  .hero-showcase {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    align-items: end;
+    width: 100%;
+    min-height: var(--hero-showcase-min-height, clamp(30rem, 52vw, 42rem));
+    background-color: var(--_shader-base);
+    color: rgb(255, 255, 255);
+  }
+  .hero-showcase__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    align-items: end;
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: clamp(1.5rem, 5vw, 4rem);
+  }
+  .hero-showcase__inner:not(:has(.hero-showcase__card)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero-showcase__copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5, 1.5rem);
+    max-width: 42rem;
+  }
+  .hero-showcase__title {
+    margin: 0;
+    color: rgb(255, 255, 255);
+    font-family: var(--hero-title-font, var(--font-display));
+    font-size: var(--hero-title-size, clamp(2.4rem, 6vw, 4.5rem));
+    font-weight: var(--hero-title-weight, 700);
+    line-height: var(--hero-title-line, 1.02);
+    letter-spacing: var(--hero-title-tracking, -0.025em);
+    text-transform: var(--hero-title-transform, none);
+    text-wrap: balance;
+  }
+  .hero-showcase__body {
+    margin: 0;
+    max-width: 46ch;
+    color: rgb(255 255 255 / 0.88);
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+  }
+  .hero-showcase .hero-meta {
+    justify-content: flex-start;
+  }
+  .hero-showcase__card {
+    align-self: center;
+    overflow: hidden;
+    border-radius: var(--hero-showcase-card-radius, var(--surface-radius, 1.25rem));
+    border: 1px solid rgb(255 255 255 / 0.35);
+    outline: var(--media-frame, none);
+    outline-offset: var(--media-frame-offset, -12px);
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
+  }
+  .hero-showcase__card :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+  @media (max-width: 48rem) {
+    .hero-showcase__inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .hero-showcase__card {
+      max-width: 22rem;
+    }
+    .hero-showcase__card :global(img) {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  /* ── Motion ──────────────────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Default: slow Ken Burns, title words rise from their masks, copy fades up */
+    .hero--animate .hero-bg :global(img) {
+      animation: hero-kenburns 16s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    }
+    .hero--animate .hero-word > span {
+      animation: hero-rise-mask 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      animation-delay: calc(0.15s + var(--i, 0) * 60ms);
+    }
+    .hero--animate .hero-content > :not(h2) {
+      animation: hero-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.55s;
+    }
+    .hero--animate .hero-content > .hero-meta {
+      animation-delay: 0.7s;
+    }
+
+    /* Showcase: title words rise like the default, copy fades up, card floats in */
+    .hero-showcase.hero--animate .hero-showcase__copy > :not(h2) {
+      animation: hero-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.55s;
+    }
+    .hero-showcase.hero--animate .hero-showcase__card {
+      animation: hero-float-in 1s cubic-bezier(0.2, 0.7, 0.2, 1) both 0.3s;
+    }
+
+    /* Kinetic: words blur in, copy fades up, window widens as it scrolls in */
+    .hero-kinetic.hero--animate .hero-kinetic__word {
+      animation: hero-blur-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+    .hero-kinetic.hero--animate .hero-kinetic__body,
+    .hero-kinetic.hero--animate .hero-kinetic__actions {
+      animation: hero-fade-up 0.7s ease-out both 0.5s;
+    }
+    .hero-kinetic.hero--animate .hero-kinetic__actions {
+      animation-delay: 0.62s;
+    }
+    @supports (animation-timeline: view()) {
+      .hero-kinetic.hero--animate .hero-kinetic__window {
+        animation: hero-widen linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 40%;
+      }
+    }
+  }
+  @keyframes hero-float-in {
+    from {
+      opacity: 0;
+      transform: translateY(32px) rotate(2deg);
+    }
+  }
+  @keyframes hero-kenburns {
+    from {
+      transform: scale(1.14) translate(1.5%, 1.5%);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  @keyframes hero-rise-mask {
+    from {
+      transform: translateY(110%);
+    }
+  }
+  @keyframes hero-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+  @keyframes hero-blur-in {
+    from {
+      opacity: 0;
+      filter: blur(12px);
+      transform: translateY(0.3em);
+    }
+  }
+  @keyframes hero-widen {
+    from {
+      clip-path: inset(0 14% 0 14% round var(--hero-window-radius, 1.5rem));
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
   }
 </style>
 {

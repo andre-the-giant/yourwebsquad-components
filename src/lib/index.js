@@ -33,6 +33,7 @@ export { default as DataTable } from "./components/DataTable/DataTable.astro";
 export { default as Facts } from "./components/Facts/Facts.astro";
 export { default as Faq } from "./components/Faq/Faq.astro";
 export { default as PageHero } from "./components/PageHero/PageHero.astro";
+export { default as ShaderBackground } from "./components/ShaderBackground/ShaderBackground.astro";
 export { default as Plans } from "./components/Plans/Plans.astro";
 export { default as Proof } from "./components/Proof/Proof.astro";
 export { default as Section } from "./components/Section/Section.astro";

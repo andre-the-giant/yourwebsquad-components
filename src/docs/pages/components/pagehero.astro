@@ -69,6 +69,26 @@ const props = [
     description: "Text only, image on the right, or full-width image below."
   },
   {
+    name: "shader",
+    type: '"waves"',
+    default: "—",
+    description:
+      "Animated WebGL background (see ShaderBackground). Behind the text block, flipped so the dark end is under the title. Text turns light."
+  },
+  {
+    name: "shaderColors",
+    type: "string[]",
+    default: "the preset's colours",
+    description: "2 to 8 hex colours, low → high. The first is the dark base the text sits on."
+  },
+  {
+    name: "animate",
+    type: "boolean",
+    default: "true",
+    description:
+      "Shader motion. false, or reduced motion, draws one still frame. Paused when the tab is hidden or off screen."
+  },
+  {
     name: "slot meta",
     type: "slot",
     description: "Under the buttons: price chips, a rating badge, short facts."
@@ -83,8 +103,31 @@ const props = [
     name: "--pagehero-accent-bg / --pagehero-accent-fg / --pagehero-accent-padding",
     type: "CSS variables",
     description: "Highlight of the accent words."
+  },
+  {
+    name: "--pagehero-accent-inverse-fg / --pagehero-accent-inverse-bg",
+    type: "CSS variables",
+    description: "Highlight of the accent words on a shader (default: the shader's light colour)."
+  },
+  {
+    name: "--pagehero-eyebrow-inverse-color",
+    type: "CSS variable",
+    default: "rgb(255 255 255 / 0.85)",
+    description: "Eyebrow colour on a shader."
   }
 ];
+const shaderCode = `<PageHero
+  layout="split"
+  shader="waves"
+  eyebrow="Pool care · Ottawa"
+  title="Clear water all summer"
+  accent="all summer"
+  lead="Opening, weekly visits and closing by one technician."
+  breadcrumb={[{ label: "Home", href: "/" }, { label: "Pool care" }]}
+  actions={[{ label: "Get my season price", href: "#" }, { label: "See the plans", href: "#", variant: "outline" }]}
+  img="https://picsum.photos/900/1100"
+  alt=""
+/>`;
 const metaCode = `<PageHero eyebrow="Bathroom renovation in Kingston" title="A bathroom that breathes" lead="Walk-in showers, marble, light." actions={[{ label: "Estimate my project" }, { label: "613 555-0142", href: "tel:+16135550142", variant: "ghost" }]}>
   <GoogleRating slot="meta" rating={4.9} count={127} variant="inline" />
 </PageHero>`;
@@ -111,6 +154,23 @@ const metaCode = `<PageHero eyebrow="Bathroom renovation in Kingston" title="A b
     >
       <GoogleRating slot="meta" rating={4.9} count={127} variant="inline" />
     </PageHero>
+  </Preview>
+  <Preview title="Shader background" code={shaderCode}>
+    <PageHero
+      layout="split"
+      shader="waves"
+      eyebrow="Pool care · Ottawa"
+      title="Clear water all summer"
+      accent="all summer"
+      lead="Opening, weekly visits and closing by one technician."
+      breadcrumb={[{ label: "Home", href: "/" }, { label: "Pool care" }]}
+      actions={[
+        { label: "Get my season price", href: "#" },
+        { label: "See the plans", href: "#", variant: "outline" }
+      ]}
+      img="https://picsum.photos/900/1100"
+      alt=""
+    />
   </Preview>
   <Preview
     title="Highlighted words (theme variables)"

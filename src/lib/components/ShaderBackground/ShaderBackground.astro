@@ -1,0 +1,156 @@
+---
+/*
+ShaderBackground — animated WebGL background (21st.dev Shader Builder presets) that fills
+its parent. The parent needs `position: relative` and `isolation: isolate`; Hero, PageHero
+and CtaBand do this for you through their `shader` prop.
+Props:
+- shader?: "waves" — preset name (see presets/index.js)
+- colors?: string[] — 2 to 8 hex colours, low → high; the first is the dark base text sits on
+- animate?: boolean — default true. false, or prefers-reduced-motion, draws one still frame
+- scrim?: "even" | "start" | "corner" | "none" — dark overlay so text stays readable
+    even: the whole area, start: from the inline start edge, corner: from the bottom-left corner
+- flip?: boolean — turn the pattern upside down (puts the palette's dark end at the top)
+- id?: string
+- class?: string
+- style?: string
+Style variables:
+- --shader-scrim: replaces the overlay (any background value)
+- --shader-scrim-opacity: strength of the "even" overlay, default 0.6
+Without WebGL a CSS gradient of the same colours shows instead.
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { makeStyleVars, mergeClasses } from "../../utils/style.js";
+import { shaderNames, shaderPalette, hexToRgbTriplet, HEX_COLOR } from "./presets/index.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  shader: z.enum(shaderNames).optional(),
+  colors: z.array(z.string().regex(HEX_COLOR)).min(2).max(8).optional(),
+  animate: z.boolean().optional(),
+  scrim: z.enum(["even", "start", "corner", "none"]).optional(),
+  flip: z.boolean().optional()
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  shader,
+  colors,
+  animate,
+  scrim,
+  flip,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "ShaderBackground" });
+
+const resolvedShader = shader ?? "waves";
+const palette = shaderPalette(resolvedShader, colors);
+const resolvedScrim = scrim ?? "even";
+const gradientDirection =
+  (palette.darkEdge === "bottom") !== Boolean(flip) ? "to top" : "to bottom";
+
+const resolvedStyle = makeStyleVars(
+  {
+    "--shader-ink": hexToRgbTriplet(palette.ink),
+    "--shader-fallback": `linear-gradient(${gradientDirection}, ${palette.colors.join(", ")})`
+  },
+  style
+);
+const resolvedClass = mergeClasses(
+  "shader-bg",
+  `shader-bg--scrim-${resolvedScrim}`,
+  flip && "shader-bg--flip",
+  className
+);
+---
+
+<div id={id} class={resolvedClass} style={resolvedStyle || undefined} aria-hidden="true" {...rest}>
+  <canvas
+    class="shader-bg__canvas"
+    data-shader={resolvedShader}
+    data-colors={JSON.stringify(palette.colors)}
+    data-animate={String(animate ?? true)}></canvas>
+</div>
+
+<style>
+  .shader-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: rgb(var(--shader-ink));
+  }
+  .shader-bg__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--shader-fallback);
+  }
+  .shader-bg--flip .shader-bg__canvas {
+    transform: scaleY(-1);
+  }
+  .shader-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--shader-scrim, var(--_scrim, none));
+  }
+  .shader-bg--scrim-even {
+    --_scrim: rgb(var(--shader-ink) / var(--shader-scrim-opacity, 0.6));
+  }
+  .shader-bg--scrim-start {
+    --_scrim: linear-gradient(
+      to right,
+      rgb(var(--shader-ink) / 0.85),
+      rgb(var(--shader-ink) / 0.5) 55%,
+      rgb(var(--shader-ink) / 0.2)
+    );
+  }
+  .shader-bg--scrim-corner {
+    --_scrim: linear-gradient(
+      to top right,
+      rgb(var(--shader-ink) / 0.85),
+      rgb(var(--shader-ink) / 0.45) 50%,
+      transparent 85%
+    );
+  }
+  :global([dir="rtl"]) .shader-bg--scrim-start {
+    --_scrim: linear-gradient(
+      to left,
+      rgb(var(--shader-ink) / 0.85),
+      rgb(var(--shader-ink) / 0.5) 55%,
+      rgb(var(--shader-ink) / 0.2)
+    );
+  }
+</style>
+
+<script>
+  import { mountShader } from "./engine.js";
+  import { shaderPresets } from "./presets/index.js";
+
+  // One WebGL context per canvas. Under reduced motion or animate={false} the
+  // engine draws a single still frame instead of looping.
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  document.querySelectorAll<HTMLCanvasElement>("canvas[data-shader]").forEach((canvas) => {
+    if (canvas.dataset.mounted !== undefined) return;
+    canvas.dataset.mounted = "";
+    const preset = shaderPresets[canvas.dataset.shader as keyof typeof shaderPresets];
+    if (!preset) return;
+    let colors: string[] = [];
+    try {
+      colors = JSON.parse(canvas.dataset.colors ?? "[]");
+    } catch {
+      colors = [];
+    }
+    mountShader(canvas, preset, {
+      colors,
+      animate: canvas.dataset.animate !== "false" && !reduceMotion.matches
+    });
+  });
+</script>

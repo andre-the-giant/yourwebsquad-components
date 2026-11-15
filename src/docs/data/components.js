@@ -86,7 +86,9 @@ export const components = [
   {
     name: "Hero",
     href: "/components/hero",
-    description: "A big fat image with a text and a cta ",
+    description:
+      "A big opening block: image, title, text and a CTA, in a default, kinetic or showcase layout, optional shader background",
+    tags: ["kinetic", "showcase", "shader", "webgl", "banner", "landing"],
     category: "Page openers",
     level: "components"
   },
@@ -483,6 +485,15 @@ export const components = [
     category: "Media",
     level: "molecules",
     tags: ["video", "youtube", "vimeo", "embed", "lite"]
+  },
+  {
+    name: "ShaderBackground",
+    href: "/components/shaderbackground",
+    description:
+      "Animated WebGL background (21st.dev shader presets). Built into Hero, PageHero and CtaBand.",
+    category: "Media",
+    level: "atoms",
+    tags: ["shader", "webgl", "waves", "gradient", "animated background"]
   },
   {
     name: "AnnouncementPill",

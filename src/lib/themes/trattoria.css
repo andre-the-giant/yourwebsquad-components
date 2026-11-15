@@ -457,3 +457,23 @@ html[data-theme="trattoria"] {
   --slot-checked-shadow: 3px 3px 0 var(--trattoria-glycine);
   --slot-day-font: var(--font-display);
 }
+
+/* Hero kinetic: Gloock title, arched window in a double aubergine rule */
+html[data-theme="trattoria"] {
+  --hero-title-weight: 400;
+  --hero-title-tracking: -0.01em;
+  --hero-title-line: 1.05;
+  --hero-window-radius: 3rem;
+  --hero-window-border: 4px double var(--color-accent);
+  --hero-glow: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--trattoria-glycine) 70%, transparent),
+    transparent
+  );
+}
+
+/* PageHero on a shader: glycine words, as on the theme's other dark surfaces */
+html[data-theme="trattoria"] {
+  --pagehero-accent-inverse-fg: var(--trattoria-glycine);
+  --pagehero-eyebrow-inverse-color: var(--trattoria-glycine);
+}

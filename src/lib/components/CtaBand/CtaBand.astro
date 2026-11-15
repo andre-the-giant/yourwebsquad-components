@@ -5,7 +5,10 @@ Props:
 - heading: string
 - text?: string
 - action: { label: string, href?: string }
-- tone?: "accent" | "inverse"
+- tone?: "accent" | "inverse" — ignored when `shader` is set
+- shader?: "waves" — animated WebGL background (see ShaderBackground); text turns light
+- shaderColors?: string[] — 2 to 8 hex colours, low → high; the first is the dark base
+- animate?: boolean — shader motion, default true (still frame under prefers-reduced-motion)
 - id?: string
 - class?: string
 - style?: string
@@ -16,6 +19,8 @@ import { nextId } from "../../utils/id.js";
 import { mergeClasses } from "../../utils/style.js";
 import Band from "../Band/Band.astro";
 import Button from "../Button/Button.astro";
+import ShaderBackground from "../ShaderBackground/ShaderBackground.astro";
+import { shaderNames, shaderPalette, HEX_COLOR } from "../ShaderBackground/presets/index.js";
 
 const Schema = z.looseObject({
   id: z.string().optional(),
@@ -24,7 +29,10 @@ const Schema = z.looseObject({
   heading: z.string(),
   text: z.string().optional(),
   action: z.looseObject({ label: z.string(), href: z.string().optional() }),
-  tone: z.enum(["accent", "inverse"]).default("accent")
+  tone: z.enum(["accent", "inverse"]).default("accent"),
+  shader: z.enum(shaderNames).optional(),
+  shaderColors: z.array(z.string().regex(HEX_COLOR)).min(2).max(8).optional(),
+  animate: z.boolean().optional()
 });
 
 type Props = z.input<typeof Schema>;
@@ -36,19 +44,34 @@ const {
   heading,
   text,
   action,
-  tone
+  tone,
+  shader,
+  shaderColors,
+  animate
 } = parseProps(Schema, Astro.props, { component: "CtaBand" });
 
 const headingId = nextId("ctaband");
+const shaderBase = shader ? `--_shader-base: ${shaderPalette(shader, shaderColors).ink}` : null;
+const resolvedStyle = [shaderBase, style].filter(Boolean).join("; ") || undefined;
 ---
 
 <Band
   id={id}
-  class={mergeClasses("ctaband", className)}
-  style={style}
-  tone={tone}
+  class={mergeClasses("ctaband", shader && "ctaband--shader", className)}
+  style={resolvedStyle}
+  tone={shader ? "default" : tone}
   labelledby={headingId}
 >
+  {
+    shader && (
+      <ShaderBackground
+        shader={shader}
+        colors={shaderColors}
+        animate={animate ?? true}
+        scrim="start"
+      />
+    )
+  }
   <div class="ctaband__grid">
     <h2 id={headingId} class="ctaband__title">{heading}</h2>
     <div class="ctaband__side">
@@ -59,6 +82,21 @@ const headingId = nextId("ctaband");
 </Band>
 
 <style>
+  /* Band's root is rendered by Band, hence :global on it. The shader sits behind the
+     content, and text and outline buttons turn white on its dark base. */
+  :global(.ctaband.ctaband--shader) {
+    --color-fg: rgb(255, 255, 255);
+    --color-fg-rgb: 255, 255, 255;
+    --button-outline-fg: rgb(255, 255, 255);
+    --button-outline-border: rgb(255, 255, 255);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    /* Solid base under the canvas: shows before WebGL starts and gives checkers a background */
+    background-color: var(--_shader-base);
+    color: rgb(255, 255, 255);
+  }
+
   .ctaband__grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

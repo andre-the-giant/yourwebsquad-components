@@ -953,3 +953,12 @@ html[data-theme="marbre"] {
   --slot-active-bg: var(--color-accent);
   --slot-active-fg: var(--color-accent-contrast);
 }
+
+/* Hero kinetic: light serif title, square window with the white inner frame, no glow */
+html[data-theme="marbre"] {
+  --hero-title-weight: 400;
+  --hero-title-tracking: -0.01em;
+  --hero-title-line: 1.08;
+  --hero-window-radius: 0;
+  --hero-glow: none;
+}
