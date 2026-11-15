@@ -40,7 +40,7 @@ const contrast = (a, b) => {
 
 for (const theme of ["light", "plein-jour", "marbre", "chantier", "trattoria"]) {
   test(`Form-Radio: a checked radio is visible (${theme})`, async ({ page }) => {
-    await page.goto(`/components/atoms/form-radio?theme=${theme}`);
+    await page.goto(`/components/form-radio?theme=${theme}`);
     const label = page.locator("label:has(.radio-input)").first();
     await label.click();
     await page.waitForTimeout(400); // let the check animation finish
@@ -73,7 +73,7 @@ for (const theme of ["light", "plein-jour", "marbre", "chantier", "trattoria"]) 
 
 for (const theme of ["light", "plein-jour", "marbre", "chantier", "trattoria"]) {
   test(`Form-Checkbox: checked switches and boxes are visible (${theme})`, async ({ page }) => {
-    await page.goto(`/components/atoms/form-checkbox?theme=${theme}`);
+    await page.goto(`/components/form-checkbox?theme=${theme}`);
     const toggles = page.locator(".toggle-input:not(:disabled):not(:checked) + .toggle");
     const count = await toggles.count();
     expect(count).toBeGreaterThan(0);

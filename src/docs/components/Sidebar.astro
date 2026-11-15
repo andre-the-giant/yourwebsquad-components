@@ -1,48 +1,98 @@
 ---
+import { categories, levels } from "../data/components.js";
+
 const { title = "", items = [] } = Astro.props;
-const currentPath = Astro.url?.pathname ?? "";
+const currentPath = (Astro.url?.pathname ?? "").replace(/\/$/, "");
 
-const grouped = items.reduce((acc, item) => {
-  const key = item.group || "atoms";
-  acc[key] = acc[key] || [];
-  acc[key].push(item);
-  return acc;
-}, {});
+const groups = categories
+  .map((category) => ({
+    category,
+    items: items
+      .filter((item) => item.category === category)
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }))
+  .filter((group) => group.items.length > 0);
 
-const order = ["components", "molecules", "atoms"];
-const labels = { atoms: "Atoms", molecules: "Molecules", components: "Components" };
+const searchText = (item) =>
+  [item.name, item.description, item.category, levels[item.level], ...(item.tags ?? [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 ---
 
-<nav class="sidebar" aria-label={title}>
-  <div class="sidebar__title">{title}</div>
+<nav class="sidebar" aria-label={title || "Components"}>
+  {title && <div class="sidebar__title">{title}</div>}
 
   {
-    order.map(
-      (groupKey) =>
-        grouped[groupKey] &&
-        grouped[groupKey].length > 0 && (
-          <div class="sidebar__group">
-            <div class="sidebar__group-title">{labels[groupKey]}</div>
-            <ul class="sidebar__list">
-              {grouped[groupKey].map((item) => (
-                <li>
-                  <a
-                    class={`sidebar__link${currentPath === item.href ? " is-active" : ""}`}
-                    href={item.href}
-                  >
-                    <span>{item.name}</span>
-                    {item.tag && <span class="sidebar__tag">{item.tag}</span>}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
+    items.length > 0 && (
+      <div class="sidebar__search">
+        <label class="sidebar__search-label" for="sidebar-search">
+          Search components
+        </label>
+        <input
+          id="sidebar-search"
+          class="sidebar__search-input"
+          type="search"
+          placeholder="Search…"
+          autocomplete="off"
+          data-sidebar-search
+        />
+        <p class="sidebar__no-results" data-sidebar-empty hidden>
+          No match.
+        </p>
+      </div>
     )
+  }
+
+  {
+    groups.map((group) => (
+      <div class="sidebar__group" data-sidebar-group>
+        <div class="sidebar__group-title">{group.category}</div>
+        <ul class="sidebar__list">
+          {group.items.map((item) => (
+            <li data-sidebar-item data-search={searchText(item)}>
+              <a
+                class={`sidebar__link${currentPath === item.href ? " is-active" : ""}`}
+                href={item.href}
+                aria-current={currentPath === item.href ? "page" : undefined}
+              >
+                <span>{item.name}</span>
+                {item.level && (
+                  <span class="sidebar__tag" title={levels[item.level]}>
+                    {levels[item.level]}
+                  </span>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
   }
 
   {items.length === 0 && <div class="sidebar__empty">No components yet.</div>}
 </nav>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>("[data-sidebar-search]");
+  const empty = document.querySelector<HTMLElement>("[data-sidebar-empty]");
+  input?.addEventListener("input", () => {
+    const terms = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    document.querySelectorAll<HTMLElement>("[data-sidebar-group]").forEach((group) => {
+      let groupShown = 0;
+      group.querySelectorAll<HTMLElement>("[data-sidebar-item]").forEach((item) => {
+        const text = item.dataset.search ?? "";
+        const match = terms.every((t) => text.includes(t));
+        item.hidden = !match;
+        if (match) groupShown++;
+      });
+      group.hidden = groupShown === 0;
+      shown += groupShown;
+    });
+    if (empty) empty.hidden = shown > 0;
+  });
+</script>
 <style>
   .sidebar {
     display: flex;
@@ -101,14 +151,54 @@ const labels = { atoms: "Atoms", molecules: "Molecules", components: "Components
   }
 
   .sidebar__tag {
-    font-size: var(--size-xs);
+    flex-shrink: 0;
+    font-size: 0.625rem;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
     color: var(--color-muted);
   }
 
   .sidebar__empty {
     color: var(--color-muted);
     font-size: var(--size-sm);
+  }
+
+  .sidebar__search {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .sidebar__search-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sidebar__search-input {
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: inherit;
+    font: inherit;
+    font-size: var(--size-xs);
+  }
+
+  .sidebar__search-input:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  .sidebar__no-results {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: var(--size-xs);
+  }
+
+  [hidden] {
+    display: none !important;
   }
 </style>

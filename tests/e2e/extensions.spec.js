@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 test("SegmentedControl: arrows choose, the zone gets data-view, tickets follow", async ({
   page
 }) => {
-  await page.goto("/components/molecules/segmentedcontrol?theme=chantier");
+  await page.goto("/components/segmentedcontrol?theme=chantier");
   const group = page.getByRole("group", { name: "Show the price" });
   const day = group.getByRole("button", { name: "Per day" });
   const week = group.getByRole("button", { name: "Per week" });
@@ -27,7 +27,7 @@ test("SegmentedControl: arrows choose, the zone gets data-view, tickets follow",
 });
 
 test("PriceTicket: a definition list with formatted amounts", async ({ page }) => {
-  await page.goto("/components/molecules/priceticket?theme=chantier");
+  await page.goto("/components/priceticket?theme=chantier");
   const first = page.locator(".priceticket").first();
   await expect(first.locator("dt").first()).toHaveText("Day");
   await expect(first.locator("dd").first()).toContainText("$329");
@@ -36,7 +36,7 @@ test("PriceTicket: a definition list with formatted amounts", async ({ page }) =
 });
 
 test("Marquee: the pause button stops the text and says so", async ({ page }) => {
-  await page.goto("/components/components/marquee?theme=chantier");
+  await page.goto("/components/marquee?theme=chantier");
   const marquee = page.locator("[data-marquee]").first();
   const toggle = marquee.getByRole("button", { name: "Pause the scrolling text" });
   await expect(marquee.locator(".marquee__viewport")).toHaveAttribute("aria-hidden", "true");
@@ -50,7 +50,7 @@ test("Marquee: the pause button stops the text and says so", async ({ page }) =>
 test("Marquee: still and without a button when reduced motion is asked", async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: "reduce" });
   const page = await context.newPage();
-  await page.goto("/components/components/marquee?theme=chantier");
+  await page.goto("/components/marquee?theme=chantier");
   const marquee = page.locator("[data-marquee]").first();
   await expect(marquee.locator(".marquee__track")).toHaveCSS("animation-name", "none");
   await expect(marquee.locator("[data-marquee-toggle]")).toBeHidden();
@@ -58,7 +58,7 @@ test("Marquee: still and without a button when reduced motion is asked", async (
 });
 
 test("NoticeBar: a named region, closing is remembered", async ({ page }) => {
-  await page.goto("/components/components/noticebar?theme=chantier");
+  await page.goto("/components/noticebar?theme=chantier");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   const bar = page.getByRole("region", { name: "Weather notice" });
@@ -71,7 +71,7 @@ test("NoticeBar: a named region, closing is remembered", async ({ page }) => {
 test("FilterBar groups: groups combine, counts follow, each keeps its parameter", async ({
   page
 }) => {
-  await page.goto("/components/molecules/filterbar?theme=chantier");
+  await page.goto("/components/filterbar?theme=chantier");
   const bar = page.locator('[data-target="fleet-demo"]');
   const visible = page.locator("#fleet-demo li:visible");
   await expect(visible).toHaveCount(5);
@@ -88,7 +88,7 @@ test("FilterBar groups: groups combine, counts follow, each keeps its parameter"
 
 test("FilterBar groups: on a phone, the filters open in a dialog", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto("/components/molecules/filterbar?theme=chantier");
+  await page.goto("/components/filterbar?theme=chantier");
   const bar = page.locator('[data-target="fleet-demo"]');
   const opener = bar.getByRole("button", { name: /^Filters/ });
   await expect(opener).toBeVisible();
@@ -105,7 +105,7 @@ test("FilterBar groups: on a phone, the filters open in a dialog", async ({ page
 });
 
 test("StepByStepWizard: branches, fields and a line-by-line total", async ({ page }) => {
-  await page.goto("/components/components/stepbystepwizard?theme=chantier");
+  await page.goto("/components/stepbystepwizard?theme=chantier");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   const root = page.locator("#request-demo");
@@ -155,7 +155,7 @@ test("StepByStepWizard: branches, fields and a line-by-line total", async ({ pag
 });
 
 test("StepByStepWizard: the works path skips the rental questions", async ({ page }) => {
-  await page.goto("/components/components/stepbystepwizard?theme=chantier");
+  await page.goto("/components/stepbystepwizard?theme=chantier");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   const root = page.locator("#request-demo");
@@ -172,7 +172,7 @@ test("StepByStepWizard: the works path skips the rental questions", async ({ pag
 
 test("StepByStepWizard: answers in the address fill the first steps", async ({ page }) => {
   await page.goto(
-    "/components/components/stepbystepwizard?theme=chantier&service=rental&machine=mini-35"
+    "/components/stepbystepwizard?theme=chantier&service=rental&machine=mini-35"
   );
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -182,7 +182,7 @@ test("StepByStepWizard: answers in the address fill the first steps", async ({ p
 });
 
 test("DataTable: rows stack in a narrow box and keep their column names", async ({ page }) => {
-  await page.goto("/components/components/datatable?theme=chantier");
+  await page.goto("/components/datatable?theme=chantier");
   const narrow = page.locator(".datatable--stack-sm").last();
   const cell = narrow.locator("tbody td").first();
   await expect(cell).toHaveCSS("display", "flex");
