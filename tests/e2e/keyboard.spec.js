@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 test("Accordion: panel content is in the DOM and closed panels are inert (C5/C6)", async ({
   page
 }) => {
-  await page.goto("/components/molecules/accordion");
+  await page.goto("/components/accordion");
   const panels = page.locator("[data-accordion-target]");
   expect(await panels.count()).toBeGreaterThan(0);
 
@@ -19,7 +19,7 @@ test("Accordion: panel content is in the DOM and closed panels are inert (C5/C6)
 });
 
 test("Tooltip: the trigger is keyboard-focusable (C12)", async ({ page }) => {
-  await page.goto("/components/atoms/tooltip");
+  await page.goto("/components/tooltip");
   const owner = page.locator("[data-tooltip-anchor] > *").first();
   await owner.waitFor();
   // Either natively focusable or given tabindex=0 by the component script.
@@ -32,7 +32,7 @@ test("Tooltip: the trigger is keyboard-focusable (C12)", async ({ page }) => {
 });
 
 test("Modal: native <dialog> closes on Escape (focus trap is built-in)", async ({ page }) => {
-  await page.goto("/components/components/modal");
+  await page.goto("/components/modal");
   const trigger = page.locator("[data-modal-open]").first();
   if ((await trigger.count()) === 0) test.skip(true, "no modal trigger on docs page");
   await trigger.click();

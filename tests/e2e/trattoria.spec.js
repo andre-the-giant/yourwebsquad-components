@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 test("MenuLine: price is plain text, leader is decorative, a link line is one target", async ({
   page
 }) => {
-  await page.goto("/components/molecules/menuline?theme=trattoria");
+  await page.goto("/components/menuline?theme=trattoria");
   const list = page.getByRole("list", { name: "Sauces", exact: true });
   await expect(list.getByRole("listitem")).toHaveCount(3);
   await expect(list.getByRole("listitem").nth(1)).toContainText("Alfredo");
@@ -19,7 +19,7 @@ test("MenuLine: price is plain text, leader is decorative, a link line is one ta
 test("OptionBuilder: the total waits for the required groups, then follows the choices", async ({
   page
 }) => {
-  await page.goto("/components/components/optionbuilder?theme=trattoria");
+  await page.goto("/components/optionbuilder?theme=trattoria");
   const root = page.locator("[data-optionbuilder]").first();
   const total = root.locator("[data-ob-total]");
   const action = root.getByRole("link", { name: "Call to order" });
@@ -50,7 +50,7 @@ test("OptionBuilder: the total waits for the required groups, then follows the c
 test("OptionBuilder: a disabled action does not navigate and focuses the first missing group", async ({
   page
 }) => {
-  await page.goto("/components/components/optionbuilder?theme=trattoria");
+  await page.goto("/components/optionbuilder?theme=trattoria");
   const root = page.locator("[data-optionbuilder]").first();
   const before = page.url();
   await root.getByRole("link", { name: "Call to order" }).click({ force: true });
@@ -62,7 +62,7 @@ test("OptionBuilder: below 48rem the summary is a fixed bar and the toggle unfol
   page
 }) => {
   await page.setViewportSize({ width: 375, height: 700 });
-  await page.goto("/components/components/optionbuilder?theme=trattoria");
+  await page.goto("/components/optionbuilder?theme=trattoria");
   const root = page.locator("[data-optionbuilder]").first();
   const summary = root.locator("[data-ob-summary]");
   await expect(summary).toHaveCSS("position", "fixed");
@@ -80,7 +80,7 @@ test("OptionBuilder: below 48rem the summary is a fixed bar and the toggle unfol
 test("VisibleCaption: the caption is visible without hover, on an opaque background", async ({
   page
 }) => {
-  await page.goto("/components/molecules/visiblecaption?theme=trattoria");
+  await page.goto("/components/visiblecaption?theme=trattoria");
   const caption = page.locator(".visiblecaption__caption").first();
   await expect(caption).toBeVisible();
   const bg = await caption.evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -88,7 +88,7 @@ test("VisibleCaption: the caption is visible without hover, on an opaque backgro
 });
 
 test("VisibleCaption: a map point lights up its legend line", async ({ page }) => {
-  await page.goto("/components/molecules/visiblecaption?theme=trattoria");
+  await page.goto("/components/visiblecaption?theme=trattoria");
   const legend = page.getByRole("list", { name: "Suppliers and distance" });
   await expect(legend.locator("li[aria-current]")).toContainText("Cataraqui");
   await page.getByRole("button", { name: "Point 3" }).hover();

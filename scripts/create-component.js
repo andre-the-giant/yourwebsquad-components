@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { pathToFileURL } from "url";
 import inquirer from "inquirer";
 import { execa } from "execa";
 import chalk from "chalk";
@@ -41,10 +42,15 @@ async function run() {
   const nameArg = process.argv[2];
   const groupArg = process.argv[3];
   const descArg = process.argv[4];
+  const categoryArg = process.argv[5];
 
   const trimmedNameArg = nameArg?.trim() || "";
   const trimmedGroupArg = groupArg?.trim() || "";
   const trimmedDescArg = descArg?.trim() || "";
+  const trimmedCategoryArg = categoryArg?.trim() || "";
+  const { categories } = await import(
+    pathToFileURL(path.join(process.cwd(), "src/docs/data/components.js")).href
+  );
 
   const prompts = [];
 
@@ -67,9 +73,19 @@ async function run() {
     prompts.push({
       type: "list",
       name: "group",
-      message: "Choose component group:",
+      message: "Choose composition level:",
       choices: groups.map((g) => ({ name: g, value: g })),
       default: "atoms"
+    });
+  }
+
+  if (!trimmedCategoryArg) {
+    prompts.push({
+      type: "list",
+      name: "category",
+      message: "Choose purpose category:",
+      choices: categories.map((c) => ({ name: c, value: c })),
+      default: categories[0]
     });
   }
 
@@ -89,15 +105,17 @@ async function run() {
   const description = trimmedDescArg || answers.description || "";
 
   const group = groups.includes(groupInput) ? groupInput : "atoms";
+  const categoryInput = trimmedCategoryArg || answers.category || "";
+  const category = categories.includes(categoryInput) ? categoryInput : categories[0];
   const Folder = pascalCase(name);
   const slugName = slug(name);
 
   const libDir = path.join(process.cwd(), "src/lib/components", Folder);
-  const docsDir = path.join(process.cwd(), "src/docs/pages/components", group);
+  const docsDir = path.join(process.cwd(), "src/docs/pages/components");
 
   await ensureDir(libDir);
   await ensureDir(docsDir);
-  logInfo(`Creating component scaffold for ${Folder} in group "${group}"...`);
+  logInfo(`Creating component scaffold for ${Folder} (${group}, ${category})...`);
 
   const formatTargets = [];
 
@@ -159,7 +177,7 @@ const resolvedClass = mergeClasses("${slugName}", className);
     formatTargets.push(compFile);
   }
 
-  // Docs page in group
+  // Docs page (flat URL: /components/<slug>)
   const docFile = path.join(docsDir, `${slugName}.astro`);
   const descriptionLiteral = JSON.stringify(description);
   const docTemplate = `---
@@ -225,8 +243,9 @@ const customCode = '<${Folder} id="${slugName}-sample" />';
   const dataFile = path.join(process.cwd(), "src/docs/data/components.js");
   try {
     const content = await fs.readFile(dataFile, "utf8");
-    const insert = `  {\n    name: "${Folder}",\n    href: "/components/${group}/${slugName}",\n    description: ${descriptionLiteral},\n    group: "${group}"\n  }\n`;
-    const updated = content.replace(/,?\n\];\s*$/m, `,\n${insert}];\n`);
+    const insert = `  {\n    name: "${Folder}",\n    href: "/components/${slugName}",\n    description: ${descriptionLiteral},\n    category: ${JSON.stringify(category)},\n    level: "${group}"\n  }\n`;
+    // Anchor to end of file: `categories` also ends with "];".
+    const updated = content.replace(/,?\n\];\s*$/, `,\n${insert}];\n`);
     if (updated === content) {
       logError(`Could not update ${dataFile} — pattern not found.`);
     } else {
@@ -248,7 +267,7 @@ const customCode = '<${Folder} id="${slugName}-sample" />';
     }
   }
 
-  logSuccess(`Component scaffold created: ${Folder} -> /components/${group}/${slugName}`);
+  logSuccess(`Component scaffold created: ${Folder} -> /components/${slugName}`);
 }
 
 run().catch((err) => {

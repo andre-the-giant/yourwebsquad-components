@@ -1,5 +1,110 @@
 ---
-import Page from "./molecules/rotator.astro";
+import DocLayout from "../../layouts/DocLayout.astro";
+import Preview from "../../components/Preview.astro";
+import PropsTable from "../../components/PropsTable.astro";
+import { components } from "../../data/components.js";
+import Rotator from "@lib/components/Rotator/Rotator.astro";
+import Icon from "@lib/components/Icon/Icon.astro";
+
+const props = [
+  {
+    name: "items",
+    type: "Array<string | number | boolean | HTMLElement>",
+    description: "Items to rotate. If omitted, falls back to slot content or defaults."
+  },
+  {
+    name: "interval",
+    type: "string",
+    default: '"1.2s"',
+    description: "Duration each item is held before moving."
+  },
+  {
+    name: "speed",
+    type: "string",
+    default: '"0.1s"',
+    description: "Duration of the transition between items."
+  },
+  {
+    name: "direction",
+    type: '"up" | "down"',
+    default: '"up"',
+    description: "Scroll direction."
+  },
+  {
+    name: "size",
+    type: "string",
+    default: '"inherit"',
+    description: "Font size/line height for the rotator."
+  },
+  {
+    name: "ariaLive",
+    type: '"off" | "polite" | "assertive"',
+    default: '"off"',
+    description: "ARIA live region politeness."
+  },
+  {
+    name: "slot",
+    type: "default",
+    default: "—",
+    description: "Provide <span> children when not using items[]."
+  }
+];
 ---
 
-<Page />
+<DocLayout title="Rotator" description={"text rotating animation"} items={components}>
+  <PropsTable props={props} />
+
+  <Preview
+    title="Preview"
+    code={`
+<p> Tu sais que je t'aime 
+  <Rotator
+    direction="down"
+    items={["UN TOUTIPEU", "NORMALEMENT", "BEAUCOUP", "PASSIONÉMENT", "À LA FOLIE"]}
+  />
+</p>
+<p>Default goes up unless we add direction="down"</p>
+<p style="font-size:2rem;">
+  Je mange des frites 
+  <Rotator 
+    items={["LE MATIN", " LE MIDI", "LE SOIR", "TOUJOURS"]} 
+  />
+</p>
+`}
+  >
+    <p>
+      Tu sais que je t'aime <Rotator
+        direction="down"
+        items={["UN TOUTIPEU", "NORMALEMENT", "BEAUCOUP", "PASSIONÉMENT", "À LA FOLIE"]}
+      />
+    </p>
+    <p>Default goes up unless we add direction="down"</p>
+    <p style="font-size:2rem;">
+      Je mange des frites <Rotator items={["LE MATIN", " LE MIDI", "LE SOIR", "TOUJOURS"]} />
+    </p>
+  </Preview>
+
+  <Preview
+    title="Preview"
+    code={`
+  <Rotator
+    size="3rem"
+    >
+    <span> <Icon content={{ name: "spark" }} size="md" /> DESIGN</span>
+    <span>⌨️ DEVELOP  <Icon content={{ name: "spark" }} size="sm" /></span>
+    <span>🌎 DEPLOY</span>
+    <span>🌱 SCALE</span>
+    <span>🔧 MAINTAIN</span>
+    <span>♻️ REPEAT</span>
+    </Rotator>`}
+  >
+    <Rotator size="3rem">
+      <span> <Icon content={{ name: "spark" }} size="md" /> DESIGN</span>
+      <span>⌨️ DEVELOP <Icon content={{ name: "spark" }} size="sm" /></span>
+      <span>🌎 DEPLOY</span>
+      <span>🌱 SCALE</span>
+      <span>🔧 MAINTAIN</span>
+      <span>♻️ REPEAT</span>
+    </Rotator>
+  </Preview>
+</DocLayout>

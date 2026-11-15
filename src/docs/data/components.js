@@ -1,374 +1,486 @@
+/** Purpose-based categories, in display order. */
+export const categories = [
+  "Site frame",
+  "Layout",
+  "Page openers",
+  "Trust & proof",
+  "Offer & pricing",
+  "Media",
+  "Content",
+  "Feedback & overlays",
+  "Filtering & choice",
+  "Contact & forms"
+];
+
+/** Composition tier, shown as a badge. */
+export const levels = {
+  atoms: "Atom",
+  molecules: "Molecule",
+  components: "Component"
+};
+
 export const components = [
   {
     name: "Button",
     href: "/components/button",
     description: "Action trigger for forms and buttons.",
-    group: "atoms"
+    category: "Content",
+    level: "atoms"
   },
   {
     name: "Icon",
     href: "/components/icon",
     description: "Inline SVG symbols with consistent sizing.",
-    group: "atoms"
+    category: "Media",
+    level: "atoms"
   },
   {
     name: "Form-Input",
-    href: "/components/atoms/form-input",
+    href: "/components/form-input",
     description: "Text input field with label and basic states.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Textarea",
-    href: "/components/atoms/form-textarea",
+    href: "/components/form-textarea",
     description: "Multiline textarea with label and states.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Upload",
-    href: "/components/atoms/form-upload",
+    href: "/components/form-upload",
     description: "Image/file upload input with label and limits.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Select",
-    href: "/components/atoms/form-select",
+    href: "/components/form-select",
     description: "Single-select dropdown with label and states.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Checkbox",
-    href: "/components/atoms/form-checkbox",
+    href: "/components/form-checkbox",
     description: "Checkbox styled as a toggle with configurable position and colors.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Radio",
-    href: "/components/atoms/form-radio",
+    href: "/components/form-radio",
     description: "Stylish radio buttons with layout and color options.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Date",
-    href: "/components/atoms/form-date",
+    href: "/components/form-date",
     description: "Native date input with label.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Help",
-    href: "/components/atoms/form-help",
+    href: "/components/form-help",
     description: "Helper text for form fields with aria support.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Error",
-    href: "/components/atoms/form-error",
+    href: "/components/form-error",
     description: "Error text for form fields with alert semantics.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Form-Hidden",
-    href: "/components/atoms/form-hidden",
+    href: "/components/form-hidden",
     description: "Hidden input for posting fixed values.",
-    group: "atoms"
+    category: "Contact & forms",
+    level: "atoms"
   },
   {
     name: "Link",
     href: "/components/link",
     description: "handles internal/external, active state, “opens in new tab” indicators",
-    group: "molecules"
+    category: "Content",
+    level: "molecules"
   },
   {
     name: "Form",
     href: "/components/form",
     description: "Form wrapper that manages submit behavior and errors.",
-    group: "components"
+    category: "Contact & forms",
+    level: "components"
   },
   {
     name: "Image",
     href: "/components/image",
     description: "Image wrapper using Astro:asset with defaults",
-    group: "atoms"
+    category: "Media",
+    level: "atoms"
   },
   {
     name: "Alert",
     href: "/components/alert",
     description: "Alert box to get the attention. Dismissable and color coded",
-    group: "molecules"
+    category: "Feedback & overlays",
+    level: "molecules"
   },
   {
     name: "List",
     href: "/components/list",
     description: "Lists, unordered or ordered, with a special bullet or what not",
-    group: "atoms"
+    category: "Content",
+    level: "atoms"
   },
   {
     name: "Hero",
     href: "/components/hero",
     description: "A big fat image with a text and a cta ",
-    group: "components"
+    category: "Page openers",
+    level: "components"
   },
   {
     name: "Rotator",
     href: "/components/rotator",
     description: "text rotating animation",
-    group: "molecules"
+    category: "Media",
+    level: "molecules",
+    tags: ["carousel", "slider"]
   },
   {
     name: "LocaleSwitch",
     href: "/components/locale-switch",
     description: "Switch language in i18n websites",
-    group: "molecules"
+    category: "Site frame",
+    level: "molecules"
   },
   {
     name: "PhotoRoll",
-    href: "/components/components/photo-roll",
+    href: "/components/photo-roll",
     description: "A component to display images and scroll through them",
-    group: "components"
+    category: "Media",
+    level: "components",
+    tags: ["gallery", "carousel"]
   },
   {
     name: "Map",
-    href: "/components/components/map",
+    href: "/components/map",
     description: "Display a google map centered on a google business",
-    group: "components"
+    category: "Media",
+    level: "components",
+    tags: ["location", "address"]
   },
   {
     name: "Accordion",
-    href: "/components/molecules/accordion",
+    href: "/components/accordion",
     description: "a button that collapse blocks and shit",
-    group: "molecules"
+    category: "Content",
+    level: "molecules"
   },
   {
     name: "ComparisonSlider",
-    href: "/components/molecules/comparisonslider",
+    href: "/components/comparisonslider",
     description: "Compare between 2 images or blocks",
-    group: "molecules"
+    category: "Media",
+    level: "molecules",
+    tags: ["before after"]
   },
   {
     name: "GoogleReviews",
-    href: "/components/components/googlereviews",
+    href: "/components/googlereviews",
     description: "Add Google reviews on a page.",
-    group: "components"
+    category: "Trust & proof",
+    level: "components",
+    tags: ["testimonials"]
   },
   {
     name: "Pipeda",
-    href: "/components/components/pipeda",
+    href: "/components/pipeda",
     description: "PIPEDA-oriented cookie banner and privacy-page settings component",
-    group: "components"
+    category: "Contact & forms",
+    level: "components",
+    tags: ["privacy", "consent", "cookies"]
   },
   {
     name: "StarRating",
-    href: "/components/molecules/star-rating",
+    href: "/components/star-rating",
     description: "A star rating system in pure CSS",
-    group: "molecules"
+    category: "Trust & proof",
+    level: "molecules"
   },
   {
     name: "Tooltip",
-    href: "/components/atoms/tooltip",
+    href: "/components/tooltip",
     description: "A tooltip",
-    group: "atoms"
+    category: "Feedback & overlays",
+    level: "atoms",
+    tags: ["hint"]
   },
   {
     name: "Modal",
-    href: "/components/components/modal",
+    href: "/components/modal",
     description: "A modal component",
-    group: "components"
+    category: "Feedback & overlays",
+    level: "components",
+    tags: ["dialog", "popup"]
   },
   {
     name: "FormField",
-    href: "/components/components/formfield",
+    href: "/components/formfield",
     description: "Composed, fully-wired form field (label + control + help + error)",
-    group: "components"
+    category: "Contact & forms",
+    level: "components"
   },
   {
     name: "Band",
-    href: "/components/components/band",
+    href: "/components/band",
     description: "Full-width section: spacing, width and background tone.",
-    group: "components"
+    category: "Layout",
+    level: "components"
   },
   {
     name: "Breadcrumb",
-    href: "/components/molecules/breadcrumb",
+    href: "/components/breadcrumb",
     description: "Trail of links ending on the current page.",
-    group: "molecules"
+    category: "Site frame",
+    level: "molecules"
   },
   {
     name: "CardGrid",
-    href: "/components/components/cardgrid",
+    href: "/components/cardgrid",
     description: "Comparable items in 2 or 3 columns, with or without links.",
-    group: "components"
+    category: "Layout",
+    level: "components"
   },
   {
     name: "CtaBand",
-    href: "/components/components/ctaband",
+    href: "/components/ctaband",
     description: "One action with a large title, once per page.",
-    group: "components"
+    category: "Page openers",
+    level: "components",
+    tags: ["call to action"]
   },
   {
     name: "DataTable",
-    href: "/components/components/datatable",
+    href: "/components/datatable",
     description: "Real table with caption, headers and a scrollable region.",
-    group: "components"
+    category: "Content",
+    level: "components",
+    tags: ["table"]
   },
   {
     name: "Facts",
-    href: "/components/components/facts",
+    href: "/components/facts",
     description: "A sentence that answers on its own, then key facts.",
-    group: "components"
+    category: "Trust & proof",
+    level: "components",
+    tags: ["stats", "numbers"]
   },
   {
     name: "Faq",
-    href: "/components/components/faq",
+    href: "/components/faq",
     description: "Questions and answers with native details.",
-    group: "components"
+    category: "Content",
+    level: "components",
+    tags: ["questions"]
   },
   {
     name: "PageHero",
-    href: "/components/components/pagehero",
+    href: "/components/pagehero",
     description: "Top of a page with its only h1.",
-    group: "components"
+    category: "Page openers",
+    level: "components"
   },
   {
     name: "Plans",
-    href: "/components/components/plans",
+    href: "/components/plans",
     description: "Pricing cards, with a CSS-only payment switch.",
-    group: "components"
+    category: "Offer & pricing",
+    level: "components",
+    tags: ["pricing", "tiers"]
   },
   {
     name: "Proof",
-    href: "/components/components/proof",
+    href: "/components/proof",
     description: "Experience and clients.",
-    group: "components"
+    category: "Trust & proof",
+    level: "components",
+    tags: ["case study", "before after"]
   },
   {
     name: "Section",
-    href: "/components/components/section",
+    href: "/components/section",
     description: "Basic content block: title, text, list or image.",
-    group: "components"
+    category: "Layout",
+    level: "components"
   },
   {
     name: "Steps",
-    href: "/components/components/steps",
+    href: "/components/steps",
     description: "Ordered sequence with large numbers.",
-    group: "components"
+    category: "Content",
+    level: "components",
+    tags: ["process", "how it works"]
   },
   {
     name: "SiteHeader",
-    href: "/components/components/siteheader",
+    href: "/components/siteheader",
     description: "Logo, main menu, language and one button. Menu panel on phones.",
-    group: "components"
+    category: "Site frame",
+    level: "components"
   },
   {
     name: "SiteFooter",
-    href: "/components/components/sitefooter",
+    href: "/components/sitefooter",
     description: "Contact details, link columns and legal line.",
-    group: "components"
+    category: "Site frame",
+    level: "components"
   },
   {
     name: "Tag",
-    href: "/components/atoms/tag",
+    href: "/components/tag",
     description: "Small label for a status.",
-    group: "atoms"
+    category: "Content",
+    level: "atoms"
   },
   {
     name: "Card",
-    href: "/components/molecules/card",
+    href: "/components/card",
     description: "Generic card: photo, tag, title, text, meta line; one link.",
-    group: "molecules"
+    category: "Layout",
+    level: "molecules"
   },
   {
     name: "FilterBar",
-    href: "/components/molecules/filterbar",
+    href: "/components/filterbar",
     description: "Toggle filters for any list on the page, with a shareable URL.",
-    group: "molecules"
+    category: "Filtering & choice",
+    level: "molecules",
+    tags: ["filter", "search"]
   },
   {
     name: "GoogleRating",
-    href: "/components/molecules/googlerating",
+    href: "/components/googlerating",
     description: "Overall Google rating: badge, inline or mini.",
-    group: "molecules"
+    category: "Trust & proof",
+    level: "molecules"
   },
   {
     name: "TableOfContents",
-    href: "/components/molecules/tableofcontents",
+    href: "/components/tableofcontents",
     description: '"On this page" list, sticky on desktop, folded on phones.',
-    group: "molecules"
+    category: "Site frame",
+    level: "molecules",
+    tags: ["toc", "anchors"]
   },
   {
     name: "ContactCard",
-    href: "/components/components/contactcard",
+    href: "/components/contactcard",
     description: "Phone, email, office and hours with an open-now status.",
-    group: "components"
+    category: "Contact & forms",
+    level: "components",
+    tags: ["phone", "email", "hours"]
   },
   {
     name: "Lightbox",
-    href: "/components/components/lightbox",
+    href: "/components/lightbox",
     description: "Full-screen photo viewer with arrows, swipe and captions.",
-    group: "components"
+    category: "Media",
+    level: "components",
+    tags: ["gallery", "zoom"]
   },
   {
     name: "Review",
-    href: "/components/components/review",
+    href: "/components/review",
     description: "One customer review: full, compact, with rating or video.",
-    group: "components"
+    category: "Trust & proof",
+    level: "components",
+    tags: ["testimonial"]
   },
   {
     name: "StepByStepWizard",
-    href: "/components/components/stepbystepwizard",
+    href: "/components/stepbystepwizard",
     description: "One question at a time, progress bar, summary and result.",
-    group: "components"
+    category: "Filtering & choice",
+    level: "components",
+    tags: ["quote", "multi-step"]
   },
   {
     name: "StickyActions",
-    href: "/components/components/stickyactions",
+    href: "/components/stickyactions",
     description: "Fixed bottom bar on phones: main action and call.",
-    group: "components"
+    category: "Site frame",
+    level: "components",
+    tags: ["mobile", "call", "cta"]
   },
   {
     name: "TrustBar",
-    href: "/components/components/trustbar",
+    href: "/components/trustbar",
     description: "Two to six short guarantees with icons.",
-    group: "components"
+    category: "Trust & proof",
+    level: "components"
   },
   {
     name: "PriceTicket",
-    href: "/components/molecules/priceticket",
+    href: "/components/priceticket",
     description: "Two or three prices side by side, one highlighted.",
-    group: "molecules"
+    category: "Offer & pricing",
+    level: "molecules",
+    tags: ["price"]
   },
   {
     name: "SegmentedControl",
-    href: "/components/molecules/segmentedcontrol",
+    href: "/components/segmentedcontrol",
     description: "2 to 4 exclusive choices that change how a zone looks.",
-    group: "molecules"
+    category: "Filtering & choice",
+    level: "molecules",
+    tags: ["toggle", "tabs"]
   },
   {
     name: "Marquee",
-    href: "/components/components/marquee",
+    href: "/components/marquee",
     description: "Slow scrolling band of text, with a pause button.",
-    group: "components"
+    category: "Media",
+    level: "components",
+    tags: ["ticker", "logos"]
   },
   {
     name: "NoticeBar",
-    href: "/components/components/noticebar",
+    href: "/components/noticebar",
     description: "Thin band above the header for a site-wide notice.",
-    group: "components"
+    category: "Site frame",
+    level: "components",
+    tags: ["announcement", "banner"]
   },
   {
     name: "MenuLine",
-    href: "/components/molecules/menuline",
+    href: "/components/menuline",
     description: "Printed-menu list: name, dotted leader, price, description.",
-    group: "molecules"
+    category: "Offer & pricing",
+    level: "molecules",
+    tags: ["restaurant", "menu"]
   },
   {
     name: "OptionBuilder",
-    href: "/components/components/optionbuilder",
+    href: "/components/optionbuilder",
     description: "Pick options in groups, see a live total, order from a sticky bar.",
-    group: "components"
+    category: "Offer & pricing",
+    level: "components",
+    tags: ["configurator", "restaurant"]
   },
   {
     name: "VisibleCaption",
-    href: "/components/molecules/visiblecaption",
+    href: "/components/visiblecaption",
     description: "Photo caption or map legend that is always visible.",
-    group: "molecules"
+    category: "Media",
+    level: "molecules",
+    tags: ["figure", "legend"]
   }
 ];

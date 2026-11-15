@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/components/components/stepbystepwizard?theme=marbre");
+  await page.goto("/components/stepbystepwizard?theme=marbre");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
 });
@@ -58,7 +58,7 @@ test("StepByStepWizard: an unfinished run can be resumed", async ({ page }) => {
 });
 
 test("FilterBar: filters the list, announces the count and keeps the URL", async ({ page }) => {
-  await page.goto("/components/molecules/filterbar?theme=marbre");
+  await page.goto("/components/filterbar?theme=marbre");
   const bar = page.locator("[data-filterbar]").first();
   const list = page.locator("#filter-demo > li");
   await expect(list).toHaveCount(3);
@@ -75,7 +75,7 @@ test("FilterBar: filters the list, announces the count and keeps the URL", async
 });
 
 test("FilterBar: targets a CardGrid by its id and sorts by data-sort", async ({ page }) => {
-  await page.goto("/components/molecules/filterbar?theme=marbre");
+  await page.goto("/components/filterbar?theme=marbre");
   const bar = page.locator("#grid-filter");
   const cards = page.locator("#grid-demo li");
   await expect(cards).toHaveCount(3);

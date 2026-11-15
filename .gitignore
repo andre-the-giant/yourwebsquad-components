@@ -182,3 +182,6 @@ out/
 coverage/
 src/env.d.ts
 .astro/types.d.ts
+
+# Playwright
+test-results/
