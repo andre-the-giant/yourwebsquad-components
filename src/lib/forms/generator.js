@@ -69,7 +69,9 @@ export function buildFormConfig(form) {
   };
 }
 
-export function generatePhpEndpoint(form, { allowedOrigins = [] } = {}) {
+export function generatePhpEndpoint(form, { allowedOrigins = [], smtpSection = "" } = {}) {
+  const section = String(smtpSection || "").replace(/[^a-zA-Z0-9_-]/g, "");
+  const smtpSectionLiteral = `'${section}'`;
   const config = buildFormConfig(form);
   const configJson = JSON.stringify(config);
   const configLiteral = escapeForPhpString(configJson);
@@ -420,6 +422,29 @@ function find_ancestor_directory(string $startDir, array $targetNames, int $maxD
     return null;
 }
 
+function find_env_file(string $startDir, int $maxDepth = 8): ?string {
+    $current = realpath($startDir);
+    if ($current === false) {
+        return null;
+    }
+
+    for ($depth = 0; $depth <= $maxDepth; $depth++) {
+        $candidate = $current . '/server.env.php';
+        if (is_file($candidate)) {
+            return $candidate;
+        }
+
+        $parent = dirname($current);
+        if ($parent === $current) {
+            break;
+        }
+
+        $current = $parent;
+    }
+
+    return null;
+}
+
 function smtp_config(): array {
     $host = '';
     $port = 465;
@@ -429,22 +454,38 @@ function smtp_config(): array {
     $fromEmail = '';
     $fromName = 'Website';
 
+    // Section baked in at build time (e.g. from DEPLOY_ENV); empty means "infer from folder".
+    $section = ${smtpSectionLiteral};
+    $envPath = null;
+
+    // Legacy layout: <server>/server.env.php next to a public|test|www docroot.
     $siteRoot = find_ancestor_directory(__DIR__, ['public', 'test', 'www']);
-    if ($siteRoot === null) {
-        return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
+    if ($siteRoot !== null) {
+        if ($section === '') {
+            $section = basename($siteRoot) === 'www' ? 'production' : 'staging';
+        }
+        $candidate = dirname($siteRoot) . '/server.env.php';
+        if (is_file($candidate)) {
+            $envPath = $candidate;
+        }
     }
 
-    $siteFolder = basename($siteRoot);
-    $serverRoot = dirname($siteRoot);
-    $section = $siteFolder === 'www' ? 'production' : 'staging';
+    // Any other layout: nearest server.env.php in a parent directory.
+    if ($envPath === null) {
+        $envPath = find_env_file(__DIR__);
+    }
+    if ($section === '') {
+        $section = 'production';
+    }
 
-    $envPath = $serverRoot . '/server.env.php';
-    if (!is_file($envPath)) {
+    if ($envPath === null) {
+        error_log('[form] SMTP config: server.env.php not found above ' . __DIR__);
         return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
     }
 
     $values = require $envPath;
     if (!is_array($values) || !isset($values[$section]) || !is_array($values[$section])) {
+        error_log(sprintf('[form] SMTP config: section "%s" missing in %s', $section, $envPath));
         return compact('host', 'port', 'secure', 'user', 'pass', 'fromEmail', 'fromName');
     }
 
@@ -679,7 +720,7 @@ foreach ($fields as $name => $meta) {
         $errors[$name] = 'Too short.';
     }
 
-    if (!empty($meta['pattern'])) {
+    if (!empty($meta['pattern']) && $value !== null && $value !== '') {
         $regex = pattern_to_regex($meta['pattern']);
         if ($regex && !preg_match($regex, (string)$value)) {
             $errors[$name] = 'Invalid format.';

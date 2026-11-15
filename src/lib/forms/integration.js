@@ -79,7 +79,10 @@ export default function yourwebsquadForms(options = {}) {
           const apiDir = path.join(outDir, "api", form.id);
           const phpPath = path.join(apiDir, "index.php");
           await fs.mkdir(apiDir, { recursive: true });
-          const contents = generatePhpEndpoint(form, { allowedOrigins });
+          const contents = generatePhpEndpoint(form, {
+            allowedOrigins,
+            smtpSection: options.smtpSection
+          });
           await fs.writeFile(phpPath, contents, "utf-8");
           logger.info(`[forms] Generated ${path.relative(outDir, phpPath)}`);
         }
