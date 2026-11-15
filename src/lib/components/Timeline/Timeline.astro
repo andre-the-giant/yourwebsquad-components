@@ -15,8 +15,12 @@ Props:
 - style?: string
 Accessibility: an ordered list in reading order, each date in <time> when datetime is set;
 the line and dots are decorative. Alternate layout only moves boxes, never the order.
-Theme variables: --timeline-line, --timeline-dot, --timeline-dot-size, --timeline-date-color,
---timeline-card-bg
+Theme variables: --timeline-line (colour), --timeline-line-width, --timeline-line-bg
+(any background: stripes, dots), --timeline-dot, --timeline-dot-size, --timeline-dot-top,
+--timeline-date-color, --timeline-date-font, --timeline-date-size, --timeline-date-bg,
+--timeline-date-padding, --timeline-date-transform, --timeline-date-tracking,
+--timeline-card-bg, --timeline-card-border, --timeline-card-padding, --timeline-card-shadow.
+Shared style knobs: --marker-*, --media-frame (see tokens.css §4).
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -108,6 +112,7 @@ const headingId = heading ? nextId("timeline") : undefined;
   .timeline {
     --_dot: var(--timeline-dot-size, 0.875rem);
     --_gutter: 2rem;
+    --_line: var(--timeline-line-width, 2px);
     padding-block: var(--space-6);
   }
 
@@ -137,9 +142,9 @@ const headingId = heading ? nextId("timeline") : undefined;
     content: "";
     position: absolute;
     inset-block: 0.5rem;
-    inset-inline-start: calc(var(--_dot) / 2 - 1px);
-    width: 2px;
-    background: var(--timeline-line, var(--color-border));
+    inset-inline-start: calc(var(--_dot) / 2 - var(--_line) / 2);
+    width: var(--_line);
+    background: var(--timeline-line-bg, var(--timeline-line, var(--color-border)));
   }
 
   .timeline__item {
@@ -149,13 +154,16 @@ const headingId = heading ? nextId("timeline") : undefined;
 
   .timeline__dot {
     position: absolute;
-    top: 0.35rem;
+    top: var(--timeline-dot-top, 0.35rem);
     inset-inline-start: 0;
+    box-sizing: border-box;
     width: var(--_dot);
     height: var(--_dot);
-    border-radius: 50%;
-    background: var(--timeline-dot, var(--color-fg));
+    border: var(--marker-border, 0);
+    border-radius: var(--marker-radius, 50%);
+    background: var(--timeline-dot, var(--marker-bg, var(--color-fg)));
     box-shadow: 0 0 0 4px var(--color-bg);
+    rotate: var(--marker-rotate, 0deg);
   }
 
   .timeline--surface .timeline__dot {
@@ -166,12 +174,22 @@ const headingId = heading ? nextId("timeline") : undefined;
     display: grid;
     gap: var(--space-1);
     max-width: 38rem;
+    padding: var(--timeline-card-padding, 0);
+    border: var(--timeline-card-border, 0);
+    background: var(--timeline-card-bg, transparent);
+    box-shadow: var(--timeline-card-shadow, none);
   }
 
   .timeline__date {
-    font-size: var(--size-sm);
-    font-weight: var(--weight-semibold);
+    justify-self: start;
+    padding: var(--timeline-date-padding, 0);
+    background: var(--timeline-date-bg, transparent);
     color: var(--timeline-date-color, var(--color-fg-muted, inherit));
+    font-family: var(--timeline-date-font, inherit);
+    font-size: var(--timeline-date-size, var(--size-sm));
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--timeline-date-tracking, normal);
+    text-transform: var(--timeline-date-transform, none);
     font-variant-numeric: tabular-nums;
   }
 
@@ -193,11 +211,13 @@ const headingId = heading ? nextId("timeline") : undefined;
     height: auto;
     margin-top: var(--space-2);
     border-radius: var(--radius-md);
+    outline: var(--media-frame, none);
+    outline-offset: var(--media-frame-offset, 0);
   }
 
   @media (min-width: 48rem) {
     .timeline--alternate .timeline__list::before {
-      inset-inline-start: calc(50% - 1px);
+      inset-inline-start: calc(50% - var(--_line) / 2);
     }
 
     .timeline--alternate .timeline__item {
@@ -224,6 +244,10 @@ const headingId = heading ? nextId("timeline") : undefined;
 
     .timeline--alternate .timeline__card {
       margin-inline-start: auto;
+    }
+
+    .timeline--alternate .timeline__item:nth-child(odd) .timeline__date {
+      justify-self: end;
     }
 
     .timeline--alternate .timeline__item:nth-child(even) .timeline__card {

@@ -842,3 +842,114 @@ html[data-theme="marbre"] .sitefooter {
   background: rgb(238, 242, 243);
   color: var(--color-fg);
 }
+
+/* ── §4 Style knobs and newer components ──────────────────────────────────────
+   Spa calm carried into structure: hairlines, no shadow, generous padding,
+   widely tracked labels led by a short rule, hollow diamond markers, light serif
+   numbers and a fine white inner frame on photos. */
+html[data-theme="marbre"] {
+  --surface-border: 1px solid var(--color-border);
+  --surface-radius: 0;
+  --surface-shadow: none;
+  --surface-hover-shadow: none;
+  --surface-hover-transform: none;
+  --surface-hover-border-color: var(--color-accent);
+  --surface-padding: 1.75rem;
+
+  --eyebrow-font: var(--font-body);
+  --eyebrow-size: 0.6875rem;
+  --eyebrow-weight: 600;
+  --eyebrow-transform: uppercase;
+  --eyebrow-tracking: 0.22em;
+  --eyebrow-color: var(--color-accent);
+  --eyebrow-bg: transparent;
+  --eyebrow-padding: 0;
+  --eyebrow-opacity: 1;
+  --eyebrow-rule-width: 1.75rem;
+  --eyebrow-rule-gap: 0.75rem;
+  --eyebrow-compact-tracking: 0.12em;
+
+  --marker-radius: 0;
+  --marker-rotate: 45deg;
+  --marker-bg: var(--color-bg);
+  --marker-border: 1px solid var(--color-accent);
+  --number-font: var(--font-display);
+  --number-weight: 400;
+
+  --media-frame: 1px solid rgb(255 255 255 / 0.75);
+  --media-frame-offset: -12px;
+
+  /* AnnouncementPill: square, hairline, tracked capitals */
+  --pill-radius: 0;
+  --pill-bg: transparent;
+  --pill-weight: 500;
+  --pill-transform: uppercase;
+  --pill-tracking: 0.14em;
+  --pill-badge-bg: transparent;
+  --pill-badge-fg: var(--color-accent);
+  --pill-badge-divider: 1px solid var(--color-border);
+  --pill-inverse-badge-bg: transparent;
+  --pill-inverse-badge-fg: var(--color-inverse-fg);
+
+  /* Timeline: hairline, serif dates in lake blue */
+  --timeline-line-width: 1px;
+  --timeline-dot-size: 0.75rem;
+  --timeline-dot-top: 0.55rem;
+  --timeline-date-font: var(--font-display);
+  --timeline-date-size: 1.125rem;
+  --timeline-date-color: var(--color-accent);
+  --timeline-date-tracking: 0.04em;
+
+  /* StatsCounter: hairlines between numbers, light serif figures */
+  --stats-divider: 1px solid var(--color-border);
+  --stats-item-padding: 0.5rem 2rem;
+  --stats-value-size: clamp(2.5rem, 1.9rem + 2vw, 3.75rem);
+  --stats-label-size: 0.75rem;
+  --stats-label-weight: 600;
+  --stats-label-transform: uppercase;
+  --stats-label-tracking: 0.18em;
+  --stats-label-color: var(--color-muted);
+  --stats-inverse-label-color: var(--color-inverse-fg);
+
+  /* LogoCloud */
+  --logo-cloud-gap: 2rem 3.5rem;
+  --logo-cloud-opacity: 0.55;
+
+  /* Toast */
+  --toast-radius: 0;
+  --toast-shadow: none;
+  --toast-stripe-width: 2px;
+
+  /* VideoFacade: thin white ring, serif title */
+  --video-radius: 0;
+  --video-button-size: 5rem;
+  --video-button-bg: rgb(42 40 38 / 0.55);
+  --video-button-hover-bg: rgb(42 40 38 / 0.8);
+  --video-button-border: 1px solid rgb(255 255 255);
+  --video-title-font: var(--font-display);
+
+  /* TeamSection: tall portraits, tracked roles */
+  --team-photo-radius: 0;
+  --team-photo-ratio: 4 / 5;
+  --team-role-size: 0.75rem;
+  --team-role-transform: uppercase;
+  --team-role-tracking: 0.18em;
+  --team-role-color: var(--color-accent);
+
+  /* Tabs: hairline indicator, tracked capitals */
+  --tabs-size: 0.8125rem;
+  --tabs-transform: uppercase;
+  --tabs-tracking: 0.16em;
+  --tabs-indicator: var(--color-accent);
+  --tabs-indicator-size: 1px;
+  --tabs-active-fg: var(--color-accent);
+  --tabs-pill-radius: 0;
+  --tabs-pill-active-bg: var(--color-accent);
+  --tabs-pill-active-fg: var(--color-accent-contrast);
+
+  /* SlotPicker */
+  --slot-radius: 0;
+  --slot-hover-bg: var(--color-surface);
+  --slot-active-bg: var(--color-accent);
+  --slot-active-fg: var(--color-accent-contrast);
+}

@@ -17,7 +17,11 @@ once. Nothing moves when the device asks for reduced motion.
 Performance: one IntersectionObserver, requestAnimationFrame, tabular digits and a reserved
 width so the layout never shifts while counting.
 Theme variables: --stats-bg, --stats-fg, --stats-value-color, --stats-value-font,
---stats-value-size, --stats-label-color, --stats-divider
+--stats-value-size, --stats-value-weight, --stats-label-color, --stats-label-font,
+--stats-label-size, --stats-label-weight, --stats-label-transform, --stats-label-tracking,
+--stats-divider (between items), --stats-item-border, --stats-item-padding,
+--stats-item-shadow; inverse tone: --stats-inverse-value-color, --stats-inverse-label-color.
+Shared style knobs: --number-font, --number-weight (see tokens.css §4).
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -68,6 +72,11 @@ const format = (value: number, decimals: number) =>
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
   }).format(value);
+// Width kept while counting: a full digit width per digit, a narrow one per separator.
+const reserve = (text: string) => {
+  const digits = text.replace(/\D/g, "").length;
+  return `min-width: calc(${digits}ch + ${text.length - digits} * 0.35ch)`;
+};
 ---
 
 <section
@@ -102,7 +111,7 @@ const format = (value: number, decimals: number) =>
                   class="stats__number"
                   data-value={item.value}
                   data-decimals={item.decimals}
-                  style={`min-width: ${format(item.value, item.decimals).length}ch`}
+                  style={reserve(format(item.value, item.decimals))}
                 >
                   {format(item.value, item.decimals)}
                 </span>
@@ -200,13 +209,26 @@ const format = (value: number, decimals: number) =>
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
     gap: var(--space-5);
     margin: 0;
+    overflow: hidden;
   }
 
   .stats__item {
     display: flex;
     flex-direction: column-reverse;
     gap: var(--space-1);
-    padding-inline: var(--space-3);
+    padding: var(--stats-item-padding, 0 var(--space-3));
+    position: relative;
+    border: var(--stats-item-border, 0);
+    box-shadow: var(--stats-item-shadow, none);
+  }
+
+  /* Divider in the middle of the gap; the list clips it at row starts, so the first
+     item of each row (or every item when stacked) has none. */
+  .stats__item::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--space-5) / -2);
     border-inline-start: var(--stats-divider, 0);
   }
 
@@ -216,11 +238,15 @@ const format = (value: number, decimals: number) =>
 
   .stats__value {
     margin: 0;
-    font-family: var(--stats-value-font, var(--font-display));
+    font-family: var(--stats-value-font, var(--number-font, var(--font-display)));
     font-size: var(--stats-value-size, clamp(2.25rem, 1.75rem + 2vw, 3.5rem));
-    font-weight: var(--weight-bold);
+    font-weight: var(--stats-value-weight, var(--number-weight, var(--weight-bold)));
     line-height: 1;
     color: var(--stats-value-color, inherit);
+  }
+
+  .stats__display {
+    white-space: nowrap;
   }
 
   .stats__number {
@@ -233,8 +259,20 @@ const format = (value: number, decimals: number) =>
   }
 
   .stats__label {
-    font-size: var(--size-sm);
     color: var(--stats-label-color, inherit);
+    font-family: var(--stats-label-font, inherit);
+    font-size: var(--stats-label-size, var(--size-sm));
+    font-weight: var(--stats-label-weight, inherit);
+    letter-spacing: var(--stats-label-tracking, normal);
+    text-transform: var(--stats-label-transform, none);
+  }
+
+  .stats--inverse .stats__value {
+    color: var(--stats-inverse-value-color, inherit);
+  }
+
+  .stats--inverse .stats__label {
+    color: var(--stats-inverse-label-color, inherit);
   }
 
   .stats__sr {

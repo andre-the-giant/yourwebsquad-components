@@ -22,7 +22,11 @@ JavaScript and opens in a new tab with modifier keys. With JavaScript the click 
 the player (privacy-enhanced youtube-nocookie.com / Vimeo dnt=1) and moves focus to it.
 Performance: lazy poster with fixed aspect ratio; the connection to the player is warmed
 on hover or focus only.
-Theme variables: --video-radius, --video-bg, --video-button-bg, --video-button-fg
+Theme variables: --video-radius, --video-bg, --video-frame-border, --video-frame-shadow,
+--video-button-bg, --video-button-hover-bg, --video-button-fg, --video-button-size,
+--video-button-radius, --video-button-border, --video-button-shadow, --video-title-font,
+--video-title-transform, --video-title-tracking.
+Shared style knobs: --media-frame (see tokens.css §4).
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -145,8 +149,10 @@ const posterSrc =
     position: relative;
     aspect-ratio: var(--_aspect);
     overflow: hidden;
+    border: var(--video-frame-border, 0);
     border-radius: var(--video-radius, var(--radius-lg));
     background: var(--video-bg, var(--color-inverse-surface));
+    box-shadow: var(--video-frame-shadow, none);
   }
 
   .video__play {
@@ -161,6 +167,8 @@ const posterSrc =
     width: 100%;
     height: 100%;
     object-fit: cover;
+    outline: var(--media-frame, none);
+    outline-offset: var(--media-frame-offset, 0);
   }
 
   .video__title {
@@ -169,7 +177,10 @@ const posterSrc =
     padding: var(--space-3) var(--space-4) var(--space-6);
     background: linear-gradient(rgb(0 0 0 / 0.7), transparent);
     color: #fff;
+    font-family: var(--video-title-font, inherit);
     font-weight: var(--weight-semibold);
+    letter-spacing: var(--video-title-tracking, normal);
+    text-transform: var(--video-title-transform, none);
     line-height: var(--line-tight);
     text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
   }
@@ -180,11 +191,14 @@ const posterSrc =
     left: 50%;
     display: grid;
     place-items: center;
-    width: 4.5rem;
-    height: 4.5rem;
-    border-radius: 50%;
+    box-sizing: border-box;
+    width: var(--video-button-size, 4.5rem);
+    height: var(--video-button-size, 4.5rem);
+    border: var(--video-button-border, 0);
+    border-radius: var(--video-button-radius, 50%);
     background: var(--video-button-bg, rgb(0 0 0 / 0.75));
     color: var(--video-button-fg, #fff);
+    box-shadow: var(--video-button-shadow, none);
     transform: translate(-50%, -50%);
     transition:
       transform var(--duration-fast, 150ms) ease,
@@ -196,7 +210,7 @@ const posterSrc =
   }
 
   .video__play:hover .video__button {
-    background: var(--video-button-bg, rgb(0 0 0 / 0.9));
+    background: var(--video-button-hover-bg, var(--video-button-bg, rgb(0 0 0 / 0.9)));
     transform: translate(-50%, -50%) scale(1.06);
   }
 

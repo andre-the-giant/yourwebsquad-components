@@ -19,7 +19,10 @@ right below), so alt is empty. Contact links say whose they are to screen reader
 ("Email — Marie Tremblay") while staying short on screen; every link has a 44px target.
 Performance: lazy, async-decoded photos with a fixed aspect ratio (no layout shift).
 Theme variables: --team-card-bg, --team-card-border, --team-photo-radius, --team-photo-bg,
---team-role-color, --team-columns-min, --team-card-padding
+--team-role-color, --team-role-font, --team-role-size, --team-role-transform,
+--team-role-tracking, --team-columns-min, --team-card-padding, --team-photo-ratio,
+--team-photo-border, --team-photo-padding, --team-photo-shadow.
+Shared style knobs: --media-frame (see tokens.css §4).
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -198,16 +201,23 @@ const initials = (name: string) =>
 
   .team__photo {
     display: block;
+    box-sizing: border-box;
     width: 100%;
     height: auto;
-    aspect-ratio: 1;
+    aspect-ratio: var(--team-photo-ratio, 1);
     object-fit: cover;
+    padding: var(--team-photo-padding, 0);
+    border: var(--team-photo-border, 0);
     border-radius: var(--team-photo-radius, var(--radius-lg));
     background: var(--team-photo-bg, var(--color-surface));
+    box-shadow: var(--team-photo-shadow, none);
+    outline: var(--media-frame, none);
+    outline-offset: var(--media-frame-offset, 0);
   }
 
   .team--circle .team__photo {
     width: min(100%, 12rem);
+    aspect-ratio: 1;
     border-radius: 50%;
   }
 
@@ -236,9 +246,12 @@ const initials = (name: string) =>
 
   .team__role {
     margin: 0;
-    font-size: var(--size-sm);
-    font-weight: var(--weight-medium);
     color: var(--team-role-color, var(--color-fg-muted, inherit));
+    font-family: var(--team-role-font, inherit);
+    font-size: var(--team-role-size, var(--size-sm));
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--team-role-tracking, normal);
+    text-transform: var(--team-role-transform, none);
   }
 
   .team__bio {

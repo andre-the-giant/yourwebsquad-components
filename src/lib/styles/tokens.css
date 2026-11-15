@@ -187,3 +187,33 @@
   --color-warning-text: rgb(245, 184, 110);
   --color-danger-text: rgb(248, 150, 150);
 }
+
+/* =============================================================================
+   §4 Style knobs — shape and finish shared by many components
+   -----------------------------------------------------------------------------
+   Not defined here on purpose: each component falls back to its own neutral
+   look. A theme sets them once to change how components are BUILT (borders,
+   shadows, labels, markers), not only their colours. Components may also expose
+   their own knobs that win over these.
+
+   Surfaces (cards, tiles)
+     --surface-border         shorthand, e.g. 2px solid var(--color-fg)
+     --surface-radius
+     --surface-shadow         may include an inset bar: inset 0 6px 0 <colour>, …
+     --surface-hover-shadow
+     --surface-hover-transform
+     --surface-hover-border-color
+     --surface-padding
+   Eyebrows (small labels above titles, tags, section kickers)
+     --eyebrow-font  --eyebrow-size  --eyebrow-weight  --eyebrow-transform
+     --eyebrow-tracking  --eyebrow-color  --eyebrow-inverse-color (on dark tiles)
+     --eyebrow-bg  --eyebrow-padding  --eyebrow-opacity
+     --eyebrow-rule-width  --eyebrow-rule-gap   (short line drawn before the label)
+   Markers (timeline dots, step badges)
+     --marker-radius  --marker-rotate  --marker-bg  --marker-border
+   Numbers (stats, prices)
+     --number-font  --number-weight
+   Media
+     --media-frame  --media-frame-offset   (outline drawn on photos; a negative
+                                            offset draws a fine inner frame)
+   ============================================================================= */

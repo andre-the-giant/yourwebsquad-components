@@ -331,3 +331,129 @@ html[data-theme="trattoria"] ::selection {
   background: var(--trattoria-glycine);
   color: var(--color-fg);
 }
+
+/* ── §4 Style knobs and newer components ──────────────────────────────────────
+   Printed menu carried into structure: double aubergine rules, glycine offset on
+   hover, basil small-capital labels, ringed markers, dotted leaders, Gloock
+   figures and gingham strips. Variables only, like the rest of this theme. */
+html[data-theme="trattoria"] {
+  --surface-border: 4px double var(--color-accent);
+  --surface-radius: 0;
+  --surface-shadow: none;
+  --surface-hover-shadow: 6px 6px 0 var(--trattoria-glycine);
+  --surface-hover-transform: translate(-2px, -2px);
+  --surface-hover-border-color: var(--trattoria-accent-strong);
+  --surface-padding: 1.5rem;
+
+  --eyebrow-font: var(--font-body);
+  --eyebrow-size: 0.75rem;
+  --eyebrow-weight: 700;
+  --eyebrow-transform: uppercase;
+  --eyebrow-tracking: 0.16em;
+  --eyebrow-color: var(--trattoria-basil);
+  --eyebrow-inverse-color: var(--trattoria-glycine);
+  --eyebrow-bg: transparent;
+  --eyebrow-padding: 0;
+  --eyebrow-opacity: 1;
+
+  --marker-radius: 50%;
+  --marker-bg: var(--color-bg);
+  --marker-border: 3px solid var(--color-accent);
+  --number-font: var(--font-display);
+  --number-weight: 400;
+
+  /* Card: photos framed like a menu insert */
+  --ycard-media-border: 4px double var(--color-accent);
+  --ycard-hover-shadow: var(--surface-hover-shadow);
+  --ycard-hover-translate: -2px -2px;
+
+  /* AnnouncementPill */
+  --pill-radius: 0;
+  --pill-border-width: 2px;
+  --pill-border: var(--color-accent);
+  --pill-bg: var(--color-bg);
+  --pill-weight: 600;
+  --pill-badge-bg: var(--color-accent);
+  --pill-badge-fg: var(--color-accent-contrast);
+  --pill-hover-shadow: 4px 4px 0 var(--trattoria-glycine);
+  --pill-inverse-badge-bg: var(--trattoria-glycine);
+  --pill-inverse-badge-fg: var(--trattoria-accent-strong);
+
+  /* BentoGrid: gingham strip on dark tiles */
+  --bento-band: var(--trattoria-gingham);
+  --bento-band-height: 16px;
+
+  /* Timeline: dotted line, ringed dots, Gloock dates */
+  --timeline-line-width: 4px;
+  --timeline-line-bg: radial-gradient(circle, var(--color-accent) 0 1.5px, transparent 2px) 50% 0 /
+    4px 9px repeat-y;
+  --timeline-dot-size: 1.125rem;
+  --timeline-dot-top: 0.3rem;
+  --timeline-date-font: var(--font-display);
+  --timeline-date-size: 1.25rem;
+  --timeline-date-color: var(--color-accent);
+
+  /* StatsCounter: dotted separators, aubergine figures, basil labels */
+  --stats-divider: 2px dotted var(--trattoria-gingham-mid);
+  --stats-item-padding: 0.5rem 1.5rem;
+  --stats-value-color: var(--color-accent);
+  --stats-inverse-value-color: var(--trattoria-glycine);
+  --stats-label-size: 0.8125rem;
+  --stats-label-weight: 700;
+  --stats-label-transform: uppercase;
+  --stats-label-tracking: 0.14em;
+  --stats-label-color: var(--trattoria-basil);
+  --stats-inverse-label-color: var(--color-inverse-fg);
+
+  /* LogoCloud */
+  --logo-cloud-cell-border: 2px dotted var(--trattoria-gingham-mid);
+  --logo-cloud-cell-padding: 0.75rem 1.5rem;
+  --logo-cloud-gap: 0.75rem;
+
+  /* Toast */
+  --toast-radius: 0;
+  --toast-border: 4px double var(--color-accent);
+  --toast-shadow: 6px 6px 0 var(--trattoria-glycine);
+
+  /* VideoFacade: menu-framed player, aubergine button */
+  --video-radius: 0;
+  --video-frame-border: 4px double var(--color-accent);
+  --video-button-bg: var(--color-accent);
+  --video-button-hover-bg: var(--trattoria-accent-strong);
+  --video-button-fg: var(--color-accent-contrast);
+  --video-button-border: 4px double rgb(255 255 255);
+  --video-title-font: var(--font-display);
+
+  /* TeamSection: round portraits set like plates */
+  --team-photo-radius: 50%;
+  --team-photo-border: 4px double var(--color-accent);
+  --team-photo-padding: 6px;
+  --team-photo-bg: var(--color-bg);
+  --team-role-size: 0.75rem;
+  --team-role-transform: uppercase;
+  --team-role-tracking: 0.14em;
+  --team-role-color: var(--trattoria-basil);
+
+  /* Tabs: Gloock labels, double underline */
+  --tabs-font: var(--font-display);
+  --tabs-size: 1.25rem;
+  --tabs-list-border: 2px dotted var(--trattoria-gingham-mid);
+  --tabs-active-fg: var(--color-accent);
+  --tabs-active-weight: 400;
+  --tabs-indicator: var(--color-accent);
+  --tabs-indicator-size: 5px;
+  --tabs-indicator-style: double;
+  --tabs-pill-radius: 0;
+  --tabs-pill-active-bg: var(--color-accent);
+  --tabs-pill-active-fg: var(--color-accent-contrast);
+
+  /* SlotPicker */
+  --slot-radius: 0;
+  --slot-border-width: 2px;
+  --slot-border: var(--color-accent);
+  --slot-hover-bg: var(--color-surface);
+  --slot-active-bg: var(--color-accent);
+  --slot-active-fg: var(--color-accent-contrast);
+  --slot-checked-shadow: 3px 3px 0 var(--trattoria-glycine);
+  --slot-day-font: var(--font-display);
+}

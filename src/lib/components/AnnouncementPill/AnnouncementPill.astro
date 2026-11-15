@@ -11,8 +11,11 @@ Props:
 - style?: string
 Accessibility: a plain link (or paragraph without href) whose name is the visible text;
 the arrow is decorative. Focus ring stays visible on both tones.
-Theme variables: --pill-bg, --pill-fg, --pill-border, --pill-badge-bg, --pill-badge-fg,
---pill-radius
+Theme variables: --pill-bg, --pill-fg, --pill-border (colour), --pill-border-width,
+--pill-radius, --pill-font, --pill-weight, --pill-transform, --pill-tracking, --pill-shadow,
+--pill-hover-shadow, --pill-badge-bg, --pill-badge-fg, --pill-badge-radius,
+--pill-badge-divider; inverse tone: --pill-inverse-bg, --pill-inverse-fg,
+--pill-inverse-border, --pill-inverse-badge-bg, --pill-inverse-badge-fg
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -78,13 +81,19 @@ const Tag = href ? "a" : "p";
     min-height: 2.75rem;
     margin: 0;
     padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
-    border: 1px solid var(--pill-border, var(--color-border));
+    border: var(--pill-border-width, 1px) solid var(--pill-border, var(--color-border));
     border-radius: var(--pill-radius, 999px);
     background: var(--pill-bg, var(--color-surface));
     color: var(--pill-fg, var(--color-fg));
+    box-shadow: var(--pill-shadow, none);
+    font-family: var(--pill-font, inherit);
     font-size: var(--size-sm);
+    font-weight: var(--pill-weight, inherit);
+    letter-spacing: var(--pill-tracking, normal);
     line-height: var(--line-tight);
+    text-transform: var(--pill-transform, none);
     text-decoration: none;
+    transition: box-shadow var(--duration-fast, 150ms) ease;
   }
 
   .pill:not(:has(.pill__badge)) {
@@ -92,9 +101,10 @@ const Tag = href ? "a" : "p";
   }
 
   .pill--inverse {
-    border-color: var(--pill-border, rgb(255 255 255 / 0.35));
-    background: var(--pill-bg, rgb(255 255 255 / 0.1));
-    color: var(--pill-fg, var(--color-inverse-fg));
+    border-color: var(--pill-inverse-border, rgb(255 255 255 / 0.35));
+    background: var(--pill-inverse-bg, rgb(255 255 255 / 0.1));
+    color: var(--pill-inverse-fg, var(--color-inverse-fg));
+    box-shadow: none;
   }
 
   /* Beat theme link colours (html[data-theme] a:not(.button), incl. :hover). */
@@ -105,13 +115,14 @@ const Tag = href ? "a" : "p";
 
   .pill.pill--inverse.pill--link,
   .pill.pill--inverse.pill--link:hover {
-    color: var(--pill-fg, var(--color-inverse-fg));
+    color: var(--pill-inverse-fg, var(--color-inverse-fg));
   }
 
   .pill__badge {
     flex: none;
     padding: var(--space-1) var(--space-2);
-    border-radius: var(--pill-radius, 999px);
+    border-inline-end: var(--pill-badge-divider, 0);
+    border-radius: var(--pill-badge-radius, var(--pill-radius, 999px));
     background: var(--pill-badge-bg, var(--color-fg));
     color: var(--pill-badge-fg, var(--color-bg));
     font-size: var(--size-xs);
@@ -120,8 +131,8 @@ const Tag = href ? "a" : "p";
   }
 
   .pill--inverse .pill__badge {
-    background: var(--pill-badge-bg, var(--color-inverse-fg));
-    color: var(--pill-badge-fg, var(--color-inverse-surface));
+    background: var(--pill-inverse-badge-bg, var(--color-inverse-fg));
+    color: var(--pill-inverse-badge-fg, var(--color-inverse-surface));
   }
 
   .pill__text {
@@ -138,6 +149,10 @@ const Tag = href ? "a" : "p";
     text-underline-offset: 0.2em;
   }
 
+  .pill--link:not(.pill--inverse):hover {
+    box-shadow: var(--pill-hover-shadow, var(--pill-shadow, none));
+  }
+
   .pill--link:hover .pill__arrow {
     transform: translateX(2px);
   }
@@ -152,6 +167,7 @@ const Tag = href ? "a" : "p";
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .pill,
     .pill__arrow {
       transition: none;
     }

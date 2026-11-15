@@ -22,8 +22,9 @@ JavaScript a row of day buttons (aria-pressed) shows one day at a time and a pol
 line confirms the choice; without JavaScript every day is listed. 44px targets.
 Times are shown in the visitor's locale but never converted: they are the business's
 local times.
-Theme variables: --slot-bg, --slot-fg, --slot-border, --slot-active-bg, --slot-active-fg,
---slot-radius
+Theme variables: --slot-bg, --slot-fg, --slot-border (colour), --slot-border-width,
+--slot-hover-bg, --slot-active-bg, --slot-active-fg, --slot-checked-shadow, --slot-radius,
+--slot-font, --slot-day-font
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -299,16 +300,22 @@ const initial =
     min-width: 4.5rem;
     min-height: 2.75rem;
     padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--slot-border, var(--color-border));
+    border: var(--slot-border-width, 1px) solid var(--slot-border, var(--color-border));
     border-radius: var(--slot-radius, var(--radius-md));
     background: var(--slot-bg, var(--color-bg));
     color: var(--slot-fg, var(--color-fg));
     font: inherit;
+    font-family: var(--slot-day-font, inherit);
     line-height: var(--line-tight);
     cursor: pointer;
   }
 
-  .slots__daybtn[aria-pressed="true"] {
+  .slots__daybtn:hover {
+    background: var(--slot-hover-bg, var(--slot-bg, var(--color-bg)));
+  }
+
+  .slots__daybtn[aria-pressed="true"],
+  .slots__daybtn[aria-pressed="true"]:hover {
     border-color: var(--slot-active-bg, var(--color-fg));
     background: var(--slot-active-bg, var(--color-fg));
     color: var(--slot-active-fg, var(--color-bg));
@@ -352,7 +359,7 @@ const initial =
 
   .slots__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
     gap: var(--space-2);
   }
 
@@ -376,19 +383,24 @@ const initial =
     place-items: center;
     min-height: 2.75rem;
     padding: var(--space-2);
-    border: 1px solid var(--slot-border, var(--color-border));
+    border: var(--slot-border-width, 1px) solid var(--slot-border, var(--color-border));
     border-radius: var(--slot-radius, var(--radius-md));
     background: var(--slot-bg, var(--color-bg));
     color: var(--slot-fg, var(--color-fg));
+    font-family: var(--slot-font, inherit);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
     font-weight: var(--weight-medium);
   }
 
   .slots__slot:hover .slots__input:not(:disabled) + .slots__chip {
     border-color: var(--slot-active-bg, var(--color-fg));
+    background: var(--slot-hover-bg, var(--slot-bg, var(--color-bg)));
   }
 
-  .slots__input:checked + .slots__chip {
+  .slots__input:checked + .slots__chip,
+  .slots__slot:hover .slots__input:checked + .slots__chip {
+    box-shadow: var(--slot-checked-shadow, none);
     border-color: var(--slot-active-bg, var(--color-fg));
     background: var(--slot-active-bg, var(--color-fg));
     color: var(--slot-active-fg, var(--color-bg));

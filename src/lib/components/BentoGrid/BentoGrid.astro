@@ -17,7 +17,10 @@ Accessibility: a list of tiles with h3 titles. A tile with href is one link (the
 stretched over the whole tile, so it is announced once with a clear name. Images are
 decorative unless they get an alt.
 Theme variables: --bento-gap, --bento-row, --bento-radius, --bento-bg, --bento-fg,
---bento-border
+--bento-border (colour), --bento-border-line (shorthand), --bento-shadow,
+--bento-hover-shadow, --bento-hover-transform, --bento-padding, --bento-band and
+--bento-band-height (decorative strip on inverse tiles), --bento-inverse-border-color.
+Shared style knobs: --surface-*, --eyebrow-*, --media-frame (see tokens.css §4).
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -186,10 +189,14 @@ const headingId = heading ? nextId("bento") : undefined;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid var(--bento-border, var(--color-border));
-    border-radius: var(--bento-radius, var(--radius-lg));
+    border: var(
+      --bento-border-line,
+      var(--surface-border, 1px solid var(--bento-border, var(--color-border)))
+    );
+    border-radius: var(--bento-radius, var(--surface-radius, var(--radius-lg)));
     background: var(--bento-bg, transparent);
     color: var(--bento-fg, var(--color-fg));
+    box-shadow: var(--bento-shadow, var(--surface-shadow, none));
   }
 
   .bento__tile--surface {
@@ -197,9 +204,16 @@ const headingId = heading ? nextId("bento") : undefined;
   }
 
   .bento__tile--inverse {
-    border-color: transparent;
+    border-color: var(--bento-inverse-border-color, transparent);
     background: var(--color-inverse-surface);
     color: var(--color-inverse-fg);
+  }
+
+  .bento__tile--inverse::before {
+    content: "";
+    flex: none;
+    height: var(--bento-band-height, 0);
+    background: var(--bento-band, none);
   }
 
   .bento__image {
@@ -208,6 +222,8 @@ const headingId = heading ? nextId("bento") : undefined;
     flex: 1 1 8rem;
     min-height: 8rem;
     object-fit: cover;
+    outline: var(--media-frame, none);
+    outline-offset: var(--media-frame-offset, 0);
   }
 
   .bento__body {
@@ -215,16 +231,35 @@ const headingId = heading ? nextId("bento") : undefined;
     flex-direction: column;
     gap: var(--space-2);
     margin-top: auto;
-    padding: var(--space-4);
+    padding: var(--bento-padding, var(--surface-padding, var(--space-4)));
   }
 
   .bento__eyebrow {
+    width: fit-content;
     margin: 0;
-    font-size: var(--size-xs);
-    font-weight: var(--weight-semibold);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    opacity: 0.85;
+    padding: var(--eyebrow-padding, 0);
+    background: var(--eyebrow-bg, transparent);
+    color: var(--eyebrow-color, inherit);
+    font-family: var(--eyebrow-font, inherit);
+    font-size: var(--eyebrow-size, var(--size-xs));
+    font-weight: var(--eyebrow-weight, var(--weight-semibold));
+    letter-spacing: var(--eyebrow-tracking, 0.06em);
+    text-transform: var(--eyebrow-transform, uppercase);
+    opacity: var(--eyebrow-opacity, 0.85);
+  }
+
+  .bento__eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: var(--eyebrow-rule-width, 0);
+    height: 1px;
+    margin-inline-end: var(--eyebrow-rule-gap, 0);
+    vertical-align: middle;
+    background: currentColor;
+  }
+
+  .bento__tile--inverse .bento__eyebrow {
+    color: var(--eyebrow-inverse-color, currentColor);
   }
 
   .bento__title {
@@ -261,12 +296,20 @@ const headingId = heading ? nextId("bento") : undefined;
   .bento__tile--link {
     transition:
       transform var(--duration-fast, 150ms) ease,
-      box-shadow var(--duration-fast, 150ms) ease;
+      box-shadow var(--duration-fast, 150ms) ease,
+      border-color var(--duration-fast, 150ms) ease;
   }
 
   .bento__tile--link:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px var(--color-shadow, rgb(0 0 0 / 0.12));
+    transform: var(--bento-hover-transform, var(--surface-hover-transform, translateY(-2px)));
+    box-shadow: var(
+      --bento-hover-shadow,
+      var(--surface-hover-shadow, 0 8px 24px var(--color-shadow, rgb(0 0 0 / 0.12)))
+    );
+  }
+
+  .bento__tile--link:not(.bento__tile--inverse):hover {
+    border-color: var(--surface-hover-border-color, var(--bento-border, var(--color-border)));
   }
 
   .bento__tile--link:hover .bento__link {

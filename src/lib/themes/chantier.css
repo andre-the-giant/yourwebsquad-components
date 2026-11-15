@@ -507,3 +507,154 @@ html[data-theme="chantier"] ::selection {
     --rating-sticker-rotate: 0deg;
   }
 }
+
+/* ── §4 Style knobs and newer components ──────────────────────────────────────
+   Site look carried into structure: 2px asphalt rules, hard shadows with a yellow
+   bar on top, yellow tag labels, square markers, hazard stripes. */
+html[data-theme="chantier"] {
+  --surface-border: var(--chantier-line);
+  --surface-radius: 0;
+  --surface-shadow: inset 0 6px 0 var(--color-accent), var(--chantier-shadow);
+  --surface-hover-shadow: inset 0 6px 0 var(--color-accent), 7px 7px 0 var(--color-fg);
+  --surface-hover-transform: translate(-3px, -3px);
+  --surface-hover-border-color: var(--color-fg);
+  --surface-padding: 1.25rem;
+
+  --eyebrow-font: var(--font-condensed);
+  --eyebrow-size: 0.875rem;
+  --eyebrow-weight: 700;
+  --eyebrow-transform: uppercase;
+  --eyebrow-tracking: 0.08em;
+  --eyebrow-color: var(--color-fg);
+  --eyebrow-inverse-color: var(--color-fg);
+  --eyebrow-bg: var(--color-accent);
+  --eyebrow-padding: 0.125rem 0.5rem;
+  --eyebrow-opacity: 1;
+
+  --marker-radius: 0;
+  --marker-bg: var(--color-accent);
+  --marker-border: 2px solid var(--color-fg);
+  --number-font: var(--font-display);
+  --number-weight: 400;
+
+  /* Card */
+  --ycard-media-border: var(--chantier-line);
+  --ycard-media-shadow: var(--chantier-shadow);
+  --ycard-media-hover-shadow: 7px 7px 0 var(--color-fg);
+  --ycard-hover-translate: -3px -3px;
+  --ycard-hover-shadow: var(--surface-hover-shadow);
+
+  /* AnnouncementPill */
+  --pill-radius: 0;
+  --pill-border-width: 2px;
+  --pill-border: var(--color-fg);
+  --pill-bg: var(--color-surface);
+  --pill-font: var(--font-condensed);
+  --pill-weight: 600;
+  --pill-transform: uppercase;
+  --pill-tracking: 0.06em;
+  --pill-shadow: 3px 3px 0 var(--color-fg);
+  --pill-hover-shadow: 5px 5px 0 var(--color-fg);
+  --pill-badge-bg: var(--color-accent);
+  --pill-badge-fg: var(--color-fg);
+  --pill-inverse-badge-bg: var(--color-accent);
+  --pill-inverse-badge-fg: var(--color-fg);
+
+  /* BentoGrid: hazard strip on dark tiles */
+  --bento-band: var(--chantier-hazard);
+  --bento-band-height: 12px;
+  --bento-inverse-border-color: var(--color-fg);
+
+  /* Timeline: hazard line, yellow date tags, cards with hard shadows */
+  --timeline-line-width: 6px;
+  --timeline-line-bg: var(--chantier-hazard);
+  --timeline-dot-size: 1.25rem;
+  --timeline-dot-top: 1.15rem;
+  --timeline-date-font: var(--font-condensed);
+  --timeline-date-size: 0.9375rem;
+  --timeline-date-bg: var(--color-accent);
+  --timeline-date-color: var(--color-fg);
+  --timeline-date-padding: 0.125rem 0.5rem;
+  --timeline-date-transform: uppercase;
+  --timeline-date-tracking: 0.06em;
+  --timeline-card-bg: var(--color-surface);
+  --timeline-card-border: var(--chantier-line);
+  --timeline-card-padding: 1rem 1.25rem;
+  --timeline-card-shadow: var(--chantier-shadow);
+
+  /* StatsCounter: each number in a boxed block with the yellow bar */
+  --stats-item-border: var(--chantier-line);
+  --stats-item-padding: 1.25rem 1rem 1rem;
+  --stats-item-shadow: inset 0 6px 0 var(--color-accent);
+  --stats-label-font: var(--font-condensed);
+  --stats-label-size: 1rem;
+  --stats-label-weight: 600;
+  --stats-label-transform: uppercase;
+  --stats-label-tracking: 0.06em;
+
+  /* LogoCloud: logos in a spec-sheet grid of boxes */
+  --logo-cloud-gap: 0.75rem;
+  --logo-cloud-cell-border: var(--chantier-line);
+  --logo-cloud-cell-padding: 0.75rem 1.25rem;
+  --logo-cloud-cell-bg: var(--color-surface);
+  --logo-cloud-cell-shadow: 3px 3px 0 var(--color-fg);
+
+  /* Toast */
+  --toast-radius: 0;
+  --toast-border: var(--chantier-line);
+  --toast-stripe-width: 10px;
+  --toast-shadow: var(--chantier-shadow);
+
+  /* VideoFacade: square yellow play button, framed player */
+  --video-radius: 0;
+  --video-frame-border: var(--chantier-line);
+  --video-frame-shadow: 6px 6px 0 var(--color-accent);
+  --video-button-bg: var(--color-accent);
+  --video-button-hover-bg: var(--color-accent);
+  --video-button-fg: var(--color-fg);
+  --video-button-radius: 0;
+  --video-button-border: 3px solid var(--color-fg);
+  --video-button-shadow: var(--chantier-shadow);
+  --video-title-font: var(--font-display);
+  --video-title-transform: uppercase;
+  --video-title-tracking: 0.02em;
+
+  /* TeamSection */
+  --team-photo-radius: 0;
+  --team-photo-border: var(--chantier-line);
+  --team-photo-shadow: 6px 6px 0 var(--color-accent);
+  --team-role-font: var(--font-condensed);
+  --team-role-size: 1rem;
+  --team-role-transform: uppercase;
+  --team-role-tracking: 0.06em;
+  --team-role-color: var(--color-fg);
+
+  /* Tabs: yellow block on the open tab */
+  --tabs-font: var(--font-condensed);
+  --tabs-size: 1.0625rem;
+  --tabs-transform: uppercase;
+  --tabs-tracking: 0.06em;
+  --tabs-fg: var(--color-fg);
+  --tabs-list-border: var(--chantier-line);
+  --tabs-indicator: var(--color-fg);
+  --tabs-indicator-size: 4px;
+  --tabs-active-bg: var(--color-accent);
+  --tabs-active-fg: var(--color-fg);
+  --tabs-active-weight: 700;
+  --tabs-pill-radius: 0;
+  --tabs-pill-bg: var(--color-surface);
+  --tabs-pill-active-bg: var(--color-accent);
+  --tabs-pill-active-fg: var(--color-fg);
+
+  /* SlotPicker */
+  --slot-radius: 0;
+  --slot-border-width: 2px;
+  --slot-border: var(--color-fg);
+  --slot-bg: var(--color-surface);
+  --slot-hover-bg: var(--color-bg);
+  --slot-active-bg: var(--color-accent);
+  --slot-active-fg: var(--color-fg);
+  --slot-checked-shadow: 3px 3px 0 var(--color-fg);
+  --slot-font: var(--font-condensed);
+  --slot-day-font: var(--font-condensed);
+}

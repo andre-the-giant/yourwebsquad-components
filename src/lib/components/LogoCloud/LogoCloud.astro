@@ -16,7 +16,9 @@ accessible name and a visible focus ring. Greying is decorative only.
 Performance: lazy, async-decoded images with width/height to prevent layout shift.
 For a moving row of logos use Marquee instead; keep this one still.
 Theme variables: --logo-cloud-bg, --logo-cloud-height, --logo-cloud-gap,
---logo-cloud-filter, --logo-cloud-opacity
+--logo-cloud-filter, --logo-cloud-opacity, --logo-cloud-cell-border,
+--logo-cloud-cell-padding, --logo-cloud-cell-bg, --logo-cloud-cell-shadow.
+Shared style knobs: --eyebrow-* style the heading (see tokens.css §4).
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -135,12 +137,26 @@ const headingId = heading ? nextId("logo-cloud") : undefined;
   }
 
   .logo-cloud__heading {
+    display: inline-block;
     margin: 0 0 var(--space-5);
-    font-size: var(--size-sm);
-    font-weight: var(--weight-semibold);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-fg);
+    padding: var(--eyebrow-padding, 0);
+    background: var(--eyebrow-bg, transparent);
+    color: var(--eyebrow-color, var(--color-fg));
+    font-family: var(--eyebrow-font, inherit);
+    font-size: var(--eyebrow-size, var(--size-sm));
+    font-weight: var(--eyebrow-weight, var(--weight-semibold));
+    letter-spacing: var(--eyebrow-tracking, 0.08em);
+    text-transform: var(--eyebrow-transform, uppercase);
+  }
+
+  .logo-cloud__heading::before {
+    content: "";
+    display: inline-block;
+    width: var(--eyebrow-rule-width, 0);
+    height: 1px;
+    margin-inline-end: var(--eyebrow-rule-gap, 0);
+    vertical-align: middle;
+    background: currentColor;
   }
 
   .logo-cloud__list {
@@ -157,7 +173,12 @@ const headingId = heading ? nextId("logo-cloud") : undefined;
   .logo-cloud__item {
     display: flex;
     align-items: center;
+    justify-content: center;
     min-height: 2.75rem;
+    padding: var(--logo-cloud-cell-padding, 0);
+    border: var(--logo-cloud-cell-border, 0);
+    background: var(--logo-cloud-cell-bg, transparent);
+    box-shadow: var(--logo-cloud-cell-shadow, none);
   }
 
   .logo-cloud__link {

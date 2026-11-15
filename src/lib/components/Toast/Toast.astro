@@ -24,6 +24,7 @@ pointer is over a toast or focus is inside it (WCAG 2.2.1), and each toast has a
 dismiss button. Escape dismisses the focused toast. Never put the only copy of important
 information, or a required action, in a toast. No sliding under reduced motion.
 Theme variables: --toast-bg, --toast-fg, --toast-radius, --toast-shadow, --toast-width,
+--toast-border (shorthand), --toast-stripe-width, --toast-font,
 --toast-offset (distance from the viewport edge, e.g. above StickyActions)
 */
 import { z } from "zod";
@@ -240,13 +241,14 @@ const {
     align-items: flex-start;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border);
-    border-inline-start: 4px solid rgb(var(--_tone));
+    border: var(--toast-border, 1px solid var(--color-border));
+    border-inline-start: var(--toast-stripe-width, 4px) solid rgb(var(--_tone));
     border-radius: var(--toast-radius, var(--radius-md));
     background: var(--toast-bg, var(--color-surface));
     color: var(--toast-fg, var(--color-fg));
     box-shadow: var(--toast-shadow, 0 10px 30px var(--color-shadow));
     pointer-events: auto;
+    font-family: var(--toast-font, inherit);
     animation: toast-in 0.25s ease-out;
   }
 

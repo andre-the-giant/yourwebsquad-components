@@ -19,8 +19,11 @@ Accessibility: WAI-ARIA tabs with automatic activation: left/right arrows, Home 
 move between tabs, Tab enters the panel. Without JavaScript the tab list is hidden and every
 panel is shown, each with its title. The tab row scrolls sideways on phones rather than
 wrapping.
-Theme variables: --tabs-border, --tabs-fg, --tabs-active-fg, --tabs-indicator,
---tabs-pill-bg, --tabs-pill-active-bg, --tabs-pill-active-fg
+Theme variables: --tabs-border (colour), --tabs-list-border (shorthand), --tabs-fg,
+--tabs-active-fg, --tabs-active-bg, --tabs-active-weight, --tabs-font, --tabs-size,
+--tabs-transform, --tabs-tracking, --tabs-indicator (colour), --tabs-indicator-size,
+--tabs-indicator-style, --tabs-pill-bg, --tabs-pill-radius, --tabs-pill-active-bg,
+--tabs-pill-active-fg
 */
 import { z } from "zod";
 import { parseProps } from "../../utils/props.js";
@@ -186,7 +189,7 @@ const panels = await Promise.all(
   }
 
   .tabs--underline .tabs__list {
-    border-bottom: 1px solid var(--tabs-border, var(--color-border));
+    border-bottom: var(--tabs-list-border, 1px solid var(--tabs-border, var(--color-border)));
   }
 
   .tabs__tab {
@@ -197,7 +200,11 @@ const panels = await Promise.all(
     background: none;
     color: var(--tabs-fg, var(--color-fg-muted, var(--color-fg)));
     font: inherit;
+    font-family: var(--tabs-font, inherit);
+    font-size: var(--tabs-size, inherit);
     font-weight: var(--weight-medium);
+    letter-spacing: var(--tabs-tracking, normal);
+    text-transform: var(--tabs-transform, none);
     white-space: nowrap;
     cursor: pointer;
   }
@@ -213,31 +220,32 @@ const panels = await Promise.all(
 
   .tabs--underline .tabs__tab {
     margin-bottom: -1px;
-    border-bottom: 3px solid transparent;
+    border-bottom: var(--tabs-indicator-size, 3px) var(--tabs-indicator-style, solid) transparent;
   }
 
   .tabs--underline .tabs__tab[aria-selected="true"] {
     border-bottom-color: var(--tabs-indicator, var(--color-fg));
+    background: var(--tabs-active-bg, transparent);
     color: var(--tabs-active-fg, var(--color-fg));
-    font-weight: var(--weight-semibold);
+    font-weight: var(--tabs-active-weight, var(--weight-semibold));
   }
 
   .tabs--pill .tabs__list {
     padding: var(--space-1);
-    border-radius: 999px;
+    border-radius: var(--tabs-pill-radius, 999px);
     background: var(--tabs-pill-bg, var(--color-surface));
     width: fit-content;
     max-width: 100%;
   }
 
   .tabs--pill .tabs__tab {
-    border-radius: 999px;
+    border-radius: var(--tabs-pill-radius, 999px);
   }
 
   .tabs--pill .tabs__tab[aria-selected="true"] {
     background: var(--tabs-pill-active-bg, var(--color-fg));
     color: var(--tabs-pill-active-fg, var(--color-bg));
-    font-weight: var(--weight-semibold);
+    font-weight: var(--tabs-active-weight, var(--weight-semibold));
   }
 
   .tabs--pill .tabs__tab[aria-selected="true"]:focus-visible {
