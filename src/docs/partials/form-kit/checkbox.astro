@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormCheckbox from "@lib/components/Form-Checkbox/Form-Checkbox.astro";
 
 const basicCode = `
@@ -26,11 +24,6 @@ const styleVars = [
 ];
 ---
 
-<DocLayout
-  title="Form-Checkbox (Toggle)"
-  description="Styled checkbox presented as a toggle. Position and colors configurable."
-  items={components}
->
   <PropsTable
     props={[
       { name: "id", type: "string", description: "Checkbox id; auto-generated if missing." },
@@ -151,7 +144,6 @@ const styleVars = [
       />
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {

@@ -40,8 +40,8 @@ const contrast = (a, b) => {
 
 for (const theme of ["light", "plein-jour", "marbre", "chantier", "trattoria"]) {
   test(`Form-Radio: a checked radio is visible (${theme})`, async ({ page }) => {
-    await page.goto(`/components/form-radio?theme=${theme}`);
-    const label = page.locator("label:has(.radio-input)").first();
+    await page.goto(`/components/form-kit?theme=${theme}#radio`);
+    const label = page.locator("#panel-radio").locator("label:has(.radio-input)").first();
     await label.click();
     await page.waitForTimeout(400); // let the check animation finish
     const colors = await label.locator(".radio").evaluate((el) => {
@@ -73,12 +73,13 @@ for (const theme of ["light", "plein-jour", "marbre", "chantier", "trattoria"]) 
 
 for (const theme of ["light", "plein-jour", "marbre", "chantier", "trattoria"]) {
   test(`Form-Checkbox: checked switches and boxes are visible (${theme})`, async ({ page }) => {
-    await page.goto(`/components/form-checkbox?theme=${theme}`);
-    const toggles = page.locator(".toggle-input:not(:disabled):not(:checked) + .toggle");
+    await page.goto(`/components/form-kit?theme=${theme}#checkbox`);
+    const panel = page.locator("#panel-checkbox");
+    const toggles = panel.locator(".toggle-input:not(:disabled):not(:checked) + .toggle");
     const count = await toggles.count();
     expect(count).toBeGreaterThan(0);
     for (let i = 0; i < count; i += 1) {
-      const toggle = page.locator(".toggle-input:not(:disabled) + .toggle").nth(i);
+      const toggle = panel.locator(".toggle-input:not(:disabled) + .toggle").nth(i);
       const input = toggle.locator("xpath=preceding-sibling::input[1]");
       if (await input.isChecked()) continue;
       await toggle.click();

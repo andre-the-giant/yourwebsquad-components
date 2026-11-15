@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import Form from "@lib/components/Form/Form.astro";
 import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 import FormSelect from "@lib/components/Form-Select/Form-Select.astro";
@@ -247,11 +245,6 @@ const props = [
 ];
 ---
 
-<DocLayout
-  title="Form"
-  description="Schema-driven form wrapper that renders fields from the forms content collection, supports file uploads, prevents Enter submits by default, and includes Send and Reset buttons."
-  items={components}
->
   <PropsTable props={props} />
 
   <Preview title="Basic form" code={basicCode}>
@@ -331,4 +324,3 @@ const props = [
       width: min(640px, 100%);
     }
   </style>
-</DocLayout>

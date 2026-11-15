@@ -1,20 +1,18 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 import FormError from "@lib/components/Form-Error/Form-Error.astro";
 
 const basicCode = `<FormInput
   label="Email"
-  id="email"
+  id="signup-email"
   name="email"
   type="email"
   ariaInvalid={true}
-  errorId="email-error"
+  errorId="signup-email-error"
 />
-<FormError id="email-error">Please enter a valid email address.</FormError>`;
+<FormError id="signup-email-error">Please enter a valid email address.</FormError>`;
 
 const props = [
   { name: "id", type: "string", description: "Element id to wire into aria-describedby." },
@@ -35,27 +33,21 @@ const props = [
 ];
 ---
 
-<DocLayout
-  title="Form-Error"
-  description="Error text for form fields with alert semantics."
-  items={components}
->
   <PropsTable props={props} />
 
   <Preview title="Usage" code={basicCode}>
     <div class="row">
       <FormInput
         label="Email"
-        id="email"
+        id="signup-email"
         name="email"
         type="email"
         ariaInvalid={true}
-        errorId="email-error"
+        errorId="signup-email-error"
       />
-      <FormError id="email-error">Please enter a valid email address.</FormError>
+      <FormError id="signup-email-error">Please enter a valid email address.</FormError>
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {

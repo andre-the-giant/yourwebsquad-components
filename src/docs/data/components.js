@@ -35,74 +35,25 @@ export const components = [
     level: "atoms"
   },
   {
-    name: "Form-Input",
-    href: "/components/form-input",
-    description: "Text input field with label and basic states.",
+    name: "Form kit",
+    href: "/components/form-kit",
+    description: "Form wrapper, composed FormField and every Form-* control, in tabs.",
     category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Textarea",
-    href: "/components/form-textarea",
-    description: "Multiline textarea with label and states.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Upload",
-    href: "/components/form-upload",
-    description: "Image/file upload input with label and limits.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Select",
-    href: "/components/form-select",
-    description: "Single-select dropdown with label and states.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Checkbox",
-    href: "/components/form-checkbox",
-    description: "Checkbox styled as a toggle with configurable position and colors.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Radio",
-    href: "/components/form-radio",
-    description: "Stylish radio buttons with layout and color options.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Date",
-    href: "/components/form-date",
-    description: "Native date input with label.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Help",
-    href: "/components/form-help",
-    description: "Helper text for form fields with aria support.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Error",
-    href: "/components/form-error",
-    description: "Error text for form fields with alert semantics.",
-    category: "Contact & forms",
-    level: "atoms"
-  },
-  {
-    name: "Form-Hidden",
-    href: "/components/form-hidden",
-    description: "Hidden input for posting fixed values.",
-    category: "Contact & forms",
-    level: "atoms"
+    level: "components",
+    tags: [
+      "Form",
+      "FormField",
+      "Form-Input",
+      "Form-Textarea",
+      "Form-Select",
+      "Form-Checkbox",
+      "Form-Radio",
+      "Form-Date",
+      "Form-Upload",
+      "Form-Help",
+      "Form-Error",
+      "Form-Hidden"
+    ]
   },
   {
     name: "Link",
@@ -110,13 +61,6 @@ export const components = [
     description: "handles internal/external, active state, “opens in new tab” indicators",
     category: "Content",
     level: "molecules"
-  },
-  {
-    name: "Form",
-    href: "/components/form",
-    description: "Form wrapper that manages submit behavior and errors.",
-    category: "Contact & forms",
-    level: "components"
   },
   {
     name: "Image",
@@ -230,13 +174,6 @@ export const components = [
     category: "Feedback & overlays",
     level: "components",
     tags: ["dialog", "popup"]
-  },
-  {
-    name: "FormField",
-    href: "/components/formfield",
-    description: "Composed, fully-wired form field (label + control + help + error)",
-    category: "Contact & forms",
-    level: "components"
   },
   {
     name: "Band",
@@ -482,5 +419,120 @@ export const components = [
     category: "Media",
     level: "molecules",
     tags: ["figure", "legend"]
+  },
+  {
+    name: "StatsCounter",
+    href: "/components/statscounter",
+    description: "Key numbers that count up once when they scroll into view.",
+    category: "Trust & proof",
+    level: "components",
+    tags: ["numbers", "stats", "counter"]
+  },
+  {
+    name: "LogoCloud",
+    href: "/components/logocloud",
+    description: "Client or partner logos in a calm grid, greyed until hover.",
+    category: "Trust & proof",
+    level: "components",
+    tags: ["logos", "clients", "partners"]
+  },
+  {
+    name: "Toast",
+    href: "/components/toast",
+    description: "Short message that slides in, is announced, and leaves by itself.",
+    category: "Feedback & overlays",
+    level: "molecules",
+    tags: ["notification", "snackbar", "flash"]
+  }
+];
+
+/**
+ * Tabs of the merged Form kit page. `slug` is the former standalone page,
+ * which now redirects to /components/form-kit#<id>.
+ */
+export const formKitTabs = [
+  {
+    id: "form",
+    name: "Form",
+    description: "Form wrapper that manages submit behavior and errors.",
+    slug: "form",
+    level: "components"
+  },
+  {
+    id: "field",
+    name: "FormField",
+    description: "Composed, fully-wired form field (label + control + help + error)",
+    slug: "formfield",
+    level: "components"
+  },
+  {
+    id: "input",
+    name: "Form-Input",
+    description: "Text input field with label and basic states.",
+    slug: "form-input",
+    level: "atoms"
+  },
+  {
+    id: "textarea",
+    name: "Form-Textarea",
+    description: "Multiline textarea with label and states.",
+    slug: "form-textarea",
+    level: "atoms"
+  },
+  {
+    id: "select",
+    name: "Form-Select",
+    description: "Single-select dropdown with label and states.",
+    slug: "form-select",
+    level: "atoms"
+  },
+  {
+    id: "checkbox",
+    name: "Form-Checkbox",
+    description: "Checkbox styled as a toggle with configurable position and colors.",
+    slug: "form-checkbox",
+    level: "atoms"
+  },
+  {
+    id: "radio",
+    name: "Form-Radio",
+    description: "Stylish radio buttons with layout and color options.",
+    slug: "form-radio",
+    level: "atoms"
+  },
+  {
+    id: "date",
+    name: "Form-Date",
+    description: "Native date input with label.",
+    slug: "form-date",
+    level: "atoms"
+  },
+  {
+    id: "upload",
+    name: "Form-Upload",
+    description: "Image/file upload input with label and limits.",
+    slug: "form-upload",
+    level: "atoms"
+  },
+  {
+    id: "help",
+    name: "Form-Help",
+    description: "Helper text for form fields with aria support.",
+    slug: "form-help",
+    level: "atoms"
+  },
+  {
+    id: "error",
+    name: "Form-Error",
+    description: "Error text for form fields with alert semantics.",
+    slug: "form-error",
+    level: "atoms"
+  },
+  {
+    id: "hidden",
+    name: "Form-Hidden",
+    description: "Hidden input for posting fixed values.",
+    slug: "form-hidden",
+    level: "atoms"
   }
 ];

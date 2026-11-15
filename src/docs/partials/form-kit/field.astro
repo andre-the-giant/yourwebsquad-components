@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormField from "@lib/components/FormField/FormField.astro";
 
 const propsTable = [
@@ -34,11 +32,6 @@ const radioCode = `<FormField name="size" type="radio" label="Size"
   options={[{ label: "S", value: "s" }, { label: "M", value: "m" }]} />`;
 ---
 
-<DocLayout
-  title="FormField"
-  description="Composed, fully-wired form field (label + control + help + error)"
-  items={components}
->
   <PropsTable props={propsTable} />
 
   <div class="preview-grid">
@@ -74,7 +67,6 @@ const radioCode = `<FormField name="size" type="radio" label="Size"
       />
     </Preview>
   </div>
-</DocLayout>
 
 <style>
   .preview-grid {

@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormUpload from "@lib/components/Form-Upload/Form-Upload.astro";
 
 const basicCode = `<FormUpload label="Upload image" name="photo" browseLabel="Choose image" accept="image/*" required />`;
@@ -205,11 +203,6 @@ const styleVars = [
 ];
 ---
 
-<DocLayout
-  title="Form-Upload"
-  description="File upload input with label and validation hints."
-  items={components}
->
   <PropsTable props={props} />
   <PropsTable title="CSS Variables" props={styleVars} />
 
@@ -247,7 +240,6 @@ const styleVars = [
       />
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {

@@ -1,0 +1,251 @@
+---
+/*
+StatsCounter — two to six key numbers that count up once when they scroll into view.
+Props:
+- items: { value: number, label: string, prefix?: string, suffix?: string, decimals?: number }[]
+- heading?: string
+- locale?: string — number formatting (default "en-CA")
+- duration?: number — count-up length in ms (default 1600)
+- tone?: "default" | "surface" | "inverse"
+- align?: "center" | "start"
+- id?: string
+- class?: string
+- style?: string
+Accessibility: the final numbers are in the HTML, so they are right without JavaScript and
+for search engines. The moving digits are aria-hidden; screen readers read the final value
+once. Nothing moves when the device asks for reduced motion.
+Performance: one IntersectionObserver, requestAnimationFrame, tabular digits and a reserved
+width so the layout never shifts while counting.
+Theme variables: --stats-bg, --stats-fg, --stats-value-color, --stats-value-font,
+--stats-value-size, --stats-label-color, --stats-divider
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        value: z.number(),
+        label: z.string(),
+        prefix: z.string().optional(),
+        suffix: z.string().optional(),
+        decimals: z.number().int().min(0).max(3).default(0)
+      })
+    )
+    .min(1)
+    .max(6),
+  heading: z.string().optional(),
+  locale: z.string().default("en-CA"),
+  duration: z.number().int().min(0).default(1600),
+  tone: z.enum(["default", "surface", "inverse"]).default("default"),
+  align: z.enum(["center", "start"]).default("center")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  heading,
+  locale,
+  duration,
+  tone,
+  align,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "StatsCounter" });
+
+const headingId = heading ? nextId("stats") : undefined;
+const format = (value: number, decimals: number) =>
+  new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
+---
+
+<section
+  id={id}
+  class={mergeClasses("stats", `stats--${tone}`, `stats--${align}`, className)}
+  style={style}
+  aria-labelledby={headingId}
+  data-stats
+  data-locale={locale}
+  data-duration={duration}
+  {...rest}
+>
+  {
+    heading && (
+      <h2 id={headingId} class="stats__heading">
+        {heading}
+      </h2>
+    )
+  }
+  <dl class="stats__list">
+    {
+      items.map((item) => {
+        const final = `${item.prefix ?? ""}${format(item.value, item.decimals)}${item.suffix ?? ""}`;
+        return (
+          <div class="stats__item">
+            <dt class="stats__label">{item.label}</dt>
+            <dd class="stats__value">
+              <span class="stats__sr">{final}</span>
+              <span class="stats__display" aria-hidden="true">
+                {item.prefix}
+                <span
+                  class="stats__number"
+                  data-value={item.value}
+                  data-decimals={item.decimals}
+                  style={`min-width: ${format(item.value, item.decimals).length}ch`}
+                >
+                  {format(item.value, item.decimals)}
+                </span>
+                {item.suffix}
+              </span>
+            </dd>
+          </div>
+        );
+      })
+    }
+  </dl>
+</section>
+
+<script>
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const roots = document.querySelectorAll<HTMLElement>("[data-stats]");
+
+  function run(root: HTMLElement) {
+    const locale = root.dataset.locale || undefined;
+    const duration = Number(root.dataset.duration) || 0;
+    const numbers = root.querySelectorAll<HTMLElement>("[data-value]");
+    const start = performance.now();
+    const formats = Array.from(numbers, (el) => {
+      const decimals = Number(el.dataset.decimals) || 0;
+      return new Intl.NumberFormat(locale, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    });
+
+    function frame(now: number) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      numbers.forEach((el, i) => {
+        el.textContent = formats[i].format(Number(el.dataset.value) * eased);
+      });
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  if (!reduced && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          run(entry.target as HTMLElement);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    for (const root of roots) {
+      if (Number(root.dataset.duration) <= 0) continue;
+      // Reset to zero only once we know the animation will play.
+      for (const el of root.querySelectorAll<HTMLElement>("[data-value]")) {
+        const box = el.getBoundingClientRect();
+        if (box.top < window.innerHeight && box.bottom > 0) continue; // already visible: leave as is
+        el.textContent = "0";
+      }
+      observer.observe(root);
+    }
+  }
+</script>
+
+<style>
+  .stats {
+    padding-block: var(--space-6);
+    background: var(--stats-bg, transparent);
+    color: var(--stats-fg, var(--color-fg));
+  }
+
+  .stats--surface {
+    background: var(--stats-bg, var(--color-surface));
+  }
+
+  .stats--inverse {
+    background: var(--stats-bg, var(--color-inverse-surface));
+    color: var(--stats-fg, var(--color-inverse-fg));
+  }
+
+  .stats--center {
+    text-align: center;
+  }
+
+  .stats__heading {
+    margin: 0 0 var(--space-5);
+    font-family: var(--font-display);
+    font-size: var(--size-xl);
+    line-height: var(--line-tight);
+  }
+
+  .stats__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+    gap: var(--space-5);
+    margin: 0;
+  }
+
+  .stats__item {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-1);
+    padding-inline: var(--space-3);
+    border-inline-start: var(--stats-divider, 0);
+  }
+
+  .stats--center .stats__item {
+    align-items: center;
+  }
+
+  .stats__value {
+    margin: 0;
+    font-family: var(--stats-value-font, var(--font-display));
+    font-size: var(--stats-value-size, clamp(2.25rem, 1.75rem + 2vw, 3.5rem));
+    font-weight: var(--weight-bold);
+    line-height: 1;
+    color: var(--stats-value-color, inherit);
+  }
+
+  .stats__number {
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stats--center .stats__number {
+    text-align: center;
+  }
+
+  .stats__label {
+    font-size: var(--size-sm);
+    color: var(--stats-label-color, inherit);
+  }
+
+  .stats__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

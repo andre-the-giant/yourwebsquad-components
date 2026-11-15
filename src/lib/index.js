@@ -59,3 +59,6 @@ export { default as NoticeBar } from "./components/NoticeBar/NoticeBar.astro";
 export { default as MenuLine } from "./components/MenuLine/MenuLine.astro";
 export { default as OptionBuilder } from "./components/OptionBuilder/OptionBuilder.astro";
 export { default as VisibleCaption } from "./components/VisibleCaption/VisibleCaption.astro";
+export { default as StatsCounter } from "./components/StatsCounter/StatsCounter.astro";
+export { default as LogoCloud } from "./components/LogoCloud/LogoCloud.astro";
+export { default as Toast } from "./components/Toast/Toast.astro";

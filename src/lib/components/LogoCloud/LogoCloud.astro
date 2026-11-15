@@ -1,0 +1,209 @@
+---
+/*
+LogoCloud — client, partner or certification logos in a calm, centred grid.
+Props:
+- items: { src: string, alt: string, href?: string, width?: number, height?: number }[]
+  alt is the organisation's name ("Desjardins"), never "logo".
+- heading?: string — e.g. "They trust us"
+- muted?: boolean — logos greyed and softened until hover/focus (default true)
+- size?: "sm" | "md" | "lg" — logo height
+- tone?: "default" | "surface"
+- id?: string
+- class?: string
+- style?: string
+Accessibility: a real list with a heading; linked logos get the organisation name as their
+accessible name and a visible focus ring. Greying is decorative only.
+Performance: lazy, async-decoded images with width/height to prevent layout shift.
+For a moving row of logos use Marquee instead; keep this one still.
+Theme variables: --logo-cloud-bg, --logo-cloud-height, --logo-cloud-gap,
+--logo-cloud-filter, --logo-cloud-opacity
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { nextId } from "../../utils/id.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  items: z
+    .array(
+      z.looseObject({
+        src: z.string(),
+        alt: z.string().min(1),
+        href: z.string().optional(),
+        width: z.number().int().positive().optional(),
+        height: z.number().int().positive().optional()
+      })
+    )
+    .min(1),
+  heading: z.string().optional(),
+  muted: z.boolean().default(true),
+  size: z.enum(["sm", "md", "lg"]).default("md"),
+  tone: z.enum(["default", "surface"]).default("default")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  items,
+  heading,
+  muted,
+  size,
+  tone,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "LogoCloud" });
+
+const headingId = heading ? nextId("logo-cloud") : undefined;
+---
+
+<section
+  id={id}
+  class={mergeClasses(
+    "logo-cloud",
+    `logo-cloud--${size}`,
+    `logo-cloud--${tone}`,
+    muted && "logo-cloud--muted",
+    className
+  )}
+  style={style}
+  aria-labelledby={headingId}
+  {...rest}
+>
+  {
+    heading && (
+      <h2 id={headingId} class="logo-cloud__heading">
+        {heading}
+      </h2>
+    )
+  }
+  <ul class="logo-cloud__list" aria-labelledby={headingId}>
+    {
+      items.map((item) => {
+        const img = (
+          <img
+            class="logo-cloud__img"
+            src={item.src}
+            alt={item.alt}
+            width={item.width}
+            height={item.height}
+            loading="lazy"
+            decoding="async"
+          />
+        );
+        return (
+          <li class="logo-cloud__item">
+            {item.href ? (
+              <a class="logo-cloud__link" href={item.href}>
+                {img}
+              </a>
+            ) : (
+              img
+            )}
+          </li>
+        );
+      })
+    }
+  </ul>
+</section>
+
+<style>
+  .logo-cloud {
+    padding-block: var(--space-6);
+    background: var(--logo-cloud-bg, transparent);
+    text-align: center;
+  }
+
+  .logo-cloud--surface {
+    background: var(--logo-cloud-bg, var(--color-surface));
+  }
+
+  .logo-cloud--sm {
+    --_h: var(--logo-cloud-height, 1.75rem);
+  }
+
+  .logo-cloud--md {
+    --_h: var(--logo-cloud-height, 2.5rem);
+  }
+
+  .logo-cloud--lg {
+    --_h: var(--logo-cloud-height, 3.5rem);
+  }
+
+  .logo-cloud__heading {
+    margin: 0 0 var(--space-5);
+    font-size: var(--size-sm);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+  }
+
+  .logo-cloud__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--logo-cloud-gap, var(--space-5) var(--space-6));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .logo-cloud__item {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  .logo-cloud__link {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .logo-cloud__link:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 4px;
+  }
+
+  .logo-cloud__img {
+    display: block;
+    width: auto;
+    max-width: 10rem;
+    height: var(--_h);
+    object-fit: contain;
+    transition:
+      filter 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .logo-cloud--muted .logo-cloud__img {
+    filter: var(--logo-cloud-filter, grayscale(1));
+    opacity: var(--logo-cloud-opacity, 0.7);
+  }
+
+  .logo-cloud--muted .logo-cloud__item:hover .logo-cloud__img,
+  .logo-cloud--muted .logo-cloud__link:focus-visible .logo-cloud__img {
+    filter: none;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-cloud__img {
+      transition: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .logo-cloud--muted .logo-cloud__img {
+      filter: none;
+      opacity: 1;
+    }
+  }
+</style>

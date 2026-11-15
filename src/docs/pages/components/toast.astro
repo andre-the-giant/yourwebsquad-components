@@ -1,0 +1,91 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import Toast from "@lib/components/Toast/Toast.astro";
+import Button from "@lib/components/Button/Button.astro";
+
+const props = [
+  {
+    name: "position",
+    type: '"bottom-end" | "bottom-center" | "top-center"',
+    default: '"bottom-end"',
+    description: "Where toasts appear on wide screens. Phones: always bottom-center."
+  },
+  {
+    name: "duration",
+    type: "number",
+    default: "5000",
+    description: "ms on screen; 0 = until dismissed."
+  },
+  { name: "max", type: "number", default: "3", description: "Shown at once; oldest leaves first." },
+  {
+    name: "initial",
+    type: "{ message: string, tone?: Tone }",
+    description: "Server-side message, e.g. after a form redirect."
+  },
+  { name: "label", type: "string", default: '"Notifications"', description: "Region name." },
+  { name: "closeLabel", type: "string", default: '"Dismiss"', description: "Dismiss button name." }
+];
+
+const triggerCode = `<!-- once, in the layout -->
+<Toast />
+
+<!-- anywhere -->
+<button data-toast="Quote request sent" data-toast-tone="success">Send</button>`;
+
+const scriptCode = `document.dispatchEvent(
+  new CustomEvent("toast", {
+    detail: { message: "Connection lost, retrying…", tone: "danger", duration: 0 }
+  })
+);`;
+---
+
+<DocLayout
+  title={"Toast"}
+  description={"Short messages that slide in, are announced to screen readers, and leave by themselves. Place one <Toast /> per page, then trigger it with a data-toast attribute or a toast event. The timer pauses on hover and focus; never put the only copy of important information in a toast."}
+  items={components}
+>
+  <PropsTable props={props} />
+
+  <Preview title={"From buttons (data-toast)"} code={triggerCode}>
+    <div class="toast-demo">
+      <Button data-toast="Quote request sent" data-toast-tone="success">Success</Button>
+      <Button variant="outline" data-toast="Your draft is saved on this device.">Info</Button>
+      <Button variant="outline" data-toast="Only 2 slots left this week." data-toast-tone="warning">
+        Warning
+      </Button>
+      <Button
+        variant="outline"
+        data-toast="The file is too large (max 10 MB)."
+        data-toast-tone="danger"
+        data-toast-duration="0">Danger, stays</Button
+      >
+    </div>
+  </Preview>
+
+  <Preview title={"From a script"} code={scriptCode}>
+    <Button variant="outline" id="toast-script-demo">Dispatch a toast event</Button>
+  </Preview>
+
+  <Toast />
+</DocLayout>
+
+<script>
+  document.getElementById("toast-script-demo")?.addEventListener("click", () => {
+    document.dispatchEvent(
+      new CustomEvent("toast", {
+        detail: { message: "Connection lost, retrying…", tone: "danger", duration: 0 }
+      })
+    );
+  });
+</script>
+
+<style>
+  .toast-demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { formKitTabs } from "../../src/docs/data/components.js";
 
 // Pages covering the components hardened in the v3 a11y pass (WS4) plus a few
 // representative atoms. axe is run against WCAG 2.0/2.1 A + AA rules.
@@ -13,8 +14,6 @@ const pages = [
   "/components/tooltip",
   "/components/accordion",
   "/components/modal",
-  "/components/form-input",
-  "/components/formfield",
   "/components/band",
   "/components/breadcrumb",
   "/components/pagehero",
@@ -30,8 +29,11 @@ const pages = [
   "/components/siteheader",
   "/components/sitefooter",
   "/components/tag",
-  "/components/form-radio",
-  "/components/form-checkbox",
+  "/components/statscounter",
+  "/components/logocloud",
+  "/components/toast",
+  // Form kit: one entry per tab (the hash opens it; axe skips hidden panels).
+  ...formKitTabs.map(({ id }) => `/components/form-kit#${id}`),
   "/components/map",
   "/components/hero",
   "/components/card",
@@ -59,7 +61,8 @@ const allPages = ["light", "plein-jour", "marbre", "chantier", "trattoria"].flat
 
 for (const { path, theme } of allPages) {
   test(`a11y (${theme}): ${path} has no WCAG A/AA violations`, async ({ page }) => {
-    await page.goto(`${path}?theme=${theme}`);
+    const [pathname, hash] = path.split("#");
+    await page.goto(`${pathname}?theme=${theme}${hash ? `#${hash}` : ""}`);
     const { violations } = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       // Scope to the library components — exclude docs-site chrome (nav, theme

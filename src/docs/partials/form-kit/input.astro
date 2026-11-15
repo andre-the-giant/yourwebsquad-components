@@ -1,25 +1,28 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
-import FormTextarea from "@lib/components/Form-Textarea/Form-Textarea.astro";
+import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 
-const basicCode = `<FormTextarea label="Message" id="message" placeholder="Write your message" />`;
-const statesCode = `<FormTextarea label="Notes" id="notes" rows={6} />\n<FormTextarea label="Disabled" id="notes-disabled" disabled />`;
-const cssVarCode = `<FormTextarea label="Padded notes" placeholder="Tweaked padding" style="--form-input-padding: 0.9rem 1.1rem; --form-input-border: 1px solid #0d6ea8;" />`;
+const basicCode = `<FormInput type="email" label="Email" id="email" placeholder="you@example.com" />`;
+const statesCode = `<FormInput label="Name" id="name" placeholder="Full name" />\n<FormInput label="Disabled" id="disabled" placeholder="Can't edit" disabled />`;
+const cssVarCode = `<FormInput label="Custom padding" style="--form-input-padding: 0.8rem 1rem; --form-input-border: 1px solid #0d6ea8;" placeholder="Tweaked padding" />`;
 
 const props = [
-  { name: "id", type: "string", description: "Textarea id; auto-generated if missing." },
+  { name: "id", type: "string", description: "Input id; auto-generated if missing." },
   { name: "class", type: "string", description: "Wrapper class names." },
   { name: "style", type: "string", description: "Inline styles or CSS var overrides." },
   { name: "name", type: "string", description: "Form field name." },
   { name: "label", type: "string", description: "Label text." },
   { name: "placeholder", type: "string", description: "Placeholder text." },
-  { name: "value", type: "string", description: "Initial content." },
-  { name: "rows", type: "number", default: "4", description: "Row height." },
-  { name: "disabled", type: "boolean", default: "false", description: "Disable textarea." },
-  { name: "readonly", type: "boolean", default: "false", description: "Read-only textarea." },
+  { name: "value", type: "string", description: "Initial value." },
+  {
+    name: "type",
+    type: "string",
+    default: '"text"',
+    description: "Input type (email, password, etc.)."
+  },
+  { name: "disabled", type: "boolean", default: "false", description: "Disable input." },
+  { name: "readonly", type: "boolean", default: "false", description: "Read-only input." },
   {
     name: "required",
     type: "boolean",
@@ -40,32 +43,30 @@ const props = [
 ];
 ---
 
-<DocLayout title="Form-Textarea" description="Multiline text input with label." items={components}>
   <PropsTable props={props} />
 
   <Preview title="Basic" code={basicCode}>
     <div class="row">
-      <FormTextarea label="Message" id="message" placeholder="Write your message" />
+      <FormInput type="email" label="Email" id="email" placeholder="you@example.com" />
     </div>
   </Preview>
 
   <Preview title="States" code={statesCode}>
     <div class="row">
-      <FormTextarea label="Notes" id="notes" rows={6} />
-      <FormTextarea label="Disabled" id="notes-disabled" disabled />
+      <FormInput label="Name" id="name" placeholder="Full name" />
+      <FormInput label="Disabled" id="disabled" placeholder="Can't edit" disabled />
     </div>
   </Preview>
 
   <Preview title="CSS variables" code={cssVarCode}>
     <div class="row">
-      <FormTextarea
-        label="Padded notes"
+      <FormInput
+        label="Custom padding"
+        style="--form-input-padding: 0.8rem 1rem; --form-input-border: 1px solid #0d6ea8;"
         placeholder="Tweaked padding"
-        style="--form-input-padding: 0.9rem 1.1rem; --form-input-border: 1px solid #0d6ea8;"
       />
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {

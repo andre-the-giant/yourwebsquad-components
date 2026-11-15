@@ -1,0 +1,67 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import LogoCloud from "@lib/components/LogoCloud/LogoCloud.astro";
+
+const props = [
+  {
+    name: "items",
+    type: "{ src: string, alt: string, href?: string, width?: number, height?: number }[]",
+    description: 'alt is the organisation name ("Desjardins"), never "logo".'
+  },
+  { name: "heading", type: "string", description: 'Small title, e.g. "They trust us".' },
+  { name: "muted", type: "boolean", default: "true", description: "Greyed until hover/focus." },
+  { name: "size", type: '"sm" | "md" | "lg"', default: '"md"', description: "Logo height." },
+  { name: "tone", type: '"default" | "surface"', default: '"default"', description: "Background." }
+];
+
+// Fictional wordmarks for the demo, drawn as SVG data URIs.
+type Shape = "circle" | "square" | "triangle";
+const marks: [string, string, Shape][] = [
+  ["Northfield", "#1f6f5c", "circle"],
+  ["Batiplus", "#b4441c", "square"],
+  ["Laurentide", "#2f5fa4", "triangle"],
+  ["Cedar & Co", "#6b4f2a", "circle"],
+  ["Quaycrete", "#3b3f46", "square"],
+  ["Alto Verde", "#3d7a2a", "triangle"]
+];
+const shapes: Record<Shape, (_fill: string) => string> = {
+  circle: (c) => `<circle cx="20" cy="20" r="14" fill="${c}"/>`,
+  square: (c) => `<rect x="6" y="6" width="28" height="28" rx="4" fill="${c}"/>`,
+  triangle: (c) => `<path d="M20 5 36 34H4z" fill="${c}"/>`
+};
+const logo = ([name, color, shape]: [string, string, Shape]) => {
+  const width = 52 + name.length * 13;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="40" viewBox="0 0 ${width} 40">${shapes[shape](color)}<text x="44" y="27" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="${color}">${name.replace("&", "&amp;")}</text></svg>`;
+  return {
+    src: `data:image/svg+xml,${encodeURIComponent(svg)}`,
+    alt: name,
+    width,
+    height: 40
+  };
+};
+const items = marks.map(logo);
+const linked = items.slice(0, 4).map((item) => ({ ...item, href: "#" }));
+---
+
+<DocLayout
+  title={"LogoCloud"}
+  description={"Client, partner or certification logos in a calm, centred grid. Greyed until hover or focus (never in high-contrast mode). For a moving row, use Marquee instead."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Muted, with heading"}
+    code={'<LogoCloud heading="They trust us" items={[{ src: "/logos/acme.svg", alt: "Acme", width: 140, height: 40 }, …]} />'}
+  >
+    <LogoCloud heading="They trust us" items={items} />
+  </Preview>
+  <Preview
+    title={"Full colour, linked, large"}
+    code={'<LogoCloud muted={false} size="lg" tone="surface" items={…} />'}
+  >
+    <LogoCloud muted={false} size="lg" tone="surface" items={linked} />
+  </Preview>
+</DocLayout>

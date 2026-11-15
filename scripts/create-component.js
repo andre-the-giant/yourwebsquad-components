@@ -244,8 +244,13 @@ const customCode = '<${Folder} id="${slugName}-sample" />';
   try {
     const content = await fs.readFile(dataFile, "utf8");
     const insert = `  {\n    name: "${Folder}",\n    href: "/components/${slugName}",\n    description: ${descriptionLiteral},\n    category: ${JSON.stringify(category)},\n    level: "${group}"\n  }\n`;
-    // Anchor to end of file: `categories` also ends with "];".
-    const updated = content.replace(/,?\n\];\s*$/, `,\n${insert}];\n`);
+    // Insert at the end of the `components` array (other arrays also end with "];").
+    const anchor = content.indexOf("export const components = [");
+    const close = anchor === -1 ? -1 : content.indexOf("\n];", anchor);
+    const updated =
+      close === -1
+        ? content
+        : `${content.slice(0, close).replace(/,?\s*$/, "")},\n${insert}];${content.slice(close + 3)}`;
     if (updated === content) {
       logError(`Could not update ${dataFile} — pattern not found.`);
     } else {

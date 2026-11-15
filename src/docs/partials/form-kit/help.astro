@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormInput from "@lib/components/Form-Input/Form-Input.astro";
 import FormHelp from "@lib/components/Form-Help/Form-Help.astro";
 
@@ -21,11 +19,6 @@ const props = [
 ];
 ---
 
-<DocLayout
-  title="Form-Help"
-  description="Helper text for form fields with aria support."
-  items={components}
->
   <PropsTable props={props} />
 
   <Preview title="Usage" code={basicCode}>
@@ -34,7 +27,6 @@ const props = [
       <FormHelp id="username-help">Use 3–16 characters, letters and numbers only.</FormHelp>
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {

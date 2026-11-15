@@ -1,0 +1,324 @@
+---
+/*
+Toast — short messages that slide in, are announced, and leave by themselves.
+Place ONE <Toast /> per page (in the layout). Then show a message:
+- from a button: <button data-toast="Saved" data-toast-tone="success">
+- from a script: document.dispatchEvent(new CustomEvent("toast", {
+    detail: { message: "Saved", tone: "success", duration: 5000 } }))
+- from the server (after a redirect): <Toast initial={{ message: "Thanks!", tone: "success" }} />
+Props:
+- position?: "bottom-end" | "bottom-center" | "top-center" (default "bottom-end";
+  always bottom-center on phones)
+- duration?: number — ms before a toast leaves; 0 keeps it until dismissed (default 5000)
+- max?: number — toasts shown at once; the oldest leaves first (default 3)
+- initial?: { message: string, tone?: Tone }
+- label?: string — name of the notifications region (default "Notifications")
+- closeLabel?: string — dismiss button name (default "Dismiss")
+- id?: string
+- class?: string
+- style?: string
+Tone: "info" | "success" | "warning" | "danger"
+Accessibility: messages are announced through hidden live regions (polite; assertive for
+"danger"), which exist from page load so every message is read. The timer pauses while the
+pointer is over a toast or focus is inside it (WCAG 2.2.1), and each toast has a 44px
+dismiss button. Escape dismisses the focused toast. Never put the only copy of important
+information, or a required action, in a toast. No sliding under reduced motion.
+Theme variables: --toast-bg, --toast-fg, --toast-radius, --toast-shadow, --toast-width,
+--toast-offset (distance from the viewport edge, e.g. above StickyActions)
+*/
+import { z } from "zod";
+import { parseProps } from "../../utils/props.js";
+import { mergeClasses } from "../../utils/style.js";
+
+const Tone = z.enum(["info", "success", "warning", "danger"]);
+
+const Schema = z.looseObject({
+  id: z.string().optional(),
+  class: z.string().optional(),
+  style: z.string().optional(),
+  position: z.enum(["bottom-end", "bottom-center", "top-center"]).default("bottom-end"),
+  duration: z.number().int().min(0).default(5000),
+  max: z.number().int().min(1).default(3),
+  initial: z.object({ message: z.string(), tone: Tone.default("info") }).optional(),
+  label: z.string().default("Notifications"),
+  closeLabel: z.string().default("Dismiss")
+});
+
+type Props = z.input<typeof Schema>;
+
+const {
+  id,
+  class: className,
+  style,
+  position,
+  duration,
+  max,
+  initial,
+  label,
+  closeLabel,
+  ...rest
+} = parseProps(Schema, Astro.props, { component: "Toast" });
+---
+
+<div
+  id={id}
+  class={mergeClasses("toaster", `toaster--${position}`, className)}
+  style={style}
+  data-toaster
+  data-duration={duration}
+  data-max={max}
+  data-initial={initial ? JSON.stringify(initial) : undefined}
+  {...rest}
+>
+  <p class="toaster__sr" role="status" aria-live="polite" data-toast-polite></p>
+  <p class="toaster__sr" role="alert" aria-live="assertive" data-toast-assertive></p>
+  <section class="toaster__region" aria-label={label}>
+    <ol class="toaster__list" data-toast-list></ol>
+  </section>
+  <template data-toast-template>
+    <li class="toast" tabindex="-1">
+      <p class="toast__message"></p>
+      <button type="button" class="toast__close" aria-label={closeLabel}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path
+            d="M6 6l12 12M18 6L6 18"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </li>
+  </template>
+</div>
+
+<script>
+  type Tone = "info" | "success" | "warning" | "danger";
+  type Detail = { message: string; tone?: Tone; duration?: number };
+
+  const root = document.querySelector<HTMLElement>("[data-toaster]");
+
+  if (root && !root.dataset.ready) {
+    root.dataset.ready = "true";
+    const list = root.querySelector<HTMLOListElement>("[data-toast-list]")!;
+    const template = root.querySelector<HTMLTemplateElement>("[data-toast-template]")!;
+    const polite = root.querySelector<HTMLElement>("[data-toast-polite]")!;
+    const assertive = root.querySelector<HTMLElement>("[data-toast-assertive]")!;
+    const defaultDuration = Number(root.dataset.duration ?? 5000);
+    const max = Number(root.dataset.max ?? 3);
+    const tones = ["info", "success", "warning", "danger"];
+
+    function announce(message: string, tone: Tone) {
+      const region = tone === "danger" ? assertive : polite;
+      // Clear first so the same message twice is still announced.
+      region.textContent = "";
+      window.setTimeout(() => (region.textContent = message), 100);
+    }
+
+    function remove(item: HTMLElement) {
+      if (item.dataset.leaving) return;
+      item.dataset.leaving = "true";
+      const hadFocus = item.contains(document.activeElement);
+      item.classList.add("is-leaving");
+      const done = () => {
+        item.remove();
+        if (hadFocus) (list.querySelector<HTMLElement>(".toast") ?? document.body).focus();
+      };
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) done();
+      else item.addEventListener("animationend", done, { once: true });
+    }
+
+    function show({ message, tone = "info", duration = defaultDuration }: Detail) {
+      if (!message) return;
+      const safeTone: Tone = tones.includes(tone) ? tone : "info";
+      const item = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+      item.classList.add(`toast--${safeTone}`);
+      item.querySelector(".toast__message")!.textContent = message;
+      item.querySelector(".toast__close")!.addEventListener("click", () => remove(item));
+      item.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") remove(item);
+      });
+
+      if (duration > 0) {
+        let remaining = duration;
+        let started = Date.now();
+        let timer = window.setTimeout(() => remove(item), remaining);
+        const pause = () => {
+          window.clearTimeout(timer);
+          remaining -= Date.now() - started;
+        };
+        const resume = () => {
+          if (item.matches(":hover") || item.contains(document.activeElement)) return;
+          started = Date.now();
+          timer = window.setTimeout(() => remove(item), Math.max(remaining, 1000));
+        };
+        item.addEventListener("pointerenter", pause);
+        item.addEventListener("pointerleave", resume);
+        item.addEventListener("focusin", pause);
+        item.addEventListener("focusout", (event) => {
+          if (!item.contains(event.relatedTarget as Node)) resume();
+        });
+      }
+
+      list.append(item);
+      const live = list.querySelectorAll<HTMLElement>(".toast:not(.is-leaving)");
+      for (let i = 0; i < live.length - max; i += 1) remove(live[i]);
+      announce(message, safeTone);
+    }
+
+    document.addEventListener("toast", (event) => {
+      show((event as CustomEvent<Detail>).detail ?? { message: "" });
+    });
+
+    document.addEventListener("click", (event) => {
+      const trigger = (event.target as Element).closest<HTMLElement>("[data-toast]");
+      if (!trigger) return;
+      show({
+        message: trigger.dataset.toast ?? "",
+        tone: trigger.dataset.toastTone as Tone | undefined,
+        duration: trigger.dataset.toastDuration ? Number(trigger.dataset.toastDuration) : undefined
+      });
+    });
+
+    if (root.dataset.initial) {
+      // Wait a moment: live regions ignore content added while the page loads.
+      window.setTimeout(() => show(JSON.parse(root.dataset.initial!)), 600);
+    }
+  }
+</script>
+
+<style>
+  .toaster__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .toaster__region {
+    position: fixed;
+    z-index: 1000;
+    inset-inline: var(--space-4);
+    bottom: var(--toast-offset, var(--space-4));
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .toaster__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: min(100%, var(--toast-width, 24rem));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 48rem) {
+    .toaster--bottom-end .toaster__region {
+      justify-content: flex-end;
+    }
+
+    .toaster--top-center .toaster__region {
+      top: var(--toast-offset, var(--space-4));
+      bottom: auto;
+    }
+
+    .toaster--top-center .toaster__list {
+      flex-direction: column-reverse;
+    }
+  }
+
+  .toaster :global(.toast) {
+    --_tone: var(--color-info-rgb);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-inline-start: 4px solid rgb(var(--_tone));
+    border-radius: var(--toast-radius, var(--radius-md));
+    background: var(--toast-bg, var(--color-surface));
+    color: var(--toast-fg, var(--color-fg));
+    box-shadow: var(--toast-shadow, 0 10px 30px var(--color-shadow));
+    pointer-events: auto;
+    animation: toast-in 0.25s ease-out;
+  }
+
+  .toaster :global(.toast:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .toaster :global(.toast--success) {
+    --_tone: var(--color-success-rgb);
+  }
+
+  .toaster :global(.toast--warning) {
+    --_tone: var(--color-warning-rgb);
+  }
+
+  .toaster :global(.toast--danger) {
+    --_tone: var(--color-danger-rgb);
+  }
+
+  .toaster :global(.toast.is-leaving) {
+    animation: toast-out 0.2s ease-in forwards;
+  }
+
+  .toaster :global(.toast__message) {
+    flex: 1;
+    margin: 0;
+    padding-block: 0.6rem;
+    font-size: var(--size-sm);
+    line-height: var(--line-normal);
+  }
+
+  .toaster :global(.toast__close) {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .toaster :global(.toast__close:hover) {
+    background: var(--color-bg);
+  }
+
+  .toaster :global(.toast__close:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 0;
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+  }
+
+  @keyframes toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toaster :global(.toast),
+    .toaster :global(.toast.is-leaving) {
+      animation: none;
+    }
+  }
+</style>

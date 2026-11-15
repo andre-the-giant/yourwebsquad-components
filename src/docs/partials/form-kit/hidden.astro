@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormHidden from "@lib/components/Form-Hidden/Form-Hidden.astro";
 
 const basicCode = `<form>
@@ -17,11 +15,6 @@ const props = [
 ];
 ---
 
-<DocLayout
-  title="Form-Hidden"
-  description="Hidden input for posting fixed values."
-  items={components}
->
   <PropsTable props={props} />
 
   <Preview title="Usage" code={basicCode}>
@@ -30,7 +23,6 @@ const props = [
       <p>Hidden value ready to submit.</p>
     </form>
   </Preview>
-</DocLayout>
 
 <style>
   .demo-form {

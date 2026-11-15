@@ -1,0 +1,173 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import { components, formKitTabs } from "@docs/data/components.js";
+import Form from "@docs/partials/form-kit/form.astro";
+import Field from "@docs/partials/form-kit/field.astro";
+import Input from "@docs/partials/form-kit/input.astro";
+import Textarea from "@docs/partials/form-kit/textarea.astro";
+import Select from "@docs/partials/form-kit/select.astro";
+import Checkbox from "@docs/partials/form-kit/checkbox.astro";
+import Radio from "@docs/partials/form-kit/radio.astro";
+import DateField from "@docs/partials/form-kit/date.astro";
+import Upload from "@docs/partials/form-kit/upload.astro";
+import Help from "@docs/partials/form-kit/help.astro";
+import ErrorText from "@docs/partials/form-kit/error.astro";
+import Hidden from "@docs/partials/form-kit/hidden.astro";
+
+const panels = {
+  form: Form,
+  field: Field,
+  input: Input,
+  textarea: Textarea,
+  select: Select,
+  checkbox: Checkbox,
+  radio: Radio,
+  date: DateField,
+  upload: Upload,
+  help: Help,
+  error: ErrorText,
+  hidden: Hidden
+};
+---
+
+<DocLayout
+  title="Form kit"
+  description="Everything for forms: the schema-driven Form wrapper, the composed FormField, and each Form-* control."
+  items={components}
+>
+  <div class="form-kit" data-form-kit>
+    <div class="form-kit__tabs" role="tablist" aria-label="Form kit components">
+      {
+        formKitTabs.map((tab, index) => (
+          <button
+            type="button"
+            role="tab"
+            class="form-kit__tab"
+            id={`tab-${tab.id}`}
+            aria-controls={`panel-${tab.id}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            tabindex={index === 0 ? 0 : -1}
+            data-tab={tab.id}
+          >
+            {tab.name}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      formKitTabs.map((tab, index) => {
+        const Panel = panels[tab.id];
+        return (
+          <section
+            class="form-kit__panel"
+            role="tabpanel"
+            id={`panel-${tab.id}`}
+            aria-labelledby={`tab-${tab.id}`}
+            tabindex="0"
+            hidden={index !== 0}
+          >
+            <p class="form-kit__lead">
+              <strong>{tab.name}</strong> — {tab.description}
+            </p>
+            <Panel />
+          </section>
+        );
+      })
+    }
+  </div>
+</DocLayout>
+
+<script>
+  const root = document.querySelector<HTMLElement>("[data-form-kit]");
+  if (root) {
+    const tabs = Array.from(root.querySelectorAll<HTMLElement>('[role="tab"]'));
+
+    const select = (tab: HTMLElement, { focus = false, updateHash = true } = {}) => {
+      for (const other of tabs) {
+        const active = other === tab;
+        other.setAttribute("aria-selected", active ? "true" : "false");
+        other.tabIndex = active ? 0 : -1;
+        const panel = document.getElementById(other.getAttribute("aria-controls") ?? "");
+        if (panel) panel.hidden = !active;
+      }
+      if (focus) tab.focus();
+      if (updateHash) history.replaceState(null, "", `#${tab.dataset.tab}`);
+    };
+
+    const fromHash = () => {
+      const id = location.hash.slice(1);
+      const tab = tabs.find((t) => t.dataset.tab === id);
+      if (tab) select(tab, { updateHash: false });
+    };
+
+    root.addEventListener("click", (event) => {
+      const tab = (event.target as Element).closest<HTMLElement>('[role="tab"]');
+      if (tab) select(tab);
+    });
+
+    root.addEventListener("keydown", (event) => {
+      const index = tabs.indexOf(document.activeElement as HTMLElement);
+      if (index === -1) return;
+      const keys: Record<string, number> = {
+        ArrowRight: (index + 1) % tabs.length,
+        ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+        Home: 0,
+        End: tabs.length - 1
+      };
+      if (!(event.key in keys)) return;
+      event.preventDefault();
+      select(tabs[keys[event.key]], { focus: true });
+    });
+
+    window.addEventListener("hashchange", fromHash);
+    fromHash();
+  }
+</script>
+
+<style>
+  .form-kit__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1, 0.25rem);
+    padding-bottom: var(--space-2, 0.5rem);
+    margin-bottom: var(--space-4, 1rem);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .form-kit__tab {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .form-kit__tab:hover {
+    background: var(--color-surface);
+  }
+
+  .form-kit__tab[aria-selected="true"] {
+    background: var(--color-inverse-surface);
+    border-color: var(--color-inverse-surface);
+    color: var(--color-inverse-fg);
+  }
+
+  .form-kit__tab:focus-visible,
+  .form-kit__panel:focus-visible {
+    outline: 2px solid var(--color-focus, currentColor);
+    outline-offset: 2px;
+  }
+
+  .form-kit__panel {
+    display: grid;
+    gap: var(--space-4, 1rem);
+  }
+
+  .form-kit__lead {
+    margin: 0;
+  }
+</style>

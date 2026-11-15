@@ -1,0 +1,64 @@
+---
+import DocLayout from "@docs/layouts/DocLayout.astro";
+import Preview from "@docs/components/Preview.astro";
+import PropsTable from "@docs/components/PropsTable.astro";
+import { components } from "@docs/data/components.js";
+import StatsCounter from "@lib/components/StatsCounter/StatsCounter.astro";
+
+const props = [
+  {
+    name: "items",
+    type: "{ value: number, label: string, prefix?: string, suffix?: string, decimals?: number }[]",
+    description: "One to six numbers. The final value is in the HTML."
+  },
+  { name: "heading", type: "string", description: "Optional title above the numbers." },
+  { name: "locale", type: "string", default: '"en-CA"', description: "Number formatting." },
+  { name: "duration", type: "number", default: "1600", description: "Count-up in ms; 0 = static." },
+  {
+    name: "tone",
+    type: '"default" | "surface" | "inverse"',
+    default: '"default"',
+    description: "Colours."
+  },
+  { name: "align", type: '"center" | "start"', default: '"center"', description: "Alignment." }
+];
+
+const items = [
+  { value: 25, suffix: "+", label: "years in business" },
+  { value: 1200, label: "driveways paved" },
+  { value: 4.9, decimals: 1, suffix: " / 5", label: "average Google rating" },
+  { value: 48, suffix: " h", label: "to get your quote" }
+];
+
+const fr = [
+  { value: 98, suffix: " %", label: "clients satisfaits" },
+  { value: 15000, prefix: "", suffix: " $", label: "économisés en moyenne" },
+  { value: 12, label: "villes desservies" }
+];
+---
+
+<DocLayout
+  title={"StatsCounter"}
+  description={"Key numbers that count up once when they scroll into view. The final values are in the HTML, so they are right without JavaScript; screen readers hear each value once, and nothing moves under reduced motion."}
+  items={components}
+>
+  <PropsTable props={props} />
+  <Preview
+    title={"Default"}
+    code={'<StatsCounter items={[{ value: 25, suffix: "+", label: "years in business" }, …]} />'}
+  >
+    <StatsCounter items={items} />
+  </Preview>
+  <Preview
+    title={"Inverse with heading"}
+    code={'<StatsCounter tone="inverse" heading="Our year in numbers" items={…} />'}
+  >
+    <StatsCounter tone="inverse" heading="Our year in numbers" items={items.slice(0, 3)} />
+  </Preview>
+  <Preview
+    title={"French locale, aligned start"}
+    code={'<StatsCounter locale="fr-CA" align="start" items={…} />'}
+  >
+    <StatsCounter locale="fr-CA" align="start" items={fr} />
+  </Preview>
+</DocLayout>

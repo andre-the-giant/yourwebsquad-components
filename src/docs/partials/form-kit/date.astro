@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormDate from "@lib/components/Form-Date/Form-Date.astro";
 
 const basicCode = `<FormDate label="Birthday" id="birthday" />`;
@@ -42,11 +40,6 @@ const props = [
 ];
 ---
 
-<DocLayout
-  title="Form-Date"
-  description="Native date input with label and states."
-  items={components}
->
   <PropsTable props={props} />
 
   <Preview title="Basic" code={basicCode}>
@@ -70,7 +63,6 @@ const props = [
       />
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {

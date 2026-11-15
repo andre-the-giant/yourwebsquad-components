@@ -1,8 +1,6 @@
 ---
-import DocLayout from "@docs/layouts/DocLayout.astro";
 import Preview from "@docs/components/Preview.astro";
 import PropsTable from "@docs/components/PropsTable.astro";
-import { components } from "@docs/data/components.js";
 import FormRadio from "@lib/components/Form-Radio/Form-Radio.astro";
 
 const basicCode = `<FormRadio label="Option A" id="opt-a" value="a" name="example" />\n<FormRadio label="Option B" id="opt-b" value="b" name="example" />`;
@@ -15,11 +13,6 @@ const styleVars = [
 ];
 ---
 
-<DocLayout
-  title="Form-Radio"
-  description="Stylish radio buttons with layout and color options."
-  items={components}
->
   <PropsTable
     props={[
       { name: "id", type: "string", description: "Radio id; auto-generated if missing." },
@@ -169,7 +162,6 @@ const styleVars = [
       />
     </div>
   </Preview>
-</DocLayout>
 
 <style>
   .row {
